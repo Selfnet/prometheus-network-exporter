@@ -20,7 +20,7 @@ If you are not using a SSH Priv Keyfile. You are been asked by the program for a
     python main.py
 ```
 
-defaults to http://localhost:8000
+defaults to [http://localhost:8000](http://localhost:8000)
 you can specify addr and port on the cli.
 
 #### example
