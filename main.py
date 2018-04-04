@@ -83,12 +83,29 @@ class _ThreadingSimpleServer(ThreadingMixIn, HTTPServer):
 
 
 if __name__ == '__main__':
-    # Usage: json_exporter.py port endpoint
+    # Usage: junos_exporter.py port endpoint
     # Start up the server to expose the metrics.
     # Example Query
     # http://localhost:8000/metric?hostname=device.example.com&access=False&hostname=device2.example.com&access=True
-    
-    start_http_server(8000)
-
+    point = 1
+    ip = ''
+    if len(sys.argv) > 2 and len(sys.argv) < 4:
+        point = 2
+        ip = sys.argv[1]
+    elif len(sys.argv) >= 4:
+        print("To many Arguments: {}\n max arg length = 2".format(len(sys.argv)))
+        exit(1)
+    try:
+        port = int(sys.argv[point])
+        print("Starting up Metrics endpoint")
+    except ValueError:
+        print("This is not a number: {}".format(sys.argv[point]))
+        sys.exit(1)
+    except IndexError:
+        port=8000
+    start_http_server(port, addr=ip)
+    if not ip:
+        ip = 'localhost'
+    print("Using\thostname:\t{}\n\tport:\t\t{}".format(ip,port))
     while True:
         time.sleep(1)
