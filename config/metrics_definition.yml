@@ -1,5 +1,15 @@
 ---
 DEFINITIONS:
+
+  METRICS_BASE:
+    base: pyez_junos
+    interface: interface
+    device: device
+
+  NETWORK_REGEXES:
+    - ge-*/1/*
+    - xe-*/*/*
+
   NETWORK_METRICS:
     Gauge:
       - metrik: last_flapped
@@ -171,6 +181,7 @@ DEFINITIONS:
 
     - label: speed
       key: speed
+
   ENVIRONMENT_METRICS:
     Gauge:
       - metrik: uptime
@@ -228,8 +239,8 @@ DEFINITIONS:
         function: cpu_idle
         specific: yes
 
-      - metrik: ram_usage
-        type: bytes_total
+      - metrik: ram
+        type: bytes
         key: re_loads
         description: Current Memory Usage in bytes
         function: ram_usage
@@ -243,7 +254,6 @@ DEFINITIONS:
         specific: yes
 
   ENVIRONMENT_LABEL_WRAPPER:
-
     - label: software_version
       key: version
   

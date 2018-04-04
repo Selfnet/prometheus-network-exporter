@@ -3,3 +3,4 @@ napalm_exporter
 switchers
 __pycache__
 *.pyc
+config/config.yml

@@ -4,7 +4,7 @@ import os
 import multiprocessing
 import time
 import datetime
-import getpass
+from getpass import getpass
 import yaml
 from threading import Thread
 from jnpr.junos import Device
@@ -12,33 +12,43 @@ import custom_junos as junos
 from pprint import pprint
 from prometheus_client.core import GaugeMetricFamily, CounterMetricFamily
 
-REGEXES = [
-    'ge-*/1/*',
-    'xe-*/*/*'
-]
-
-USERNAME = 'USERNAME'
-PASSWORD = getpass.getpass(prompt="LDAP Password:")
-CONFIG = {
-    'base': "pyez_junos",
-    'interface': "interface",
-    'device': "device"
-}
-
-METRICS = {
-    'Counter': CounterMetricFamily,
-    'Gauge': CounterMetricFamily
-}
 
 
-with open(os.path.join('config', 'metriks_definition.yml'), 'r') as metriks_definitions:
-    DEFINITIONS = yaml.load(metriks_definitions)
 
-DEFINITIONS = DEFINITIONS['DEFINITIONS']
-NETWORK_METRICS = DEFINITIONS['NETWORK_METRICS']
-ENVIRONMENT_METRICS = DEFINITIONS['ENVIRONMENT_METRICS']
-NETWORK_LABEL_WRAPPER = DEFINITIONS['NETWORK_LABEL_WRAPPER']
-ENVIRONMENT_LABEL_WRAPPER = DEFINITIONS['ENVIRONMENT_LABEL_WRAPPER']
+
+with open(os.path.join('config', 'config.yml'), 'r') as connection_definitions:
+    CONFIG = yaml.load(connection_definitions)
+
+# This is a sample for a connection.
+# You must specify a password or keyfile under config/connection.yml
+CONNECTIONS = CONFIG.get('CONNECTIONS', None)
+
+CONNECTION_SSH = CONNECTIONS.get('ssh', {})
+USERNAME = CONNECTION_SSH.get('USERNAME', 'napalm')
+PASSWORD = CONNECTION_SSH.get('PASSWORD', None)
+PRIV_KEYFILE = CONNECTION_SSH.get('PRIV_KEYFILE', None)
+CONFIG_FILE = CONNECTION_SSH.get('CONFIG_FILE', '~/.ssh/config')
+KEEPALIVE = CONNECTION_SSH.get('KEEPALIVE', 30)
+TIMEOUT = CONNECTION_SSH.get('TIMEOUT', 300)
+NETCONF_PORT = CONNECTION_SSH.get('NETCONF_PORT', 830)
+
+if not PASSWORD and not PRIV_KEYFILE:
+    PASSWORD = getpass(prompt="SSH_PASSWORD:")
+
+# If u want to have more metrics. You must edit the metrics_definitions.yml
+with open(os.path.join('config', 'metrics_definition.yml'), 'r') as metrics_definitions:
+    DEFINITIONS = yaml.load(metrics_definitions).get('DEFINITIONS',{})
+
+# Get the Metrics DEFINITIONS
+METRICS_BASE = DEFINITIONS.get('METRICS_BASE', {})
+NETWORK_REGEXES = DEFINITIONS.get('NETWORK_REGEXES', [])
+NETWORK_METRICS = DEFINITIONS.get('NETWORK_METRICS', {})
+ENVIRONMENT_METRICS = DEFINITIONS.get('ENVIRONMENT_METRICS',{})
+NETWORK_LABEL_WRAPPER = DEFINITIONS.get('NETWORK_LABEL_WRAPPER',[])
+ENVIRONMENT_LABEL_WRAPPER = DEFINITIONS.get('ENVIRONMENT_LABEL_WRAPPER',[])
+
+
+# TEMP Storage Variable (PLZ do not remove)
 RESULTS = {}
 
 
@@ -88,7 +98,6 @@ def fan_power_temp_status(metrik, labels, data, create_metrik=None):
 
 def temp_celsius(metrik, labels, data, create_metrik=None):
     for sensorname, information in data.items():
-        print(sensorname)
         labels.append(sensorname)
         metrik = create_metrik(metrik, 'temperature',
                                labels, information, function='intify')
@@ -162,6 +171,10 @@ FUNCTIONS = {
     'ram_usage': ram_usage
 }
 
+METRICS = {
+    'Counter': CounterMetricFamily,
+    'Gauge': CounterMetricFamily
+}
 
 class JunosCollector(object):
     def __init__(self, hostnames, access):
@@ -184,15 +197,15 @@ class JunosCollector(object):
 
     def _get_metric(self, hostname, access):
         dev_info = {}
-        with Device(host=hostname, username=USERNAME, password=PASSWORD,) as dev:
-            dev.timeout = 300
+        with Device(host=hostname, username=USERNAME, password=PASSWORD, port=NETCONF_PORT, ssh_private_key_file=PRIV_KEYFILE, ssh_config=CONFIG_FILE) as dev:
+            dev.timeout = TIMEOUT
             dev_info[hostname] = {}
             dev_info[hostname]['interfaces'] = {}
             dev_info[hostname]['environment'] = {}
             try:
                 if access:
                     dev_info[hostname]['interfaces'] = junos.get_specific_ports_information(
-                        dev, interface_junos_notations=REGEXES)
+                        dev, interface_junos_notations=NETWORK_REGEXES)
                 else:
                     dev_info[hostname]['interfaces'] = junos.get_all_ports_information(
                         dev)
@@ -300,7 +313,7 @@ class JunosCollector(object):
                 metrik_name, key, description, function, labels, _ = self.create_metrik_params(
                     metrik_def)
                 metrik = MetricFamily("{}_{}_{}".format(
-                    CONFIG['base'], CONFIG['interface'], metrik_name), description, labels=labels)
+                    METRICS_BASE['base'], METRICS_BASE['interface'], metrik_name), description, labels=labels)
                 for host in metriks_data:
                     for hostname, data in host.items():
                         for interface, metriken in data['interfaces'].items():
@@ -446,7 +459,7 @@ class JunosCollector(object):
                 metrik_name, key, description, function, labels, specific = self.create_metrik_params(
                     metrik_def, interfaces=False)
                 metrik = MetricFamily("{}_{}_{}".format(
-                    CONFIG['base'], CONFIG['device'], metrik_name), description, labels=labels)
+                    METRICS_BASE['base'], METRICS_BASE['device'], metrik_name), description, labels=labels)
                 for host in metriks_data:
                     for hostname, data in host.items():
                         environment = data.get('environment', None)
@@ -459,11 +472,10 @@ class JunosCollector(object):
                                 metrik = FUNCTIONS[function](
                                     metrik, labels, data, create_metrik=self.create_metrik)
                             elif environment.get(key):
-                                print(key)
                                 metrik = self.create_metrik(
                                     metrik, key, labels, environment, function=function)
                 metriks.append(metrik)
 
         for metrik in metriks:
             yield metrik
-        print("Done")
+        print("Done for {}".format(self.hostnames))
