@@ -17,7 +17,7 @@ REGEXES = [
     'xe-*/*/*'
 ]
 
-USERNAME = 'marcelf'
+USERNAME = 'USERNAME'
 PASSWORD = getpass.getpass(prompt="LDAP Password:")
 CONFIG = {
     'base': "pyez_junos",
