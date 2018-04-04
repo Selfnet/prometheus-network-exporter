@@ -4,7 +4,7 @@ import os
 import multiprocessing
 import time
 import datetime
-from getpass import getpass
+from getpass import getpass,getuser
 import yaml
 from threading import Thread
 from jnpr.junos import Device
@@ -20,11 +20,11 @@ with open(os.path.join('config', 'config.yml'), 'r') as connection_definitions:
     CONFIG = yaml.load(connection_definitions)
 
 # This is a sample for a connection.
-# You must specify a password or keyfile under config/connection.yml
+# You must specify a password or keyfile under config/config.yml
 CONNECTIONS = CONFIG.get('CONNECTIONS', None)
 
-CONNECTION_SSH = CONNECTIONS.get('ssh', {})
-USERNAME = CONNECTION_SSH.get('USERNAME', 'napalm')
+CONNECTION_SSH = CONNECTIONS.get('ssh', getuser())
+USERNAME = CONNECTION_SSH.get('USERNAME', )
 PASSWORD = CONNECTION_SSH.get('PASSWORD', None)
 PRIV_KEYFILE = CONNECTION_SSH.get('PRIV_KEYFILE', None)
 CONFIG_FILE = CONNECTION_SSH.get('CONFIG_FILE', '~/.ssh/config')
@@ -35,7 +35,7 @@ NETCONF_PORT = CONNECTION_SSH.get('NETCONF_PORT', 830)
 if not PASSWORD and not PRIV_KEYFILE:
     PASSWORD = getpass(prompt="SSH_PASSWORD:")
 
-# If u want to have more metrics. You must edit the metrics_definitions.yml
+# If u want to have more metrics. You must edit the config/metrics_definitions.yml
 with open(os.path.join('config', 'metrics_definition.yml'), 'r') as metrics_definitions:
     DEFINITIONS = yaml.load(metrics_definitions).get('DEFINITIONS',{})
 
