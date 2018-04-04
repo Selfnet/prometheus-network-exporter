@@ -1,0 +1,18 @@
+[
+
+    {
+
+        "targets": [
+            "hostname.fqdn.example.com&access=False"
+
+        ],
+
+        "labels": {
+
+            "job": "junos-switches"
+
+        }
+
+    }
+
+]

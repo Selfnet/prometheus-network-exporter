@@ -1,0 +1,25 @@
+RoutingEngineTable:
+  rpc: get-route-engine-information
+  args:
+  item: route-engine
+  key: slot
+  view: RoutingEngineView
+
+RoutingEngineView:
+  fields:
+    cpu-idle: { cpu-idle: int }
+    memory-dram-size: memory-dram-size
+    memory-buffer-utilization : { memory-buffer-utilization: int }
+
+EnvironmentTable:
+  rpc: get-environment-information
+  args:
+  item: environment-item
+  key: name
+  view: EnvironmentView
+
+EnvironmentView:
+  fields:
+    class: class
+    status: status
+    temperature: { temperature/@celsius: int }
