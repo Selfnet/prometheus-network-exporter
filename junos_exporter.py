@@ -25,14 +25,13 @@ CONNECTIONS = CONFIG.get('CONNECTIONS', None)
 
 CONNECTION_SSH = CONNECTIONS.get('ssh', getuser())
 USERNAME = CONNECTION_SSH.get('USERNAME', )
-PASSWORD = CONNECTION_SSH.get('PASSWORD', None)
 PRIV_KEYFILE = CONNECTION_SSH.get('PRIV_KEYFILE', None)
 CONFIG_FILE = CONNECTION_SSH.get('CONFIG_FILE', '~/.ssh/config')
 KEEPALIVE = CONNECTION_SSH.get('KEEPALIVE', 30)
 TIMEOUT = CONNECTION_SSH.get('TIMEOUT', 300)
 NETCONF_PORT = CONNECTION_SSH.get('NETCONF_PORT', 830)
 
-if not PASSWORD and not PRIV_KEYFILE:
+if not PRIV_KEYFILE:
     PASSWORD = getpass(prompt="SSH_PASSWORD:")
 
 # If u want to have more metrics. You must edit the config/metrics_definitions.yml

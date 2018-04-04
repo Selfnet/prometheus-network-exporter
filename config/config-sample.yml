@@ -2,9 +2,6 @@
 CONNECTIONS:
   ssh:
     USERNAME: username              # defaults to login user
-    PASSWORD: password              # defaults to password prompt
-                                    #          if no password and no
-                                    #          keyfile defined
     PRIV_KEYFILE: /path/to/key_rsa  # defaults to None
     CONFIG_FILE: ~/.ssh/config      # defaults to ~/.ssh/config
     KEEPALIVE: 60                   # defaults to 60
