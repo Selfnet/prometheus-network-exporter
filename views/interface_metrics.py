@@ -1,5 +1,5 @@
 """
-Pythonifier for interface_metriks Table/View
+Pythonifier for interface_metrics Table/View
 """
 from jnpr.junos.factory import loadyaml
 from os.path import splitext

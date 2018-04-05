@@ -7,7 +7,7 @@
 
 from jnpr.junos import Device
 from jnpr.junos.op.intopticdiag import PhyPortDiagTable
-from views.interface_metriks import MetriksTable
+from views.interface_metrics import MetricsTable
 from views.environment import RoutingEngineTable, EnvironmentTable
 from pprint import pprint
 
@@ -15,7 +15,7 @@ from pprint import pprint
 def get_specific_ports_information(dev, interface_junos_notations):
     result = {}
     for interface_name in interface_junos_notations:
-        ports = dict(MetriksTable(dev).get(interface_name=interface_name))
+        ports = dict(MetricsTable(dev).get(interface_name=interface_name))
         intopticdiag = dict(PhyPortDiagTable(
             dev).get(interface_name=interface_name))
         for port in ports.keys():
@@ -25,7 +25,7 @@ def get_specific_ports_information(dev, interface_junos_notations):
 
 def get_all_ports_information(dev):
     result = {}
-    ports = dict(MetriksTable(dev).get())
+    ports = dict(MetricsTable(dev).get())
     intopticdiag = dict(PhyPortDiagTable(dev).get())
     for port in ports.keys():
         result[port] = {**ports[port], **intopticdiag.get(port, {})}

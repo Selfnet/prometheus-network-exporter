@@ -63,6 +63,8 @@ def is_ok(boolean):
 
 
 def flap(string):
+    if 'never' in string.lower():
+        return 0
     string = string.split(" (")[0]
     val = time.mktime(datetime.datetime.strptime(
         string, "%Y-%m-%d %H:%M:%S %Z").timetuple())
@@ -118,40 +120,40 @@ def reboot(metrik, labels, data, create_metrik=None):
 
 def cpu_usage(metrik, labels, data, create_metrik=None):
     for slot, perf in data.items():
-        labels.append(slot)
+        labels.append("cpu")
         cpu_usage = 100 - int(perf['cpu-idle'])
         metrik.add_metric(labels, cpu_usage)
-        labels.remove(slot)
+        labels.remove("cpu")
     return metrik
 
 
 def cpu_idle(metrik, labels, data, create_metrik=None):
     for slot, perf in data.items():
-        labels.append(slot)
+        labels.append("cpu")
         cpu_idle = int(perf['cpu-idle'])
         metrik.add_metric(labels, cpu_idle)
-        labels.remove(slot)
+        labels.remove("cpu")
     return metrik
 
 
 def ram_usage(metrik, labels, data, create_metrik=None):
     for slot, perf in data.items():
-        labels.append(slot)
+        labels.append("ram")
         memory_complete = int(perf['memory-dram-size'])
         memory_usage = int(perf['memory-buffer-utilization'])
         memory_bytes_usage = (memory_complete * memory_usage / 100) * 1049000
         metrik.add_metric(labels, memory_bytes_usage)
-        labels.remove(slot)
+        labels.remove("ram")
     return metrik
 
 
 def ram(metrik, labels, data, create_metrik=None):
     for slot, perf in data.items():
-        labels.append(slot)
+        labels.append("ram")
         memory_complete = int(perf['memory-dram-size'])
         memory_bytes = memory_complete * 1049000
         metrik.add_metric(labels, memory_bytes)
-        labels.remove(slot)
+        labels.remove("ram")
     return metrik
 
 
@@ -172,7 +174,7 @@ FUNCTIONS = {
 
 METRICS = {
     'Counter': CounterMetricFamily,
-    'Gauge': CounterMetricFamily
+    'Gauge': GaugeMetricFamily
 }
 
 class JunosCollector(object):
@@ -256,12 +258,12 @@ class JunosCollector(object):
 
     def collect(self):
         global FUNCTIONS
-        metriks_data = self._get_metrics()
-        metriks = []
+        metrics_data = self._get_metrics()
+        metrics = []
         for MetricName, MetricFamily in METRICS.items():
 
-            # hosts_interfaces = self.extract_interfaces(metriks_data)
-            # hosts_environments = self.extract_environment(metriks_data)
+            # hosts_interfaces = self.extract_interfaces(metrics_data)
+            # hosts_environments = self.extract_environment(metrics_data)
             # INTERFACE Information
             # {'hostname.fqdn':
             #   'xe-0/1/1': {
@@ -313,7 +315,7 @@ class JunosCollector(object):
                     metrik_def)
                 metrik = MetricFamily("{}_{}_{}".format(
                     METRICS_BASE['base'], METRICS_BASE['interface'], metrik_name), description, labels=labels)
-                for host in metriks_data:
+                for host in metrics_data:
                     for hostname, data in host.items():
                         for interface, metriken in data['interfaces'].items():
                             if metriken.get(key) is not None:
@@ -324,7 +326,7 @@ class JunosCollector(object):
                                     label['key']) else labels.append("") for label in ENVIRONMENT_LABEL_WRAPPER]
                                 metrik = self.create_metrik(
                                     metrik, key, labels, metriken, function=function)
-                metriks.append(metrik)
+                metrics.append(metrik)
 
         # ENVIRONMENT Information
         # {'hostname.fqdn.example.com': {
@@ -459,7 +461,7 @@ class JunosCollector(object):
                     metrik_def, interfaces=False)
                 metrik = MetricFamily("{}_{}_{}".format(
                     METRICS_BASE['base'], METRICS_BASE['device'], metrik_name), description, labels=labels)
-                for host in metriks_data:
+                for host in metrics_data:
                     for hostname, data in host.items():
                         environment = data.get('environment', None)
                         if environment:
@@ -473,8 +475,8 @@ class JunosCollector(object):
                             elif environment.get(key):
                                 metrik = self.create_metrik(
                                     metrik, key, labels, environment, function=function)
-                metriks.append(metrik)
+                metrics.append(metrik)
 
-        for metrik in metriks:
+        for metrik in metrics:
             yield metrik
         print("Done for {}".format(self.hostnames))
