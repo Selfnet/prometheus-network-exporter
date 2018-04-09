@@ -2,9 +2,9 @@
 import base64
 import os
 import socket
-import sys
 import threading
 import time
+import argparse
 from prometheus_client import core, CONTENT_TYPE_LATEST, generate_latest, CollectorRegistry
 
 from http.server import BaseHTTPRequestHandler, HTTPServer
@@ -87,25 +87,31 @@ if __name__ == '__main__':
     # Start up the server to expose the metrics.
     # Example Query
     # http://localhost:8000/metric?hostname=device.example.com&access=False&hostname=device2.example.com&access=True
-    point = 1
-    ip = ''
-    if len(sys.argv) > 2 and len(sys.argv) < 4:
-        point = 2
-        ip = sys.argv[1]
-    elif len(sys.argv) >= 4:
-        print("To many Arguments: {}\n max arg length = 2".format(len(sys.argv)))
-        exit(1)
-    try:
-        port = int(sys.argv[point])
-        print("Starting up Metrics endpoint")
-    except ValueError:
-        print("This is not a number: {}".format(sys.argv[point]))
-        sys.exit(1)
-    except IndexError:
-        port=8000
-    start_http_server(port, addr=ip)
-    if not ip:
-        ip = 'localhost'
-    print("Using\thostname:\t{}\n\tport:\t\t{}".format(ip,port))
+    parser = argparse.ArgumentParser(
+        prog='junos_exporter',
+        add_help=True,
+        description='Simple metrics exporter for junos devices on your mettwork'
+    )
+    parser.add_argument(
+        '--ip',
+        type=str,
+        metavar='IP/FQDN',
+        nargs='?',
+        default='',
+        help='Address to bind port too.'
+    )
+    parser.add_argument(
+        '--port',
+        type=int,
+        metavar='PORT',
+        nargs='?',
+        default=8000,
+        help='PORT to listen on'
+    )
+    args = parser.parse_args()
+    start_http_server(args.port, addr=args.ip)
+    if not args.ip:
+        args.ip = 'localhost'
+    print("Using\thostname:\t{}\n\tport:\t\t{}".format(args.ip,args.port))
     while True:
         time.sleep(1)

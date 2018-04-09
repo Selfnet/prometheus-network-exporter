@@ -19,7 +19,7 @@ DEFINITIONS:
         description: Port Date (Unix TimeStamp) for last flap
         function: flap
 
-      - metrik: is_up
+      - metrik: is_running
         key: running
         description: Port is_up (0(DOWN)/1(UP))
         function: is_ok
