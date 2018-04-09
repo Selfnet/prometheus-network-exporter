@@ -5,6 +5,7 @@ DEFINITIONS:
     base: pyez_junos
     interface: interface
     device: device
+    bgp: bgp
 
   NETWORK_REGEXES:
     - ge-*/1/*
@@ -262,3 +263,20 @@ DEFINITIONS:
 
     - label: personality
       key: personality
+  
+  BGP_METRICS:
+    Counter:
+      - metrik: prefixes_received
+        type: total
+        key: pfx_rx
+        description: Received Prefixes from Peer
+        function: intify
+    Gauge:
+      - metrik: is_up
+        key: peerstate
+        description: BGP Session is established (0(DOWN)/1(UP))
+        function: is_ok
+
+  BGP_LABEL_WRAPPER:
+    - label: peer_address
+      key: peeraddr

@@ -4,16 +4,13 @@ import os
 import multiprocessing
 import time
 import datetime
-from getpass import getpass,getuser
+from getpass import getpass, getuser
 import yaml
 from threading import Thread
 from jnpr.junos import Device
 import custom_junos as junos
 from pprint import pprint
 from prometheus_client.core import GaugeMetricFamily, CounterMetricFamily
-
-
-
 
 
 with open(os.path.join('config', 'config.yml'), 'r') as connection_definitions:
@@ -36,18 +33,19 @@ if not PRIV_KEYFILE:
 
 # If u want to have more metrics. You must edit the config/metrics_definitions.yml
 with open(os.path.join('config', 'metrics_definition.yml'), 'r') as metrics_definitions:
-    DEFINITIONS = yaml.load(metrics_definitions).get('DEFINITIONS',{})
+    DEFINITIONS = yaml.load(metrics_definitions).get('DEFINITIONS', {})
 
 # Get the Metrics DEFINITIONS
 METRICS_BASE = DEFINITIONS.get('METRICS_BASE', {})
 NETWORK_REGEXES = DEFINITIONS.get('NETWORK_REGEXES', [])
 NETWORK_METRICS = DEFINITIONS.get('NETWORK_METRICS', {})
-ENVIRONMENT_METRICS = DEFINITIONS.get('ENVIRONMENT_METRICS',{})
-NETWORK_LABEL_WRAPPER = DEFINITIONS.get('NETWORK_LABEL_WRAPPER',[])
-ENVIRONMENT_LABEL_WRAPPER = DEFINITIONS.get('ENVIRONMENT_LABEL_WRAPPER',[])
+ENVIRONMENT_METRICS = DEFINITIONS.get('ENVIRONMENT_METRICS', {})
+NETWORK_LABEL_WRAPPER = DEFINITIONS.get('NETWORK_LABEL_WRAPPER', [])
+ENVIRONMENT_LABEL_WRAPPER = DEFINITIONS.get('ENVIRONMENT_LABEL_WRAPPER', [])
+BGP_METRICS = DEFINITIONS.get('BGP_METRICS', {})
+BGP_LABEL_WRAPPER = DEFINITIONS.get('BGP_LABEL_WRAPPER', [])
 
-
-# TEMP Storage Variable (PLZ do not remove)
+# TEMP Storage Variable
 RESULTS = {}
 
 
@@ -57,9 +55,16 @@ def start_loop(function, hostname, access, function_name):
 
 
 def is_ok(boolean):
-    if boolean:
-        return 1
-    return 0
+    if isinstance(boolean, bool):
+        if boolean:
+            return 1
+        return 0
+    elif isinstance(boolean, str):
+        if boolean.lower() in ['up', 'ok', 'established']:
+            return 1
+        return 0
+    else:
+        raise Exception("Unknown Type")
 
 
 def flap(string):
@@ -120,40 +125,48 @@ def reboot(metrik, labels, data, create_metrik=None):
 
 def cpu_usage(metrik, labels, data, create_metrik=None):
     for slot, perf in data.items():
-        labels.append("cpu")
+        label = "cpu_{}".format(str(slot))
+        labels.append(label)
         cpu_usage = 100 - int(perf['cpu-idle'])
         metrik.add_metric(labels, cpu_usage)
-        labels.remove("cpu")
+        labels.remove(label)
     return metrik
 
 
 def cpu_idle(metrik, labels, data, create_metrik=None):
     for slot, perf in data.items():
-        labels.append("cpu")
+        label = "cpu_{}".format(str(slot))
+        labels.append(label)
         cpu_idle = int(perf['cpu-idle'])
         metrik.add_metric(labels, cpu_idle)
-        labels.remove("cpu")
+        labels.remove(label)
     return metrik
 
 
 def ram_usage(metrik, labels, data, create_metrik=None):
     for slot, perf in data.items():
-        labels.append("ram")
-        memory_complete = int(perf['memory-dram-size'])
+        label = "ram_{}".format(str(slot))
+        labels.append(label)
+        memory_complete = perf['memory-dram-size'].lower().replace("mb",
+                                                                   "").strip()
+        memory_complete = int(memory_complete)
         memory_usage = int(perf['memory-buffer-utilization'])
         memory_bytes_usage = (memory_complete * memory_usage / 100) * 1049000
         metrik.add_metric(labels, memory_bytes_usage)
-        labels.remove("ram")
+        labels.remove(label)
     return metrik
 
 
 def ram(metrik, labels, data, create_metrik=None):
     for slot, perf in data.items():
-        labels.append("ram")
-        memory_complete = int(perf['memory-dram-size'])
+        label = "ram_{}".format(str(slot))
+        labels.append(label)
+        memory_complete = perf['memory-dram-size'].lower().replace("mb",
+                                                                   "").strip()
+        memory_complete = int(memory_complete)
         memory_bytes = memory_complete * 1049000
         metrik.add_metric(labels, memory_bytes)
-        labels.remove("ram")
+        labels.remove(label)
     return metrik
 
 
@@ -176,6 +189,7 @@ METRICS = {
     'Counter': CounterMetricFamily,
     'Gauge': GaugeMetricFamily
 }
+
 
 class JunosCollector(object):
     def __init__(self, hostnames, access):
@@ -203,6 +217,7 @@ class JunosCollector(object):
             dev_info[hostname] = {}
             dev_info[hostname]['interfaces'] = {}
             dev_info[hostname]['environment'] = {}
+            dev_info[hostname]['bgp'] = {}
             try:
                 if access:
                     dev_info[hostname]['interfaces'] = junos.get_specific_ports_information(
@@ -218,24 +233,32 @@ class JunosCollector(object):
             except Exception as e:
                 print(e)
                 print("{} ::: get no Environment Data".format(hostname))
+            try:
+                dev_info[hostname]['bgp'] = junos.get_bgp_information(dev)
+            except Exception as e:
+                print(e)
+                print("{} ::: get no BGP Information".format(hostname))
         return dev_info
 
-    def create_metrik_params(self, metrik_def, interfaces=True):
+    def create_metrik_params(self, metrik_def, call='interfaces'):
         metrik_name = metrik_def['metrik']
         key = metrik_def['key']
         description = metrik_def.get('description', '')
         type_of = metrik_def.get('type', None)
         function = metrik_def.get('function', None)
         specific = metrik_def.get('specific', False)
+        labels = ['hostname']
         if type_of:
             metrik_name = '{}_{}'.format(metrik_name, type_of)
-        if interfaces:
-            labels = ['hostname', 'interface']
-        else:
-            labels = ['hostname']
-        if interfaces:
+        if 'interfaces' in call:
+            labels.append('interface')
             [labels.append(label['label']) for label in NETWORK_LABEL_WRAPPER]
-        [labels.append(label['label']) for label in ENVIRONMENT_LABEL_WRAPPER]
+        elif 'bgp' in call:
+            labels.append('description')
+            [labels.append(label['label']) for label in BGP_LABEL_WRAPPER]
+
+        [labels.append(label['label'])
+         for label in ENVIRONMENT_LABEL_WRAPPER]
         if specific:
             labels.append("name")
         return metrik_name, key, description, function, labels, specific
@@ -250,7 +273,7 @@ class JunosCollector(object):
                     metrik.add_metric(
                         labels, metriken.get(key))
             except (ValueError, KeyError) as e:
-                print(e)
+                print("Error :: {}".format(e))
         return metrik
 
     def describe(self):
@@ -456,9 +479,10 @@ class JunosCollector(object):
         #     'version_RE1': None,
         #     'version_info': junos.version_info(major=(15, 1), type=R, minor=5, build=5),
         #     'virtual': False}}
+
             for metrik_def in ENVIRONMENT_METRICS.get(MetricName, []):
                 metrik_name, key, description, function, labels, specific = self.create_metrik_params(
-                    metrik_def, interfaces=False)
+                    metrik_def, call="device")
                 metrik = MetricFamily("{}_{}_{}".format(
                     METRICS_BASE['base'], METRICS_BASE['device'], metrik_name), description, labels=labels)
                 for host in metrics_data:
@@ -475,6 +499,46 @@ class JunosCollector(object):
                             elif environment.get(key):
                                 metrik = self.create_metrik(
                                     metrik, key, labels, environment, function=function)
+                metrics.append(metrik)
+        # BGP Information
+        # {'hostname.example.com':
+        #     {'bgp':
+        #         {'reverse.peearadr.example.com':
+        #             {'description': None,
+        #             'peeraddr': '::d',
+        #             'peerstate': 'Established',
+        #             'pfx_rx': '60'},
+        #         'reverse.peearadr2.example.com':
+        #             {'description': None,
+        #             'peeraddr': '::f',
+        #             'peerstate': 'Established',
+        #             'pfx_rx': '60'},
+        #         'reverse.peearadr3.example.com':
+        #         {'description': None,
+        #         'peeraddr': '::2',
+        #         'peerstate': 'Established',
+        #         'pfx_rx': '60'}}
+        #     }
+        # }
+
+            for metrik_def in BGP_METRICS.get(MetricName, []):
+                metrik_name, key, description, function, labels, specific = self.create_metrik_params(
+                    metrik_def, call='bgp')
+                metrik = MetricFamily("{}_{}_{}".format(
+                    METRICS_BASE['base'], METRICS_BASE['bgp'], metrik_name), description, labels=labels)
+                for host in metrics_data:
+                    for hostname, data in host.items():
+                        bgp = data.get('bgp', None)
+                        if bgp:
+                            for peername, metriken in bgp.items():
+                                if metriken.get(key) is not None:
+                                    labels = [hostname, peername]
+                                    [labels.append(metriken.get(label['key'])) if metriken.get(
+                                        label['key']) else labels.append("") for label in BGP_LABEL_WRAPPER]
+                                    [labels.append(data['environment'].get(label['key'])) if data.get('environment').get(
+                                        label['key']) else labels.append("") for label in ENVIRONMENT_LABEL_WRAPPER]
+                                    metrik = self.create_metrik(
+                                        metrik, key, labels, metriken, function=function)
                 metrics.append(metrik)
 
         for metrik in metrics:

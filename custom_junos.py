@@ -5,9 +5,11 @@
     performance.
 '''
 
+import socket
 from jnpr.junos import Device
 from jnpr.junos.op.intopticdiag import PhyPortDiagTable
 from views.interface_metrics import MetricsTable
+from views.bgp import BGPNeighborTable
 from views.environment import RoutingEngineTable, EnvironmentTable
 from pprint import pprint
 
@@ -46,3 +48,14 @@ def get_environment(dev):
         **{'Fans': {k: dict(v) for k, v in temperatures.items() if 'Fans' in dict(v)['class']}},
         **{'Power': {k: dict(v) for k, v in temperatures.items() if 'Power' in dict(v)['class']}}
     }
+
+def lookup(ip):
+    try:
+        return socket.gethostbyaddr(ip)[0]
+    except (socket.herror):
+        return ip
+
+
+def get_bgp_information(dev):
+    bgp = dict(BGPNeighborTable(dev).get())
+    return {lookup(k): dict(v) for k, v in bgp.items()}
