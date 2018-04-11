@@ -1,9 +1,9 @@
 ---
-CONNECTIONS:
-  ssh:
-    USERNAME: username              # defaults to login user
-    PRIV_KEYFILE: /path/to/key_rsa  # defaults to None
-    CONFIG_FILE: ~/.ssh/config      # defaults to ~/.ssh/config
-    KEEPALIVE: 60                   # defaults to 60
-    TIMEOUT: 300                    # defaults to 300
-    NETCONF_PORT: 830               # defaults to 830
+# CONNECTIONS:
+#   ssh:
+#     USERNAME: username              # defaults to login user
+#     PRIV_KEYFILE: /path/to/key_rsa  # defaults to None
+#     CONFIG_FILE: ~/.ssh/config      # defaults to ~/.ssh/config
+#     KEEPALIVE: 60                   # defaults to 60
+#     TIMEOUT: 300                    # defaults to 300
+#     NETCONF_PORT: 830               # defaults to 830
