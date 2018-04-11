@@ -10,10 +10,9 @@
 
 ### Configuration
 
-In the `config/` folder rename `config-sample.yml` to `config.yml` and specify `USERNAME` if it is not your system user
-and a keyfile.
-If you are not using a SSH Priv Keyfile. You are been asked by the program for a SSH user password.
-
+The configuration is under `/etc/pyez_exporter/config.yml` you should change the configuration.
+No configuration means, that the current logged in user is used and its configuration.
+The SSH config is also used.
 ### Run the program
 
 ```bash
