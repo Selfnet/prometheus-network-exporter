@@ -17,7 +17,7 @@ try:
     with open(os.path.join(CONF_DIR, 'config.yml'), 'r') as connection_definitions:
         CONFIG = yaml.load(connection_definitions)
 except FileNotFoundError:
-    print("No config under: {}".format(CONF_DIR))
+    print("No config under: {}\n\tUsing default!".format(CONF_DIR))
     CONFIG = {}
 # If u want to have more metrics. You must edit the config/metrics_definitions.yml
 with open(os.path.join('../config', 'metrics_definition.yml'), 'r') as metrics_definitions:
