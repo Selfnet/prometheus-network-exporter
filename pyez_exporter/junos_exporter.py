@@ -8,20 +8,26 @@ from getpass import getpass, getuser
 import yaml
 from threading import Thread
 from jnpr.junos import Device
-import custom_junos as junos
+import pyez_exporter.custom_junos as junos
 from pprint import pprint
 from prometheus_client.core import GaugeMetricFamily, CounterMetricFamily
 
-
-with open(os.path.join('config', 'config.yml'), 'r') as connection_definitions:
-    CONFIG = yaml.load(connection_definitions)
-
+CONF_DIR = os.path.join('/etc','pyez_exporter')
+try:
+    with open(os.path.join(CONF_DIR, 'config.yml'), 'r') as connection_definitions:
+        CONFIG = yaml.load(connection_definitions)
+except FileNotFoundError:
+    print("No config under: {}".format(CONF_DIR))
+    CONFIG = {}
+# If u want to have more metrics. You must edit the config/metrics_definitions.yml
+with open(os.path.join('../config', 'metrics_definition.yml'), 'r') as metrics_definitions:
+    DEFINITIONS = yaml.load(metrics_definitions).get('DEFINITIONS', {})
 # This is a sample for a connection.
 # You must specify a password or keyfile under config/config.yml
-CONNECTIONS = CONFIG.get('CONNECTIONS', None)
+CONNECTIONS = CONFIG.get('CONNECTIONS', {})
 
-CONNECTION_SSH = CONNECTIONS.get('ssh', getuser())
-USERNAME = CONNECTION_SSH.get('USERNAME', )
+CONNECTION_SSH = CONNECTIONS.get('ssh', {})
+USERNAME = CONNECTION_SSH.get('USERNAME', getuser())
 PRIV_KEYFILE = CONNECTION_SSH.get('PRIV_KEYFILE', None)
 CONFIG_FILE = CONNECTION_SSH.get('CONFIG_FILE', '~/.ssh/config')
 KEEPALIVE = CONNECTION_SSH.get('KEEPALIVE', 30)
@@ -30,10 +36,6 @@ NETCONF_PORT = CONNECTION_SSH.get('NETCONF_PORT', 830)
 
 if not PRIV_KEYFILE:
     PASSWORD = getpass(prompt="SSH_PASSWORD:")
-
-# If u want to have more metrics. You must edit the config/metrics_definitions.yml
-with open(os.path.join('config', 'metrics_definition.yml'), 'r') as metrics_definitions:
-    DEFINITIONS = yaml.load(metrics_definitions).get('DEFINITIONS', {})
 
 # Get the Metrics DEFINITIONS
 METRICS_BASE = DEFINITIONS.get('METRICS_BASE', {})

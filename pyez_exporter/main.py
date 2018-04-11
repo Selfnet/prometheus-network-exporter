@@ -1,4 +1,4 @@
-
+#!/usr/bin/env python3
 import base64
 import os
 import socket
@@ -8,7 +8,8 @@ import argparse
 from prometheus_client import core, CONTENT_TYPE_LATEST, generate_latest, CollectorRegistry
 
 from http.server import BaseHTTPRequestHandler, HTTPServer
-from junos_exporter import JunosCollector
+from pyez_exporter.junos_exporter import JunosCollector
+from pyez_exporter import __version__ as VERSION
 from socketserver import ThreadingMixIn
 from urllib.request import build_opener, Request, HTTPHandler
 from urllib.parse import quote_plus, parse_qs, urlparse
@@ -82,16 +83,20 @@ class _ThreadingSimpleServer(ThreadingMixIn, HTTPServer):
     """Thread per request HTTP server."""
 
 
-if __name__ == '__main__':
+def main():
     # Usage: junos_exporter.py port endpoint
     # Start up the server to expose the metrics.
     # Example Query
     # http://localhost:8000/metric?hostname=device.example.com&access=False&hostname=device2.example.com&access=True
     parser = argparse.ArgumentParser(
-        prog='junos_exporter',
+        prog='pyez_exporter',
         add_help=True,
-        description='Simple metrics exporter for junos devices on your mettwork'
+        description='Simple metrics pyez_exporter for junos devices on your mettwork'
     )
+    parser.add_argument(
+        '--version',
+        action='version',
+        version='%(prog)s {version}'.format(version=VERSION))
     parser.add_argument(
         '--ip',
         type=str,
@@ -115,3 +120,6 @@ if __name__ == '__main__':
     print("Using\thostname:\t{}\n\tport:\t\t{}".format(args.ip,args.port))
     while True:
         time.sleep(1)
+
+if __name__ == '__main__':
+    main()
