@@ -8,9 +8,9 @@
 import socket
 from jnpr.junos import Device
 from jnpr.junos.op.intopticdiag import PhyPortDiagTable
-from views.interface_metrics import MetricsTable
-from views.bgp import BGPNeighborTable
-from views.environment import RoutingEngineTable, EnvironmentTable
+from pyez_exporter.views.interface_metrics import MetricsTable
+from pyez_exporter.views.bgp import BGPNeighborTable
+from pyez_exporter.views.environment import RoutingEngineTable, EnvironmentTable
 from pprint import pprint
 
 

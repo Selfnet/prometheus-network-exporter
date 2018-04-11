@@ -3,7 +3,7 @@
 ## Install Requirements
 
 ```bash
-    pip install -r requirements.txt -U
+    pip install .
 ```
 
 ## The Exporter
@@ -17,7 +17,7 @@ If you are not using a SSH Priv Keyfile. You are been asked by the program for a
 ### Run the program
 
 ```bash
-    python main.py
+    pyez-exporter --version
 ```
 
 defaults to [http://localhost:8000](http://localhost:8000)
@@ -26,8 +26,8 @@ you can specify addr and port on the cli.
 #### example
 
 ```bash
-    python main.py 127.0.0.1 9000
-    python main.py 9000
+    pyez-exporter --port 9000
+    pyez-exporter --
 ```
 
 ## HowTo: Query for junos_devices
