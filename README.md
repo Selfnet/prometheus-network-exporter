@@ -27,7 +27,7 @@ you can specify addr and port on the cli.
 
 ```bash
     pyez-exporter --port 9000
-    pyez-exporter --
+    pyez-exporter --ip 127.0.0.1 --port 9000
 ```
 
 ## HowTo: Query for junos_devices
@@ -48,7 +48,7 @@ Those are backbone ports on our access switches. So access defines if it is a ba
 
 ## Look for prometheus config
 
-Example config for your prometheus can be found under `prometheus/*`
+Example config for your prometheus can be found under `prometheus/*`.
 
 ## For Enthusiasts
 
@@ -56,6 +56,6 @@ You can also configure the metrics definitions.
 If their are not enough Metrics.
 Configure `config/metrics_definitions.yml` and add functions to junos_exporter if the ouput is non trivial.
 
-At the moment only Interfaces and environment Metrics are support.
-So only Counter and Gauge are implemented.
+At the moment only Interfaces, environment and bgp Metrics are supported.
+So only the Metrics Counter and Gauge are implemented.
 Feel free to add Pull Requests to extend the implementation.
