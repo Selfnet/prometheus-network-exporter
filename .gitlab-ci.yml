@@ -7,10 +7,11 @@ package:
   stage: package
   before_script:
     - apt-get update
-    - apt-get install virtualenv ruby ruby-dev rubygems build-essential -y
+    - apt-get install python3-pip virtualenv ruby ruby-dev rubygems build-essential -y
     - gem install --no-ri --no-rdoc fpm
   script:
-    - fpm --verbose -s virtualenv -t deb -a all --python-pip /usr/bin/pip3 --python-bin /usr/bin/python3 --deb-systemd "prometheus-junos-exporter.service" ./setup.py
+    - pip3 install .
+    - fpm --verbose -s virtualenv -t deb -a all --python-pip /usr/bin/pip3 --python-bin /usr/bin/python3 --deb-systemd "prometheus-junos-exporter.service" prometheus-junos-exporter
   artifacts:
     paths:
       - "*.deb"
