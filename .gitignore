@@ -1,5 +1,4 @@
 napalm_exporter
 .vscode
-switchers
 __pycache__
 *.pyc
