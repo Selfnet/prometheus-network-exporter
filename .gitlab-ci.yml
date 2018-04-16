@@ -10,7 +10,6 @@ package:
     - apt-get install -y python3-virtualenv ruby ruby-dev rubygems build-essential
     - gem install --no-ri --no-rdoc fpm
   script:
-    - pip3 install .
     - fpm --verbose -s virtualenv -t deb -a all --python-virtualenv /usr/bin/virtualenv3 --python-pip /usr/bin/pip3 --python-bin /usr/bin/python3 --deb-systemd "prometheus-junos-exporter.service" ./setup.py
   artifacts:
     paths:
