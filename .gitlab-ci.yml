@@ -9,7 +9,7 @@ package:
     - apt-get update
     - apt-get install -y python3-pip python3-simplejson python3-setuptools ruby ruby-dev rubygems build-essential git
     - gem install --no-ri --no-rdoc fpm
-    - pip3 install virtualenv virtualenv-tools. -y
+    - pip3 install virtualenv virtualenv-tools -y
   script:
     - fpm --verbose -s virtualenv --python-pip /usr/bin/pip3 --setup-install ./setup.py --python-bin /usr/bin/python3 -t deb -a all --deb-systemd "prometheus-junos-exporter.service" requirements.txt
   artifacts:
