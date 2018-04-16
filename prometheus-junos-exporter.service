@@ -8,6 +8,8 @@ Restart=always
 Type=simple
 StandardError=syslog
 NotifyAccess=all
+User=prometheus
+Group=prometheus
 
 [Install]
 WantedBy=multi-user.target
