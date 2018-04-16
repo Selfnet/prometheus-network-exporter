@@ -7,11 +7,11 @@ package:
   stage: package
   before_script:
     - apt-get update
-    - apt-get install -y ruby ruby-dev rubygems build-essential git
+    - apt-get install -y python3 python3-json ruby ruby-dev rubygems build-essential git
     - gem install --no-ri --no-rdoc fpm
   script:
     - export HERE=$(pwd)
-    - fpm --verbose -s python -t deb -a all --deb-systemd "prometheus-junos-exporter.service" ./setup.py
+    - fpm --verbose -s python3 -t deb -a all --deb-systemd "prometheus-junos-exporter.service" ./setup.py
   artifacts:
     paths:
       - "*.deb"
