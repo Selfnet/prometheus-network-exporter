@@ -9,7 +9,7 @@ See:
 # To use a consistent encoding
 import os
 from os import path
-from pyez_exporter import __version__ as VERSION
+from prometheus_junos_exporter import __version__ as VERSION
 # Always prefer setuptools over distutils
 from setuptools import setup, find_packages
 
@@ -20,7 +20,7 @@ with open(path.join(HERE, 'README.md'), encoding='utf-8') as f:
     LONG_DESCRIPTION = f.read()
 
 setup(
-    name='pyez-exporter',
+    name='prometheus-junos-exporter',
 
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
@@ -61,7 +61,7 @@ setup(
     ],
 
     # What does your project relate to?
-    keywords='metric prometheus junos juniper pyez exporter',
+    keywords='metric prometheus junos juniper prometheus-junos-exporter',
 
     # You can just specify the packages manually here if your project is
     # simple. Or you can use find_packages().
@@ -85,21 +85,21 @@ setup(
         'dev': ['pylint', 'autopep8', 'pep8'],
     },
     package_data={
-        'pyez_exporter.views': ['*.yml'],
-        'pyez_exporter.config': ['metrics_definition.yml']
+        'prometheus_junos_exporter.views': ['*.yml'],
+        'prometheus_junos_exporter.config': ['metrics_definition.yml']
     },
     # Although 'package_data' is the preferred approach, in some case you may
     # need to place data files outside of your packages. See:
     # http://docs.python.org/3.4/distutils/setupscript.html#installing-additional-files # noqa
     # In this case, 'data_file' will be installed into '<sys.prefix>/my_data'
-    data_files=[(os.path.join('/etc','pyez_exporter'),
-                 ['pyez_exporter/config/config.yml'])],
+    data_files=[(os.path.join('/etc','prometheus-junos-exporter'),
+                 ['prometheus_junos_exporter/config/config.yml'])],
     # To provide executable scripts, use entry points in preference to the
     # "scripts" keyword. Entry points provide cross-platform support and allow
     # pip to create the appropriate form of executable for the target platform.
     entry_points={
         'console_scripts': [
-            'pyez-exporter=pyez_exporter.main:main',
+            'prometheus-junos-exporter=prometheus_junos_exporter.main:main',
         ],
     },
 )

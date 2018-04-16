@@ -14,7 +14,7 @@
 
     - source_labels: [__address__]
 
-      regex: (.*)(:8000)?
+      regex: (.*)(:9332)?
 
       target_label: __param_target
 

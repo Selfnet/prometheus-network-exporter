@@ -19,7 +19,7 @@ The SSH config is also used.
     pyez-exporter --version
 ```
 
-defaults to [http://localhost:8000](http://localhost:8000)
+defaults to [http://localhost:9332](http://localhost:9332)
 you can specify addr and port on the cli.
 
 #### example
@@ -31,7 +31,7 @@ you can specify addr and port on the cli.
 
 ## HowTo: Query for junos_devices
 
-    http://localhost:8000/metric?hostname=device.example.com&access=False&hostname=device2.example.com&access=True
+    http://localhost:9332/metric?hostname=device.example.com&access=False&hostname=device2.example.com&access=True
 
 If access is True only the interfaces for the ports specified in
 `config/metrics_definitions.yml` are queried and if access is False everything is queried.

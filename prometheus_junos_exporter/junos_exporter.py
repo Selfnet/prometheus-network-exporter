@@ -8,16 +8,18 @@ from getpass import getpass, getuser
 import yaml
 from threading import Thread
 from jnpr.junos import Device
-import pyez_exporter.custom_junos as junos
+import prometheus_junos_exporter.custom_junos as junos
 from pprint import pprint
 from prometheus_client.core import GaugeMetricFamily, CounterMetricFamily
 
-CONF_DIR = os.path.join('/etc', 'pyez_exporter')
+CONF_DIR = os.path.join('/etc', 'prometheus-junos-exporter')
 try:
     with open(os.path.join(CONF_DIR, 'config.yml'), 'r') as connection_definitions:
         CONFIG = yaml.load(connection_definitions)
 except FileNotFoundError:
     print("No config under: {}\n\tUsing default!".format(CONF_DIR))
+
+if not CONFIG:
     CONFIG = {}
 
 

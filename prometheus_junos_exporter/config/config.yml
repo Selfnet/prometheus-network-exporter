@@ -1,4 +1,4 @@
----
+# ---
 # CONNECTIONS:
 #   ssh:
 #     USERNAME: username              # defaults to login user

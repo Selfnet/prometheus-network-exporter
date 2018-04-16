@@ -1,0 +1,14 @@
+[Unit]
+Description=Junos pyez exporter
+After=network.target
+
+[Service]
+ExecStart=/usr/local/bin/prometheus-junos-exporter
+Restart=always
+Type=simple
+StandardError=syslog
+User={{ junos.name }}
+Group={{ junos.group }}
+
+[Install]
+WantedBy=multi-user.target

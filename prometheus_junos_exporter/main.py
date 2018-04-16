@@ -8,8 +8,8 @@ import argparse
 from prometheus_client import core, CONTENT_TYPE_LATEST, generate_latest, CollectorRegistry
 
 from http.server import BaseHTTPRequestHandler, HTTPServer
-from pyez_exporter.junos_exporter import JunosCollector
-from pyez_exporter import __version__ as VERSION
+from prometheus_junos_exporter.junos_exporter import JunosCollector
+from prometheus_junos_exporter import __version__ as VERSION
 from socketserver import ThreadingMixIn
 from urllib.request import build_opener, Request, HTTPHandler
 from urllib.parse import quote_plus, parse_qs, urlparse
@@ -87,11 +87,11 @@ def main():
     # Usage: junos_exporter.py port endpoint
     # Start up the server to expose the metrics.
     # Example Query
-    # http://localhost:8000/metric?hostname=device.example.com&access=False&hostname=device2.example.com&access=True
+    # http://localhost:9332/metric?hostname=device.example.com&access=False&hostname=device2.example.com&access=True
     parser = argparse.ArgumentParser(
-        prog='pyez_exporter',
+        prog='prometheus-junos-exporter',
         add_help=True,
-        description='Simple metrics pyez_exporter for junos devices on your mettwork'
+        description='Simple metrics prometheus-junos-exporter for junos devices on your mettwork'
     )
     parser.add_argument(
         '--version',
@@ -110,7 +110,7 @@ def main():
         type=int,
         metavar='PORT',
         nargs='?',
-        default=8000,
+        default=9332,
         help='PORT to listen on'
     )
     args = parser.parse_args()
