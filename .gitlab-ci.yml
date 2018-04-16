@@ -7,7 +7,7 @@ package:
   stage: package
   before_script:
     - apt-get update
-    - apt-get install -y python3-simplejson python3-setuptools ruby ruby-dev rubygems build-essential git
+    - apt-get install -y python-simplejson python-setuptools ruby ruby-dev rubygems build-essential git
     - gem install --no-ri --no-rdoc fpm
   script:
     - export HERE=$(pwd)
