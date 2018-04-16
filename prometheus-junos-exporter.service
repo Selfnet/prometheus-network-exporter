@@ -1,5 +1,5 @@
 [Unit]
-Description=Junos pyez exporter
+Description=Junos Prometheus Exporter
 After=network.target
 
 [Service]
@@ -7,8 +7,7 @@ ExecStart=/usr/local/bin/prometheus-junos-exporter
 Restart=always
 Type=simple
 StandardError=syslog
-User={{ junos.name }}
-Group={{ junos.group }}
+NotifyAccess=all
 
 [Install]
 WantedBy=multi-user.target
