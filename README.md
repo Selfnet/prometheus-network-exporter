@@ -10,13 +10,13 @@
 
 ### Configuration
 
-The configuration is under `/etc/pyez_exporter/config.yml` you should change the configuration.
+The configuration is under `/etc/prometheus-junos-exporter/config.yml` you should change the configuration.
 No configuration means, that the current logged in user is used and its configuration.
 The SSH config is also used.
 ### Run the program
 
 ```bash
-    pyez-exporter --version
+    prometheus-junos-exporter --version
 ```
 
 defaults to [http://localhost:9332](http://localhost:9332)
@@ -25,8 +25,8 @@ you can specify addr and port on the cli.
 #### example
 
 ```bash
-    pyez-exporter --port 9000
-    pyez-exporter --ip 127.0.0.1 --port 9000
+    prometheus-junos-exporter --port 9000
+    prometheus-junos-exporter --ip 127.0.0.1 --port 9000
 ```
 
 ## HowTo: Query for junos_devices
