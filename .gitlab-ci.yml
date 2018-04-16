@@ -7,11 +7,11 @@ package:
   stage: package
   before_script:
     - apt-get update
-    - apt-get install -y python3-simplejson python3-setuptools ruby ruby-dev rubygems build-essential git
+    - apt-get install -y python3-simplejson python3-setuptools python3-virtualenv ruby ruby-dev rubygems build-essential git
     - gem install --no-ri --no-rdoc fpm
   script:
     - export HERE=$(pwd)
-    - fpm --verbose -s python --python-pip /usr/bin/pip3 --python-bin /usr/bin/python3 -t deb -a all --deb-systemd "prometheus-junos-exporter.service" ./setup.py
+    - fpm --verbose -s virtualenc --python-pip /usr/bin/pip3 --python-bin /usr/bin/python3 -t deb -a all --deb-systemd "prometheus-junos-exporter.service" ./setup.py
   artifacts:
     paths:
       - "*.deb"
@@ -23,7 +23,7 @@ release_package:
   dependencies:
     - package
   before_script:
-    - dpkg -c prometheus-cups-exporter*.deb
+    - dpkg -c prometheus-junos-exporter*.deb
     - apt-get update
     - apt-get install -y python3-requests wget
     - wget https://$PACKAGE_FACTORY/aptly.py
