@@ -2,3 +2,7 @@ env
 .vscode
 __pycache__
 *.pyc
+bin
+lib
+include
+share
