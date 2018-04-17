@@ -49,6 +49,7 @@ def get_environment(dev):
         **{'Power': {k: dict(v) for k, v in temperatures.items() if 'Power' in dict(v)['class']}}
     }
 
+
 def lookup(ip):
     try:
         return socket.gethostbyaddr(ip)[0]

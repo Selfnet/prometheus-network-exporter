@@ -117,9 +117,10 @@ def main():
     start_http_server(args.port, addr=args.ip)
     if not args.ip:
         args.ip = 'localhost'
-    print("Using\thostname:\t{}\n\tport:\t\t{}".format(args.ip,args.port))
+    print("Using\thostname:\t{}\n\tport:\t\t{}".format(args.ip, args.port))
     while True:
         time.sleep(1)
+
 
 if __name__ == '__main__':
     main()
