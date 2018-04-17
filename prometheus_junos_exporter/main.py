@@ -102,7 +102,7 @@ def main():
         type=str,
         metavar='IP/FQDN',
         nargs='?',
-        default='',
+        default='127.0.0.1',
         help='Address to bind port too.'
     )
     parser.add_argument(
