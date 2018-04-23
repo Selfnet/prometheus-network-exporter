@@ -34,10 +34,10 @@ class MetricsHandler(BaseHTTPRequestHandler):
         global REQUESTER
         params = parse_qs(urlparse(self.path).query)
         host = None
-        if 'hostname' in params and 'access' in params:
-            if len(params['hostname']) == len(params['access']):
+        if 'target' in params and 'access' in params:
+            if len(params['target']) == len(params['access']):
                 try:
-                    host = JunosCollector(params['hostname'], params['access'])
+                    host = JunosCollector(params['target'], params['access'])
                     if not host in REQUESTER:
                         REQUESTER.add(host)
                         self.registry.register(host)
@@ -87,7 +87,7 @@ def main():
     # Usage: junos_exporter.py port endpoint
     # Start up the server to expose the metrics.
     # Example Query
-    # http://localhost:9332/metric?hostname=device.example.com&access=False&hostname=device2.example.com&access=True
+    # http://localhost:9332/metric?target=device.example.com&access=False&target=device2.example.com&access=True
     parser = argparse.ArgumentParser(
         prog='prometheus-junos-exporter',
         add_help=True,
