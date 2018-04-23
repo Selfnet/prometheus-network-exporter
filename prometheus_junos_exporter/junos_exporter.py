@@ -40,6 +40,8 @@ NETCONF_PORT = CONNECTION_SSH.get('NETCONF_PORT', 830)
 
 if not PRIV_KEYFILE:
     PASSWORD = getpass(prompt="SSH_PASSWORD:")
+else:
+    PASSWORD = None
 
 # Get the Metrics DEFINITIONS
 METRICS_BASE = DEFINITIONS.get('METRICS_BASE', {})
