@@ -7,11 +7,11 @@
 
 import socket
 from jnpr.junos import Device
+from jnpr.junos.exception import RpcError
 from jnpr.junos.op.intopticdiag import PhyPortDiagTable
 from prometheus_junos_exporter.views.interface_metrics import MetricsTable
 from prometheus_junos_exporter.views.bgp import BGPNeighborTable
 from prometheus_junos_exporter.views.environment import RoutingEngineTable, EnvironmentTable
-from pprint import pprint
 
 
 def get_specific_ports_information(dev, interface_junos_notations):
@@ -58,5 +58,8 @@ def lookup(ip):
 
 
 def get_bgp_information(dev):
-    bgp = dict(BGPNeighborTable(dev).get())
+    try:
+        bgp = dict(BGPNeighborTable(dev).get())
+    except RpcError:
+        return {}
     return {lookup(k): dict(v) for k, v in bgp.items()}
