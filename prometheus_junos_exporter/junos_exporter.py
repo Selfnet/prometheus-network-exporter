@@ -277,6 +277,8 @@ class JunosCollector(object):
     def collect(self):
         global FUNCTIONS
         metrics_data = self._get_metrics()
+        if not metrics_data:
+            return None
         metrics = []
         for MetricName, MetricFamily in METRICS.items():
 
