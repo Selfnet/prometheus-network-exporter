@@ -1,0 +1,12 @@
+---
+default:
+  auth:
+    method: ssh_key
+    username: pyez
+    # password: 
+    # ssh_key: ~/.ssh/priv_key
+  metrics:
+    - interface
+    - environment
+    - bgp
+
