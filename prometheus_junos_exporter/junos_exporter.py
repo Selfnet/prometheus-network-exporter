@@ -6,7 +6,6 @@ import time
 import datetime
 from getpass import getpass, getuser
 import yaml
-from threading import Thread
 from jnpr.junos import Device
 import prometheus_junos_exporter.custom_junos as junos
 from pprint import pprint
@@ -52,14 +51,6 @@ NETWORK_LABEL_WRAPPER = DEFINITIONS.get('NETWORK_LABEL_WRAPPER', [])
 ENVIRONMENT_LABEL_WRAPPER = DEFINITIONS.get('ENVIRONMENT_LABEL_WRAPPER', [])
 BGP_METRICS = DEFINITIONS.get('BGP_METRICS', {})
 BGP_LABEL_WRAPPER = DEFINITIONS.get('BGP_LABEL_WRAPPER', [])
-
-# TEMP Storage Variable
-RESULTS = {}
-
-
-def start_loop(function, hostname, access, function_name):
-    global RESULTS
-    RESULTS[function_name].append(function(hostname, access))
 
 
 def is_ok(boolean):
@@ -206,17 +197,10 @@ class JunosCollector(object):
         self.access = [boolify(att) for att in access]
 
     def _get_metrics(self):
-        global RESULTS
-        RESULTS['hosts'] = []
         result = []
         for hostname, access in zip(self.hostnames, self.access):
-            t = Thread(target=start_loop, args=(
-                self._get_metric, hostname, access, 'hosts'))
-            result.append(t)
-            t.start()
-        [t.join() for t in result]
-
-        return RESULTS['hosts']
+            result.append(self._get_metric(hostname, access))
+        return result
 
     def _get_metric(self, hostname, access):
         dev_info = {}
