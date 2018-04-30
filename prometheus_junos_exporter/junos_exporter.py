@@ -278,6 +278,7 @@ class JunosCollector(object):
         global FUNCTIONS
         metrics_data = self._get_metrics()
         if not metrics_data:
+            print("Cannot connect to {}".format(self.hostnames))
             return None
         metrics = []
         for MetricName, MetricFamily in METRICS.items():
