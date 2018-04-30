@@ -231,9 +231,9 @@ class JunosCollector(object):
                 except Exception as e:
                     print(e)
                     print("{} ::: get no BGP Information".format(hostname))
-            return dev_info
         except Exception:
-            return None
+            pass
+        return dev_info
 
     def create_metrik_params(self, metrik_def, call='interfaces'):
         metrik_name = metrik_def['metrik']
