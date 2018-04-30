@@ -104,7 +104,7 @@ def get_interface_metrics(registry, dev, hostname, access=True):
     interfaces = {}
     if access:
         interfaces = junos.get_specific_ports_information(
-            dev, "[afgxe][et]-*/1/*")
+            dev, ["[gxe][et]-*/1/*"])
     else:
         interfaces = junos.get_all_ports_information(dev)
 
