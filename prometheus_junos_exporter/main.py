@@ -61,6 +61,7 @@ class MetricsHandler(BaseHTTPRequestHandler):
             try:
                 REQUESTER.remove(host)
                 self.registry.unregister(host)
+                del(host)
             except KeyError:
                 print("ignore")
 
