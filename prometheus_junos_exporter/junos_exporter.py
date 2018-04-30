@@ -204,33 +204,36 @@ class JunosCollector(object):
 
     def _get_metric(self, hostname, access):
         dev_info = {}
-        with Device(host=hostname, username=USERNAME, password=PASSWORD, port=NETCONF_PORT, ssh_private_key_file=PRIV_KEYFILE, ssh_config=CONFIG_FILE) as dev:
-            dev.timeout = TIMEOUT
-            dev_info[hostname] = {}
-            dev_info[hostname]['interfaces'] = {}
-            dev_info[hostname]['environment'] = {}
-            dev_info[hostname]['bgp'] = {}
-            try:
-                if access:
-                    dev_info[hostname]['interfaces'] = junos.get_specific_ports_information(
-                        dev, interface_junos_notations=NETWORK_REGEXES)
-                else:
-                    dev_info[hostname]['interfaces'] = junos.get_all_ports_information(
-                        dev)
-            except Exception as e:
-                print(e)
-                print("{} ::: get no Interface Data".format(hostname))
-            try:
-                dev_info[hostname]['environment'] = junos.get_environment(dev)
-            except Exception as e:
-                print(e)
-                print("{} ::: get no Environment Data".format(hostname))
-            try:
-                dev_info[hostname]['bgp'] = junos.get_bgp_information(dev)
-            except Exception as e:
-                print(e)
-                print("{} ::: get no BGP Information".format(hostname))
-        return dev_info
+        try:
+            with Device(host=hostname, username=USERNAME, password=PASSWORD, port=NETCONF_PORT, ssh_private_key_file=PRIV_KEYFILE, ssh_config=CONFIG_FILE) as dev:
+                dev.timeout = TIMEOUT
+                dev_info[hostname] = {}
+                dev_info[hostname]['interfaces'] = {}
+                dev_info[hostname]['environment'] = {}
+                dev_info[hostname]['bgp'] = {}
+                try:
+                    if access:
+                        dev_info[hostname]['interfaces'] = junos.get_specific_ports_information(
+                            dev, interface_junos_notations=NETWORK_REGEXES)
+                    else:
+                        dev_info[hostname]['interfaces'] = junos.get_all_ports_information(
+                            dev)
+                except Exception as e:
+                    print(e)
+                    print("{} ::: get no Interface Data".format(hostname))
+                try:
+                    dev_info[hostname]['environment'] = junos.get_environment(dev)
+                except Exception as e:
+                    print(e)
+                    print("{} ::: get no Environment Data".format(hostname))
+                try:
+                    dev_info[hostname]['bgp'] = junos.get_bgp_information(dev)
+                except Exception as e:
+                    print(e)
+                    print("{} ::: get no BGP Information".format(hostname))
+            return dev_info
+        except Exception:
+            return None
 
     def create_metrik_params(self, metrik_def, call='interfaces'):
         metrik_name = metrik_def['metrik']
