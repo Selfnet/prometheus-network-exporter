@@ -13,25 +13,15 @@
 The configuration is under `/etc/prometheus-junos-exporter/config.yml` you should change the configuration.
 No configuration means, that the current logged in user is used and its configuration.
 The SSH config is also used.
-### Run the program
-
-```bash
-    prometheus-junos-exporter --version
-```
-
-defaults to [http://localhost:9332](http://localhost:9332)
-you can specify addr and port on the cli.
-
 #### example
 
 ```bash
-    prometheus-junos-exporter --port 9000
-    prometheus-junos-exporter --ip 127.0.0.1 --port 9000
+    gunicorn prometheus_junos_exporter.app:app -b 127.0.0.1:9332 --name prometheus-junos-exporter --log-level=info --log-file=- -w 12 --max-requests 40 -k eventlet
 ```
 
 ## HowTo: Query for junos_devices
 
-    http://localhost:9332/metric?hostname=device.example.com&access=False&hostname=device2.example.com&access=True
+    http://localhost:9332/metrics?target=device.example.com&module=default
 
 If access is True only the interfaces for the ports specified in
 `config/metrics_definitions.yml` are queried and if access is False everything is queried.

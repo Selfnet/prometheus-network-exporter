@@ -221,7 +221,6 @@ def metrics(environ, start_response):
 
     # start response
     data = registry.collect()
-    print(data)
     status = '200 OK'
     response_headers = [
         ('Content-type', 'text/plain')
