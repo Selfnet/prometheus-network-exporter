@@ -149,7 +149,6 @@ def get_environment_metrics(registry, dev, hostname):
             elif environment.get(key):
                 wrapping.create_metrik(
                     metrik_name, registry, key, labels, environment, function=function)
-    print("Change all metrics")
 
 
 def get_bgp_metrics(registry, dev, hostname):
