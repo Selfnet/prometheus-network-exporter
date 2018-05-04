@@ -40,14 +40,16 @@ class Metrics(object):
     def __init__(self):
         self._metrics_registry = {}
         self._metric_types = {}
+        self._metrics_description = {}
 
-    def register(self, name, metric_type):
+    def register(self, name, description, metric_type):
         """
         Add a metric to the registry
         """
         if self._metrics_registry.get(name) is None:
             self._metrics_registry[name] = []
             self._metric_types[name] = metric_type
+            self._metrics_description[name] = description
         else:
             raise ValueError(
                 'Metric named {} is already registered.'.format(name))
@@ -69,6 +71,8 @@ class Metrics(object):
         """
         lines = []
         for name, metric_type in self._metric_types.items():
+            lines.append("# HELP {} {}".format(
+                name, self._metrics_description[name]))
             lines.append("# TYPE {} {}".format(name, metric_type))
             lines.extend(self._metrics_registry[name])
         return "\n".join([str(x) for x in lines]) + '\n'
@@ -110,11 +114,11 @@ def get_interface_metrics(registry, dev, hostname, access=True):
 
     for MetricName, MetricFamily in wrapping.METRICS.items():
         for metrik_def in wrapping.NETWORK_METRICS.get(MetricName, []):
-            metrik_name, key, function, _ = wrapping.create_metrik_params(
+            metrik_name, description, key, function, _ = wrapping.create_metrik_params(
                 metrik_def)
             metrik_name = "{}_{}_{}".format(wrapping.METRICS_BASE.get(
                 'base', 'junos'), wrapping.METRICS_BASE.get('interface', 'interface'), metrik_name)
-            registry.register(metrik_name, MetricFamily)
+            registry.register(metrik_name, description, MetricFamily)
             for interface, metriken in interfaces.items():
                 if metriken.get(key) is not None:
                     labels_data = {'hostname': hostname,
@@ -133,11 +137,11 @@ def get_environment_metrics(registry, dev, hostname):
     environment = junos.get_environment(dev)
     for MetricName, MetricFamily in wrapping.METRICS.items():
         for metrik_def in wrapping.ENVIRONMENT_METRICS.get(MetricName, []):
-            metrik_name, key, function, specific = wrapping.create_metrik_params(
+            metrik_name, description, key, function, specific = wrapping.create_metrik_params(
                 metrik_def)
             metrik_name = "{}_{}_{}".format(
                 wrapping.METRICS_BASE['base'], wrapping.METRICS_BASE['device'], metrik_name)
-            registry.register(metrik_name, MetricFamily)
+            registry.register(metrik_name, description, MetricFamily)
             labels_data = {'hostname': hostname}
             labels_variable = {label['key']: environment.get(
                 label['key'], "") for label in wrapping.ENVIRONMENT_LABEL_WRAPPER}
@@ -158,11 +162,11 @@ def get_bgp_metrics(registry, dev, hostname):
     bgp = junos.get_bgp_information(dev)
     for MetricName, MetricFamily in wrapping.METRICS.items():
         for metrik_def in wrapping.BGP_METRICS.get(MetricName, []):
-            metrik_name, key, function, specific = wrapping.create_metrik_params(
+            metrik_name, description, key, function, _ = wrapping.create_metrik_params(
                 metrik_def)
             metrik_name = "{}_{}_{}".format(
                 wrapping.METRICS_BASE['base'], wrapping.METRICS_BASE['bgp'], metrik_name)
-            registry.register(metrik_name, MetricFamily)
+            registry.register(metrik_name, description, MetricFamily)
             if bgp:
                 for peername, metriken in bgp.items():
                     if metriken.get(key) is not None:
@@ -193,15 +197,18 @@ def metrics(environ, start_response):
         # using regular username/password
         dev = Device(host=hostname,
                      user=profile['auth'].get('username', getpass.getuser()),
-                     password=profile['auth'].get('password', getpass.getpass()),
+                     password=profile['auth'].get('password', None),
                      port=profile['auth'].get('port', 22))
     elif profile['auth']['method'] == 'ssh_key':
         # using ssh key
+        print(profile['auth'].get('username', getpass.getuser()), profile['auth'].get(
+            'ssh_key', None))
         dev = Device(host=hostname,
                      user=profile['auth'].get('username', getpass.getuser()),
                      ssh_private_key_file=profile['auth'].get(
-                         'ssh_key', '~/.ssh/id_rsa'),
+                         'ssh_key', None),
                      port=profile['auth'].get('port', 22),
+                     ssh_config=profile['auth'].get('ssh_config', None),
                      password=profile['auth'].get('password', None))
     dev.open()
     # create metrics registry

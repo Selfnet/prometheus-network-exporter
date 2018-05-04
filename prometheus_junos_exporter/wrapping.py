@@ -22,6 +22,8 @@ BGP_METRICS = DEFINITIONS.get('BGP_METRICS', {})
 BGP_LABEL_WRAPPER = DEFINITIONS.get('BGP_LABEL_WRAPPER', [])
 
 global FUNCTIONS
+
+
 def init():
     global FUNCTIONS, METRICS
     FUNCTIONS = {
@@ -43,6 +45,7 @@ def init():
         'Counter': 'counter',
         'Gauge': 'gauge'
     }
+
 
 def is_ok(boolean):
     if isinstance(boolean, bool):
@@ -86,15 +89,15 @@ def boolify(string):
 def fan_power_temp_status(metrik, registry, labels, data, create_metrik=None):
     for sensorname, information in data.items():
         labels['sensorname'] = sensorname
-        create_metrik(metrik, registry, 'status' , labels,
-                               information, function='is_ok')
+        create_metrik(metrik, registry, 'status', labels,
+                      information, function='is_ok')
 
 
 def temp_celsius(metrik, registry, labels, data, create_metrik=None):
     for sensorname, information in data.items():
-        labels['sensorname']=sensorname
+        labels['sensorname'] = sensorname
         create_metrik(metrik, registry, 'temperature',
-                               labels, information, function='intify')
+                      labels, information, function='intify')
 
 
 def reboot(metrik, registry, labels, data, create_metrik=None):
@@ -118,7 +121,7 @@ def cpu_usage(metrik, registry, labels, data, create_metrik=None):
 def cpu_idle(metrik, registry, labels, data, create_metrik=None):
     for slot, perf in data.items():
         label = "cpu_{}".format(str(slot))
-        labels['cpu']=label
+        labels['cpu'] = label
         cpu_idle = int(perf['cpu-idle'])
         registry.add_metric(metrik, cpu_idle, labels=labels)
 
@@ -134,33 +137,38 @@ def ram_usage(metrik, registry, labels, data, create_metrik=None):
         memory_bytes_usage = (memory_complete * memory_usage / 100) * 1049000
         registry.add_metric(metrik, memory_bytes_usage, labels=labels)
 
+
 def ram(metrik, registry, labels, data, create_metrik=None):
     for slot, perf in data.items():
         label = "ram_{}".format(str(slot))
         labels['ram'] = label
-        memory_complete = perf['memory-dram-size'].lower().replace("mb","").strip()
+        memory_complete = perf['memory-dram-size'].lower().replace("mb",
+                                                                   "").strip()
         memory_complete = int(memory_complete)
         memory_bytes = memory_complete * 1049000
         registry.add_metric(metrik, memory_bytes, labels=labels)
 
+
 def create_metrik_params(metrik_def, call='interfaces'):
     metrik_name = metrik_def['metrik']
     key = metrik_def['key']
-    # description = metrik_def.get('description', '')
+    description = metrik_def.get('description', '')
     type_of = metrik_def.get('type', None)
     function = metrik_def.get('function', None)
     specific = metrik_def.get('specific', False)
     if type_of:
         metrik_name = '{}_{}'.format(metrik_name, type_of)
-    return metrik_name, key, function, specific
+    return metrik_name, description, key, function, specific
+
 
 def create_metrik(metrik_name, registry, key, labels, metriken, function=None):
     if metriken.get(key) is not None:
         try:
             if function:
-                registry.add_metric(metrik_name, FUNCTIONS[function](metriken.get(key)), labels=labels)
+                registry.add_metric(metrik_name, FUNCTIONS[function](
+                    metriken.get(key)), labels=labels)
             else:
-                registry.add_metric(metrik_name, metriken.get(key), labels=labels)
+                registry.add_metric(
+                    metrik_name, metriken.get(key), labels=labels)
         except (ValueError, KeyError) as e:
             print("Error :: {}".format(e))
-

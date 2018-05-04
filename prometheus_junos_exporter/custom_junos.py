@@ -39,14 +39,14 @@ def get_environment(dev):
     uptime = dev.uptime
     rengine = RoutingEngineTable(dev).get()
     temperatures = EnvironmentTable(dev).get()
-
+    print({k: dict(v) for k, v in temperatures.items()})
     return {
         **facts,
         **{'uptime': uptime},
         **{'re_loads': {k: dict(v) for k, v in rengine.items()}},
-        **{'Temp': {k: dict(v) for k, v in temperatures.items() if 'Temp' in dict(v)['class']}},
-        **{'Fans': {k: dict(v) for k, v in temperatures.items() if 'Fans' in dict(v)['class']}},
-        **{'Power': {k: dict(v) for k, v in temperatures.items() if 'Power' in dict(v)['class']}}
+        **{'Temp': {k: dict(v) for k, v in temperatures.items() if dict(v)['class'] and 'Temp' in dict(v)['class']}},
+        **{'Fans': {k: dict(v) for k, v in temperatures.items() if dict(v)['class'] and 'Fans' in dict(v)['class']}},
+        **{'Power': {k: dict(v) for k, v in temperatures.items() if dict(v)['class'] and 'Power' in dict(v)['class']}}
     }
 
 
