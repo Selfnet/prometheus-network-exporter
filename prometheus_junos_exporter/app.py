@@ -201,8 +201,6 @@ def metrics(environ, start_response):
                      port=profile['auth'].get('port', 22))
     elif profile['auth']['method'] == 'ssh_key':
         # using ssh key
-        print(profile['auth'].get('username', getpass.getuser()), profile['auth'].get(
-            'ssh_key', None))
         dev = Device(host=hostname,
                      user=profile['auth'].get('username', getpass.getuser()),
                      ssh_private_key_file=profile['auth'].get(
