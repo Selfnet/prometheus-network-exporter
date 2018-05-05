@@ -79,6 +79,8 @@ def intify(string):
 
 
 def floatify(string):
+    if "- Inf" in string:
+        return float(0)
     return float(string)
 
 
