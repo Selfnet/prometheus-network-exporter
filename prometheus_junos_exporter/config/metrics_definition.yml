@@ -185,12 +185,6 @@ DEFINITIONS:
 
   ENVIRONMENT_METRICS:
     Gauge:
-      - metrik: uptime
-        key: uptime
-        description: Uptime of the Host.
-        type: seconds_total
-        function: intify
-
       - metrik: fan
         type: status
         key: Fans
@@ -253,7 +247,12 @@ DEFINITIONS:
         description: Available Memory in bytes
         function: ram
         specific: yes
-
+    Counter:
+      - metrik: uptime
+        key: uptime
+        description: Uptime of the Host.
+        type: seconds_total
+        function: intify
   ENVIRONMENT_LABEL_WRAPPER:
     - label: software_version
       key: version
