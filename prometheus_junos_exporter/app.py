@@ -222,7 +222,7 @@ def metrics(environ, start_response):
         get_environment_metrics(registry, dev, hostname)
     if 'bgp' in types:
         get_bgp_metrics(registry, dev, hostname)
-
+    dev.close()
     # start response
     data = registry.collect()
     status = '200 OK'
