@@ -2,7 +2,7 @@
     "hostname.fqdn":{
         "xe-0/1/1":{
             "admin": "up",
-            "description": "Core: ar1-8b-1",
+            "description": "Description",
             "flapped": "2017-08-07 09:50:47 CEST (33w2d 11:14 ago)",
             "link_mode": null,
             "macaddr": "40:b4:f0:72:fa:5c",
