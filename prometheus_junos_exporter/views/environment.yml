@@ -2,7 +2,7 @@ RoutingEngineTable:
   rpc: get-route-engine-information
   args:
   item: route-engine
-  key: slot
+  key: slot | model
   view: RoutingEngineView
 
 RoutingEngineView:

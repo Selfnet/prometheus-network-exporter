@@ -29,9 +29,6 @@ def init():
     FUNCTIONS = {
         'is_ok': is_ok,
         'flap': flap,
-        'temp': temp,
-        'intify': intify,
-        'floatify': floatify,
         'fan_power_temp_status': fan_power_temp_status,
         'temp_celsius': temp_celsius,
         'reboot': reboot,
@@ -68,22 +65,6 @@ def flap(string):
         string, "%Y-%m-%d %H:%M:%S %Z").timetuple())
     return val
 
-
-def temp(string):
-    string = int(string.split(' ')[0])
-    return string
-
-
-def intify(string):
-    return int(string)
-
-
-def floatify(string):
-    if "- Inf" in string:
-        return float(0)
-    return float(string)
-
-
 def boolify(string):
     return 'true' in string.lower()
 
@@ -99,7 +80,7 @@ def temp_celsius(metrik, registry, labels, data, create_metrik=None):
     for sensorname, information in data.items():
         labels['sensorname'] = sensorname
         create_metrik(metrik, registry, 'temperature',
-                      labels, information, function='intify')
+                      labels, information)
 
 
 def reboot(metrik, registry, labels, data, create_metrik=None):

@@ -27,10 +27,8 @@ MetricsView:
     flapped: interface-flapped
 
   fields_mac_stats:
-    rx_bytes: input-bytes
-    rx_packets: input-packets
-    tx_bytes: output-bytes
-    tx_packets: output-packets
+    rx_bytes: { input-bytes : int }
+    tx_bytes: { output-bytes : int }
 
   fields_flags:
     running: { ifdf-running: flag }

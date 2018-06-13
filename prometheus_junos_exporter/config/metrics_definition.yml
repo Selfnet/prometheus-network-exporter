@@ -44,134 +44,112 @@ DEFINITIONS:
         key: module_temperature
         type: celsius
         description: Port SFP temperature
-        function: temp
 
       - metrik: sending_optic_power
         key: tx_optic_power
         description: Sending Power on interface
         type: amperes
-        function: floatify
   
       - metrik: receiving_optic_power
         key: rx_optic_power
         description: Receiving Power on interface
         type: amperes
-        function: floatify
 
       - metrik: voltage
         key: module_voltage
         description: Port SFP voltage
         type: amperes
-        function: floatify
 
     Counter:
       - metrik: received
         key: rx_bytes
         description: Total received Bytes by Port
         type: bytes_total
-        function: intify
 
       - metrik: transmitted
         key: tx_bytes
         description: Total transmitted Bytes of Port
         type: bytes_total
-        function: intify
 
       - metrik: receive_drops
         type: total
         key: rx_err_drops
         description: Received Packets dropped
-        function: intify
       
       - metrik: transmit_drops
         type: total
         key: tx_err_drops
         description: transmitted packets 
-        function: intify
 
       - metrik: receive_error_frames
         type: total
         key: rx_err_frame
         description: received messed up packets
-        function: intify
 
       - metrik: receive_error_layer2_channel
         type: total
         key: rx_err_l2-channel
         description: receive errored layer2 packets
-        function: intify
 
       - metrik: receive_error_layer3_incompletes
         type: total
         key: rx_err_l3-incompletes
         description: incomplete layer3 packets
-        function: intify
 
       - metrik: receive_error_layer2_mismatch
         type: total
         key: rx_err_l2-mismatch
         description: mismatched layer2 packets
-        function: intify
 
       - metrik: receive_error_fifo
         type: total
         key: rx_err_fifo
         description: FIFO errors receiving
-        function: intify
 
       - metrik: receive_error_ressource
         type: total
         key: rx_err_resource
         description: Wrong ressources receive errors
-        function: intify
 
       - metrik: transmit_error_carrier_transitions
         type: total
         key: tx_err_carrier-transitions
         description: Transmitted error carrier transitions
-        function: intify
 
       - metrik: transmit_error_output
         type: total
         key: tx_err_output
         description: Transmitted errors on packets output
-        function: intify
 
       - metrik: transmit_error_collisions
         type: total
         key: tx_err_collisions
         description: Transmitted collisions
-        function: intify
 
       - metrik: transmit_error_drops
         type: total
         key: tx_err_drops
         description: Transmit errors on drop
-        function: intify
 
       - metrik: transmit_error_aged
         type: total
         key: tx_err_aged
         description: transmit error on aged packets
-        function: intify
 
       - metrik: transmit_error_mtu
         type: total
         key: tx_err_mtu
         description: transmit error due to wrong mtu
-        function: intify
 
       - metrik: transmit_error_fifo
         type: total
         key: tx_err_fifo
         description: FIFO errors 
-        function: intify
 
       - metrik: transmit_error_ressource
         type: total
         key: tx_err_resource
         description: error on wrong ressource
-        function: intify
 
   NETWORK_LABEL_WRAPPER:
     - label: description
@@ -189,7 +167,6 @@ DEFINITIONS:
         key: uptime
         description: Uptime of the Host.
         type: seconds_total
-        function: intify
 
       - metrik: fan
         type: status
@@ -270,7 +247,6 @@ DEFINITIONS:
         type: total
         key: pfx_rx
         description: Received Prefixes from Peer
-        function: intify
     Gauge:
       - metrik: is_up
         key: peerstate
