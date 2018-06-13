@@ -1,0 +1,45 @@
+PhyPortDiagTable:
+  rpc: get-interface-optics-diagnostics-information
+  args:
+    interface_name: '[efgx][et]-*'
+  args_key: interface_name
+  item: physical-interface
+  view: PhyPortDiagView
+
+PhyPortDiagView:
+  groups:
+    diag: optics-diagnostics
+
+  # fields that are part of groups are called
+  # "fields_<group-name>"
+
+  fields_diag:
+    rx_optic_power : { rx-signal-avg-optical-power-dbm | laser-rx-optical-power-dbm : float }
+    tx_optic_power : { laser-output-power-dbm : float }
+    module_temperature : { module-temperature/@celsius: float }
+    module_voltage : { module-voltage : float}
+    laser_bias_current : { laser-bias-current: float }
+
+# Module Temperature
+    module_temperature_high_alarm : { module-temperature-high-alarm-threshold/@celsius : float }
+    module_temperature_low_alarm : { module-temperature-low-alarm-threshold/@celsius : float }
+    module_temperature_high_warn : { module-temperature-high-warn-threshold/@celsius : float }
+    module_temperature_low_warn : { module-temperature-low-warn-threshold/@celsius : float }
+# Laser Fault Alarm
+    tx_laser_fault_alarm : {tx-laser-fault-alarm: True=on}
+# Threshold Laser Bias Current
+    laser_bias_high_alarm : { laser-bias-current-high-alarm-threshold : float }
+    laser_bias_low_alarm : { laser-bias-current-low-alarm-threshold : float }
+    laser_bias_high_warn : { laser-bias-current-high-warn-threshold : float }
+    laser_bias_low_warn : { laser-bias-current-low-warn-threshold : float }
+# Thresholds output power
+    tx_optic_power_high_alarm : { laser-tx-power-high-alarm-threshold-dbm : float }
+    tx_optic_power_low_alarm : { laser-tx-power-low-alarm-threshold-dbm : float }
+    tx_optic_power_high_warn : { laser-tx-power-high-warn-threshold-dbm : float }
+    tx_optic_power_low_warn : { laser-tx-power-low-warn-threshold-dbm : float }
+# Thresholds input power
+    rx_optic_power_high_alarm : { laser-rx-power-high-alarm-threshold-dbm : float }
+    rx_optic_power_low_alarm : { laser-rx-power-low-alarm-threshold-dbm : float }
+    rx_optic_power_high_warn : { laser-rx-power-high-warn-threshold-dbm : float }
+    rx_optic_power_low_warn : { laser-rx-power-low-warn-threshold-dbm : float }
+
