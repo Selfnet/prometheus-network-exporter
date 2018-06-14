@@ -17,7 +17,6 @@ DEFINITIONS:
         key: flapped
         type: seconds
         description: Port Date (Unix TimeStamp) for last flap
-        function: flap
 
       - metrik: is_running
         key: running
@@ -44,6 +43,11 @@ DEFINITIONS:
         key: module_temperature
         type: celsius
         description: Port SFP temperature
+
+      - metrik: sending_laser_fault_alarm
+        key: tx_laser_fault_alarm
+        description: Port tx laser fault alarm on sfp (0(FAULT)/1(OK))
+        function: is_ok
 
       - metrik: sending_optic_power
         key: tx_optic_power
