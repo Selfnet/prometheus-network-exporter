@@ -26,7 +26,7 @@ PhyPortDiagView:
     module_temperature_high_warn : { module-temperature-high-warn-threshold/@celsius : float }
     module_temperature_low_warn : { module-temperature-low-warn-threshold/@celsius : float }
 # Laser Fault Alarm
-    tx_laser_fault_alarm : {tx-laser-fault-alarm: True=on}
+    tx_laser_fault_alarm : {tx-laser-fault-alarm: flag}
 # Threshold Laser Bias Current
     laser_bias_high_alarm : { laser-bias-current-high-alarm-threshold : float }
     laser_bias_low_alarm : { laser-bias-current-low-alarm-threshold : float }
