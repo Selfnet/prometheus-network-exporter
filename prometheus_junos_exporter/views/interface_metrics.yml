@@ -24,7 +24,7 @@ MetricsView:
     link_mode: link-mode
     speed: speed
     macaddr: current-physical-address
-    flapped: interface-flapped
+    flapped: { interface-flapped/@seconds: int }
 
   fields_mac_stats:
     rx_bytes: { input-bytes : int }
@@ -36,9 +36,7 @@ MetricsView:
 
   fields_ts:
     rx_bytes: { input-bytes: int }
-    rx_packets: { input-packets: int }
     tx_bytes: { output-bytes: int }
-    tx_packets: { output-packets: int }
 
   fields_rxerrs:
     rx_err_input: { input-errors: int }
