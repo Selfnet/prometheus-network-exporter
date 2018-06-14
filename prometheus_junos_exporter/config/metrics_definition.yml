@@ -64,6 +64,92 @@ DEFINITIONS:
         description: Port SFP voltage
         type: amperes
 
+      - metrik: laser_bias_current
+        key: laser_bias_current
+        description: Laser Bias Current
+        type: amperes
+# Thresholds for alarms
+# temperature
+      - metrik: module_temperature_high_alarm_threshold
+        key: module_temperature_high_alarm
+        description: Threshold for alarms
+        type: celsius
+
+      - metrik: module_temperature_low_alarm_threshold
+        key: module_temperature_low_alarm
+        description: Threshold for alarms
+        type: celsius
+
+      - metrik: module_temperature_high_warn_threshold
+        key: module_temperature_high_warn
+        description: Threshold for alarms
+        type: celsius
+
+      - metrik: module_temperature_low_warn_threshold
+        key: module_temperature_low_warn
+        description: Threshold for alarms
+        type: celsius
+# receiving
+      - metrik: receiving_optic_power_high_alarm_threshold
+        key: rx_optic_power_high_alarm
+        description: Threshold for alarms
+        type: amperes
+
+      - metrik: receiving_optic_power_low_alarm_threshold
+        key: rx_optic_power_low_alarm
+        description: Threshold for alarms
+        type: amperes
+
+      - metrik: receiving_optic_power_high_warn_threshold
+        key: rx_optic_power_high_warn
+        description: Threshold for alarms
+        type: amperes
+
+      - metrik: receiving_optic_power_low_warn_threshold
+        key: rx_optic_power_low_warn
+        description: Threshold for alarms
+        type: amperes
+# sending
+      - metrik: sending_optic_power_high_alarm_threshold
+        key: tx_optic_power_high_alarm
+        description: Threshold for alarms
+        type: amperes
+
+      - metrik: sending_optic_power_low_alarm_threshold
+        key: tx_optic_power_low_alarm
+        description: Threshold for alarms
+        type: amperes
+
+      - metrik: sending_optic_power_high_warn_threshold
+        key: tx_optic_power_high_warn
+        description: Threshold for alarms
+        type: amperes
+
+      - metrik: sending_optic_power_low_warn_threshold
+        key: tx_optic_power_low_warn
+        description: Threshold for alarms
+        type: amperes
+# laser bias
+      - metrik: laser_bias_high_alarm_threshold
+        key: laser_bias_high_alarm
+        description: Threshold for alarms
+        type: amperes
+
+      - metrik: laser_bias_low_alarm_threshold
+        key: laser_bias_low_alarm
+        description: Threshold for alarms
+        type: amperes
+
+      - metrik: laser_bias_high_warn_threshold
+        key: laser_bias_high_warn
+        description: Threshold for alarms
+        type: amperes
+
+      - metrik: laser_bias_low_warn_threshold
+        key: laser_bias_low_warn
+        description: Threshold for alarms
+        type: amperes
+
     Counter:
       - metrik: received
         key: rx_bytes
