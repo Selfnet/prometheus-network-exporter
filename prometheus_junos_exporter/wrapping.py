@@ -28,6 +28,7 @@ def init():
     global FUNCTIONS, METRICS
     FUNCTIONS = {
         'is_ok': is_ok,
+        'floatify': floatify,
         'fan_power_temp_status': fan_power_temp_status,
         'temp_celsius': temp_celsius,
         'reboot': reboot,
@@ -58,6 +59,13 @@ def is_ok(boolean):
 # this function is for the api
 def boolify(string):
     return 'true' in string.lower()
+
+def floatify(string):
+    if "- Inf" in string:
+        return - float('inf')
+    elif "Inf" in string:
+        return float('inf')
+    return float(string)
 
 def fan_power_temp_status(metrik, registry, labels, data, create_metrik=None):
     for sensorname, information in data.items():

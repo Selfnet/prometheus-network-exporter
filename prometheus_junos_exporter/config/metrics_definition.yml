@@ -53,11 +53,13 @@ DEFINITIONS:
         key: tx_optic_power
         description: Sending Power on interface
         type: amperes
+        function: floatify
   
       - metrik: receiving_optic_power
         key: rx_optic_power
         description: Receiving Power on interface
         type: amperes
+        function: floatify
 
       - metrik: voltage
         key: module_voltage

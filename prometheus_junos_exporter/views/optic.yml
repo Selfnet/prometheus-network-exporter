@@ -14,8 +14,8 @@ PhyPortDiagView:
   # "fields_<group-name>"
 
   fields_diag:
-    rx_optic_power : { rx-signal-avg-optical-power-dbm | laser-rx-optical-power-dbm : float }
-    tx_optic_power : { laser-output-power-dbm : float }
+    rx_optic_power : rx-signal-avg-optical-power-dbm | laser-rx-optical-power-dbm
+    tx_optic_power : laser-output-power-dbm
     module_temperature : { module-temperature/@celsius: float }
     module_voltage : { module-voltage : float}
     laser_bias_current : { laser-bias-current: float }
