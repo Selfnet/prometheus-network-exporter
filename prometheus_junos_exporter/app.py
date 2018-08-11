@@ -5,10 +5,14 @@ import json
 import yaml
 import logging
 import getpass
+from datetime import datetime
+from pprint import pprint
 from prometheus_junos_exporter import wrapping
-from prometheus_junos_exporter import custom_junos as junos
+from prometheus_junos_exporter.devices.junosdevice import JuniperNetworkDevice
 import os
 logger = logging.getLogger(__name__)
+
+CONNECTION_POOL = {}
 
 wrapping.init()
 config = None
@@ -77,23 +81,6 @@ class Metrics(object):
             lines.extend(self._metrics_registry[name])
         return "\n".join([str(x) for x in lines]) + '\n'
 
-
-def hello(environ, start_response):
-    """Like the example above, but it uses the name specified in the
-URL."""
-    # get the name from the url if it was specified there.
-    args = environ['myapp.url_args']
-    if args:
-        subject = escape(args[0])
-    else:
-        subject = 'World'
-    start_response('200 OK', [('Content-Type', 'text/html')])
-    return ['''Hello %(subject)s
-            Hello %(subject)s!
-
-''' % {'subject': subject}]
-
-
 def not_found(environ, start_response):
     """Called if no URL matches."""
     start_response('404 NOT FOUND', [('Content-Type', 'text/plain')])
@@ -107,10 +94,9 @@ def get_interface_metrics(registry, dev, hostname, access=True):
     # interfaces
     interfaces = {}
     if access:
-        interfaces = junos.get_specific_ports_information(
-            dev, ["[gxe][et]-*/1/*"])
+        interfaces = dev.get_interface(interface_names=wrapping.NETWORK_REGEXES, optics=True)
     else:
-        interfaces = junos.get_all_ports_information(dev)
+        interfaces = dev.get_interface(optics=True)
 
     for MetricName, MetricFamily in wrapping.METRICS.items():
         for metrik_def in wrapping.NETWORK_METRICS.get(MetricName, []):
@@ -134,7 +120,7 @@ def get_environment_metrics(registry, dev, hostname):
     """
     Get environment metrics
     """
-    environment = junos.get_environment(dev)
+    environment = dev.get_environment()
     for MetricName, MetricFamily in wrapping.METRICS.items():
         for metrik_def in wrapping.ENVIRONMENT_METRICS.get(MetricName, []):
             metrik_name, description, key, function, specific = wrapping.create_metrik_params(
@@ -159,7 +145,7 @@ def get_bgp_metrics(registry, dev, hostname):
     """
     Get BGP neighbor metrics
     """
-    bgp = junos.get_bgp_information(dev)
+    bgp = dev.get_bgp()
     for MetricName, MetricFamily in wrapping.METRICS.items():
         for metrik_def in wrapping.BGP_METRICS.get(MetricName, []):
             metrik_name, description, key, function, _ = wrapping.create_metrik_params(
@@ -182,10 +168,11 @@ def get_bgp_metrics(registry, dev, hostname):
 def metrics(environ, start_response):
 
     # load config
+    start_time = datetime.now()
     CONF_DIR = os.path.join('/etc', 'prometheus-junos-exporter')
     with open(os.path.join(CONF_DIR, 'config.yml'), 'r') as f:
         config = yaml.load(f)
-
+    pprint(CONNECTION_POOL)
     # parameters from url
     parameters = parse_qs(environ.get('QUERY_STRING', ''))
 
@@ -193,22 +180,26 @@ def metrics(environ, start_response):
     profile = config[parameters.get('module', ['default'])[0]]
     hostname = parameters['target'][0]
     # open device connection
-    if profile['auth']['method'] == 'password':
-        # using regular username/password
-        dev = Device(host=hostname,
-                     user=profile['auth'].get('username', getpass.getuser()),
-                     password=profile['auth'].get('password', None),
-                     port=profile['auth'].get('port', 22))
-    elif profile['auth']['method'] == 'ssh_key':
-        # using ssh key
-        dev = Device(host=hostname,
-                     user=profile['auth'].get('username', getpass.getuser()),
-                     ssh_private_key_file=profile['auth'].get(
-                         'ssh_key', None),
-                     port=profile['auth'].get('port', 22),
-                     ssh_config=profile['auth'].get('ssh_config', None),
-                     password=profile['auth'].get('password', None))
-    dev.open()
+    if not hostname in CONNECTION_POOL.keys() or not CONNECTION_POOL[hostname]:
+        if profile['auth']['method'] == 'password':
+            # using regular username/password
+            junosdev = Device(host=hostname,
+                        user=profile['auth'].get('username', getpass.getuser()),
+                        password=profile['auth'].get('password', None),
+                        port=profile['auth'].get('port', 22))
+        elif profile['auth']['method'] == 'ssh_key':
+            # using ssh key
+            junosdev = Device(host=hostname,
+                        user=profile['auth'].get('username', getpass.getuser()),
+                        ssh_private_key_file=profile['auth'].get(
+                            'ssh_key', None),
+                        port=profile['auth'].get('port', 22),
+                        ssh_config=profile['auth'].get('ssh_config', None),
+                        password=profile['auth'].get('password', None))
+        CONNECTION_POOL[hostname] = junosdev
+    junosdev = CONNECTION_POOL[hostname]
+    dev = JuniperNetworkDevice(device=junosdev)
+    print(dev.connect())
     # create metrics registry
     registry = Metrics()
 
@@ -222,7 +213,6 @@ def metrics(environ, start_response):
         get_environment_metrics(registry, dev, hostname)
     if 'bgp' in types:
         get_bgp_metrics(registry, dev, hostname)
-    dev.close()
     # start response
     data = registry.collect()
     status = '200 OK'
@@ -230,6 +220,7 @@ def metrics(environ, start_response):
         ('Content-type', 'text/plain')
     ]
     start_response(status, response_headers)
+    print(datetime.now() - start_time)
     return [bytes(data, 'utf-8')]
 
 

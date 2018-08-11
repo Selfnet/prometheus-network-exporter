@@ -1,0 +1,28 @@
+OspfNeighborTable:
+  rpc: get-ospf-neighbor-information
+  args:
+    extensive: True
+    interface_name: '[efgx][et]-*'
+  args_key: interface_name
+  item: ospf-neighbor
+  key:
+    - interface-name
+    - neighbor-id
+  view: OspfNeighborView
+
+Ospf3NeighborTable:
+  rpc: get-ospf3-neighbor-information
+  args:
+    extensive: True
+  item: ospf3-neighbor
+  key:
+    - interface-name
+    - neighbor-id
+  view: OspfNeighborView
+
+OspfNeighborView:
+  fields:
+    neighbor_address: neighbor-address
+    interface_name: interface-name
+    ospf_neighbor_state: ospf-neighbor-state
+    neighbor_id: neighbor-id
