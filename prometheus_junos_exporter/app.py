@@ -286,8 +286,8 @@ def app():
                         version='%(prog)s{}'.format(VERSION))
     parser.add_argument('--port', type=int, default=9332,
                         help="Specifys the port on which the exporter is running.(Default=9332)")
-    parser.add_argument('--ip', type=str, default="127.0.0.1",
-                        help="Specifys the port on which the exporter is running.(Default=9332)")
+    parser.add_argument('--ip', type=str, default="::1",
+                        help="Specifys the port on which the exporter is running.(Default=::1)")
     parser.add_argument('--worker', type=int, default=150,
                         help="Specifys the max concurrent threads running for the metrics collection. (Default=150)")
 
