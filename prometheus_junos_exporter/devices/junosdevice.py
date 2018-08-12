@@ -46,7 +46,6 @@ class JuniperNetworkDevice(basedevice.NetworkDevice):
                                 intopticdiag.get(port, {}), **ospf.get(port, {})}
         else:
             for interface_name in interface_names:
-                print(interface_name)
                 ports = dict(MetricsTable(self.device).get(
                     interface_name=interface_name))
                 if optics:
