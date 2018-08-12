@@ -6,7 +6,6 @@ import time
 import datetime
 from getpass import getpass, getuser
 import yaml
-from prometheus_client.core import GaugeMetricFamily, CounterMetricFamily
 # If u want to have more metrics. You must edit the config/metrics_definitions.yml
 with open(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'config', 'metrics_definition.yml'), 'r') as metrics_definitions:
     DEFINITIONS = yaml.load(metrics_definitions).get('DEFINITIONS', {})

@@ -1,5 +1,0 @@
-junos-eznc
-gunicorn
-json-logging-py
-eventlet
-pyYaml

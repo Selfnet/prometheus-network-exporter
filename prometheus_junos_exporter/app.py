@@ -3,16 +3,17 @@ import os
 import yaml
 import getpass
 from datetime import datetime
+import argparse
 import tornado.ioloop
 import tornado.web
 from tornado import gen
+from prometheus_junos_exporter import __version__ as VERSION
 from tornado.concurrent import run_on_executor
 from concurrent.futures import ThreadPoolExecutor
 from prometheus_junos_exporter import wrapping
 from prometheus_junos_exporter.devices.junosdevice import JuniperNetworkDevice
 CONNECTION_POOL = {}
 MAX_WORKERS = 150
-
 wrapping.init()
 config = None
 
@@ -276,37 +277,31 @@ class DisconnectHandler(tornado.web.RequestHandler):
         self.set_header('Content-type', 'text/plain')
         self.write(bytes('Shutdown Completed', 'utf-8'))
 
-# def app(environ, start_response):
-#     """
-#     The main WSGI application. Dispatch the current request to
-#     the functions from above and store the regular expression
-#     captures in the WSGI environment as  `myapp.url_args` so that
-#     the functions from above can access the url placeholders.
-
-#     If nothing matches call the `not_found` function.
-#     """
-
-#     path = environ.get('PATH_INFO', '').lstrip('/')
-#     for regex, callback in urls:
-#         match = re.search(regex, path)
-#         if match is not None:
-#             environ['app.url_args'] = match.groups()
-#             return callback(environ, start_response)
-#     return not_found(environ, start_response)
-
 
 def app():
+    global MAX_WORKERS
+    parser = argparse.ArgumentParser(prog='prometheus-junos-exporter',
+                                     description="Prometheus exporter for JunOS switches and routers.")
+    parser.add_argument('--version', action='version',
+                        version='%(prog)s{}'.format(VERSION))
+    parser.add_argument('--port', type=int, default=9332,
+                        help="Specifys the port on which the exporter is running.(Default=9332)")
+    parser.add_argument('--ip', type=str, default="127.0.0.1",
+                        help="Specifys the port on which the exporter is running.(Default=9332)")
+    parser.add_argument('--worker', type=int, default=150,
+                        help="Specifys the max concurrent threads running for the metrics collection. (Default=150)")
+
+    args = parser.parse_args()
     urls = [
         (r'^/disconnect$', DisconnectHandler),
         (r'^/disconnect/$', DisconnectHandler),
-        # (r'metrics$', self_service),
-        # (r'metrics/$', self_service),
         (r'^/metrics/?$', MetricsHandler),
         (r'^/metrics/(.+)$', MetricsHandler)
     ]
+    MAX_WORKERS = args.worker
     app = tornado.web.Application(urls)
     server = tornado.httpserver.HTTPServer(app)
-    server.listen(9332)
+    server.listen(args.port, address=args.ip)
     tornado.ioloop.IOLoop.current().start()
 
 
