@@ -8,9 +8,18 @@ DEFINITIONS:
     bgp: bgp
 
   NETWORK_REGEXES:
-    - ge-*/1/*
-    - xe-*/*/*
+    - "[gxe][et]-*/1/*"
 
+  OSPF_METRICS:
+    Gauge:
+      - metrik: neighbor_state
+        key: ospf_neighbor_state
+        description: OSPF is (0(DOWN)/1(UP))
+        function: is_ok
+
+  OSPF_LABEL_WRAPPER:
+    - label: neighbor
+      key: neighbor_id
   NETWORK_METRICS:
     Gauge:
       - metrik: last_flapped
@@ -70,8 +79,8 @@ DEFINITIONS:
         key: laser_bias_current
         description: Laser Bias Current
         type: amperes
-# Thresholds for alarms
-# temperature
+    # Thresholds for alarms
+    # temperature
       - metrik: module_temperature_high_alarm_threshold
         key: module_temperature_high_alarm
         description: Threshold for alarms
@@ -91,7 +100,7 @@ DEFINITIONS:
         key: module_temperature_low_warn
         description: Threshold for alarms
         type: celsius
-# receiving
+    # receiving
       - metrik: receiving_optic_power_high_alarm_threshold
         key: rx_optic_power_high_alarm
         description: Threshold for alarms
@@ -111,7 +120,7 @@ DEFINITIONS:
         key: rx_optic_power_low_warn
         description: Threshold for alarms
         type: amperes
-# sending
+    # sending
       - metrik: sending_optic_power_high_alarm_threshold
         key: tx_optic_power_high_alarm
         description: Threshold for alarms
@@ -131,7 +140,7 @@ DEFINITIONS:
         key: tx_optic_power_low_warn
         description: Threshold for alarms
         type: amperes
-# laser bias
+    # laser bias
       - metrik: laser_bias_high_alarm_threshold
         key: laser_bias_high_alarm
         description: Threshold for alarms
@@ -163,85 +172,16 @@ DEFINITIONS:
         description: Total transmitted Bytes of Port
         type: bytes_total
 
-      - metrik: receive_drops
-        type: total
-        key: rx_err_drops
-        description: Received Packets dropped
-      
-      - metrik: transmit_drops
-        type: total
-        key: tx_err_drops
-        description: transmitted packets 
-
-      - metrik: receive_error_frames
-        type: total
-        key: rx_err_frame
-        description: received messed up packets
-
-      - metrik: receive_error_layer2_channel
-        type: total
-        key: rx_err_l2-channel
-        description: receive errored layer2 packets
-
-      - metrik: receive_error_layer3_incompletes
-        type: total
-        key: rx_err_l3-incompletes
-        description: incomplete layer3 packets
-
-      - metrik: receive_error_layer2_mismatch
-        type: total
-        key: rx_err_l2-mismatch
-        description: mismatched layer2 packets
-
-      - metrik: receive_error_fifo
-        type: total
-        key: rx_err_fifo
-        description: FIFO errors receiving
-
-      - metrik: receive_error_ressource
-        type: total
-        key: rx_err_resource
-        description: Wrong ressources receive errors
-
-      - metrik: transmit_error_carrier_transitions
-        type: total
-        key: tx_err_carrier-transitions
-        description: Transmitted error carrier transitions
-
+    ## Error Counters
       - metrik: transmit_error_output
         type: total
-        key: tx_err_output
-        description: Transmitted errors on packets output
+        key: input_errors
+        description: Errors in transmitted packets
 
-      - metrik: transmit_error_collisions
+      - metrik: receive_error_input
         type: total
-        key: tx_err_collisions
-        description: Transmitted collisions
-
-      - metrik: transmit_error_drops
-        type: total
-        key: tx_err_drops
-        description: Transmit errors on drop
-
-      - metrik: transmit_error_aged
-        type: total
-        key: tx_err_aged
-        description: transmit error on aged packets
-
-      - metrik: transmit_error_mtu
-        type: total
-        key: tx_err_mtu
-        description: transmit error due to wrong mtu
-
-      - metrik: transmit_error_fifo
-        type: total
-        key: tx_err_fifo
-        description: FIFO errors 
-
-      - metrik: transmit_error_ressource
-        type: total
-        key: tx_err_resource
-        description: error on wrong ressource
+        key: output_errors
+        description: Errors in received packets
 
   NETWORK_LABEL_WRAPPER:
     - label: description

@@ -13,10 +13,11 @@
 The configuration is under `/etc/prometheus-junos-exporter/config.yml` you should change the configuration.
 No configuration means, that the current logged in user is used and its configuration.
 The SSH config is also used.
+
 #### example
 
 ```bash
-    gunicorn prometheus_junos_exporter.app:app -b 127.0.0.1:9332 --name prometheus-junos-exporter --log-level=info --log-file=- -w 12 --max-requests 40 -k eventlet
+    python -m prometheus_junos_exporter.app
 ```
 
 ## HowTo: Query for junos_devices
@@ -26,6 +27,15 @@ The SSH config is also used.
 If access is True only the interfaces for the ports specified in
 `config/metrics_definitions.yml` are queried and if access is False everything is queried.
 The default definition for access=True is:
+
+## HowTo: disconnect all devices in Connection Pool?
+
+This curl disconnects all devices currently in the exporter_connection_pool.
+
+```bash
+    curl "localhost:9332/disconnect"
+```
+
 
 ```yml
 NETWORK_REGEXES:
