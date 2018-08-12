@@ -18,7 +18,7 @@ DEFINITIONS:
         function: is_ok
 
   OSPF_LABEL_WRAPPER:
-    - label: neighbor_fqdn
+    - label: neighbor
       key: neighbor_id
   NETWORK_METRICS:
     Gauge:
