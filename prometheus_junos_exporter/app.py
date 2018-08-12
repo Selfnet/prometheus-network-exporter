@@ -273,7 +273,6 @@ class DisconnectHandler(tornado.web.RequestHandler):
             device.disconnect()
             print("{} :: Conection State {}".format(
                 hostname, "Disconnected" if not device.is_connected() else "Connected"))
-            del(CONNECTION_POOL[hostname])
         self.set_status(200, reason="OK")
         self.set_header('Content-type', 'text/plain')
         self.write(bytes('Shutdown Completed', 'utf-8'))
