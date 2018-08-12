@@ -39,14 +39,14 @@
         "ospf": {
             "0": {
                 "interface_name": "xe-0/0/0.0",
-                "ospf_neighbor_state": "Full",
+                "ospf_neighbor_state": true,
                 "neighbor_id": "127.0.0.1"
             }
         },
         "ospf3": {
             "0": {
                 "interface_name": "xe-0/0/0.0",
-                "ospf_neighbor_state": "Full",
+                "ospf_neighbor_state": true,
                 "neighbor_id": "127.0.0.2"
             }
         }

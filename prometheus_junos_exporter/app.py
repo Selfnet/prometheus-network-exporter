@@ -16,6 +16,7 @@ MAX_WORKERS = 150
 wrapping.init()
 config = None
 
+
 class Metrics(object):
     """
     Store metrics and do conversions to PromQL syntax
@@ -79,11 +80,6 @@ class Metrics(object):
             lines.extend(self._metrics_registry[name])
         return "\n".join([str(x) for x in lines]) + '\n'
 
-def not_found(environ, start_response):
-    """Called if no URL matches."""
-    start_response('404 NOT FOUND', [('Content-Type', 'text/plain')])
-    return [bytes('Not Found', 'utf-8')]
-
 
 def get_interface_metrics(registry, dev, hostname, access=True, ospf=True, optics=True):
     """
@@ -92,9 +88,36 @@ def get_interface_metrics(registry, dev, hostname, access=True, ospf=True, optic
     # interfaces
     interfaces = {}
     if access:
-        interfaces = dev.get_interface(interface_names=wrapping.NETWORK_REGEXES, optics=optics, ospf=ospf)
+        interfaces = dev.get_interface(
+            interface_names=wrapping.NETWORK_REGEXES, optics=optics, ospf=ospf)
     else:
         interfaces = dev.get_interface(optics=optics, ospf=ospf)
+    if ospf:
+        for MetricName, MetricFamily in wrapping.METRICS.items():
+            for metrik_def in wrapping.OSPF_METRICS.get(MetricName, []):
+                name, description, key, function, _ = wrapping.create_metrik_params(
+                    metrik_def)
+                for ospf in ['ospf', 'ospf3']:
+                    metrik_name = "{}_{}_{}_{}".format(wrapping.METRICS_BASE.get(
+                        'base', 'junos'),
+                        wrapping.METRICS_BASE.get('interface', 'interface'),
+                        ospf,
+                        name)
+                    registry.register(metrik_name, description, MetricFamily)
+                    for interface, metriken in interfaces.items():
+                        for unit, data in metriken.get(ospf, {}).items():
+                            if data.get(key) is not None:
+                                labels_data = {'hostname': hostname,
+                                               'interface': interface,
+                                               'unit': unit}
+                                labels_variable = {label['label']: metriken.get(
+                                    label['key'], "") for label in wrapping.NETWORK_LABEL_WRAPPER}
+                                labels_ospf = {label['label']: data.get(
+                                    label['key'], "") for label in wrapping.OSPF_LABEL_WRAPPER}
+                                labels = {**labels_data, **
+                                          labels_variable, **labels_ospf}
+                                wrapping.create_metrik(metrik_name,
+                                                       registry, key, labels, data, function=function)
 
     for MetricName, MetricFamily in wrapping.METRICS.items():
         for metrik_def in wrapping.NETWORK_METRICS.get(MetricName, []):
@@ -107,7 +130,7 @@ def get_interface_metrics(registry, dev, hostname, access=True, ospf=True, optic
                 if metriken.get(key) is not None:
                     labels_data = {'hostname': hostname,
                                    'interface': interface}
-                    labels_variable = {label['key']: metriken.get(
+                    labels_variable = {label['label']: metriken.get(
                         label['key'], "") for label in wrapping.NETWORK_LABEL_WRAPPER}
                     labels = {**labels_data, **labels_variable}
                     wrapping.create_metrik(metrik_name,
@@ -127,7 +150,7 @@ def get_environment_metrics(registry, dev, hostname):
                 wrapping.METRICS_BASE['base'], wrapping.METRICS_BASE['device'], metrik_name)
             registry.register(metrik_name, description, MetricFamily)
             labels_data = {'hostname': hostname}
-            labels_variable = {label['key']: environment.get(
+            labels_variable = {label['label']: environment.get(
                 label['key'], "") for label in wrapping.ENVIRONMENT_LABEL_WRAPPER}
             labels = {**labels_data, **labels_variable}
             if specific and function:
@@ -165,6 +188,7 @@ def get_bgp_metrics(registry, dev, hostname):
 
 class MetricsHandler(tornado.web.RequestHandler):
     executor = ThreadPoolExecutor(max_workers=MAX_WORKERS)
+
     @run_on_executor
     def get_device_information(self):
         # load config
@@ -174,25 +198,35 @@ class MetricsHandler(tornado.web.RequestHandler):
             config = yaml.load(f)
         # parameters from url
         # get profile from config
-        profile = config[self.get_argument('module', default='default')]
-        hostname = self.get_argument('target')
+        try:
+            profile = config[self.get_argument('module')]
+            hostname = self.get_argument('target')
+        except tornado.web.MissingArgumentError:
+            return 404, "you're holding it wrong!", "you're holding it wrong!:\n{}\n/metrics?module=default&target=target.example.com".format(self.request.uri)
+        except KeyError:
+            return 404, "Wrong module!", "you're holding it wrong!:\nAvailable modules are: {}".format(list(config.keys()))
         # open device connection
         if not hostname in CONNECTION_POOL.keys() or not CONNECTION_POOL[hostname]:
             if profile['auth']['method'] == 'password':
                 # using regular username/password
                 dev = JuniperNetworkDevice(host=hostname,
-                            user=profile['auth'].get('username', getpass.getuser()),
-                            password=profile['auth'].get('password', None),
-                            port=profile['auth'].get('port', 22))
+                                           user=profile['auth'].get(
+                                               'username', getpass.getuser()),
+                                           password=profile['auth'].get(
+                                               'password', None),
+                                           port=profile['auth'].get('port', 22))
             elif profile['auth']['method'] == 'ssh_key':
                 # using ssh key
                 dev = JuniperNetworkDevice(host=hostname,
-                            user=profile['auth'].get('username', getpass.getuser()),
-                            ssh_private_key_file=profile['auth'].get(
-                                'ssh_key', None),
-                            port=profile['auth'].get('port', 22),
-                            ssh_config=profile['auth'].get('ssh_config', None),
-                            password=profile['auth'].get('password', None))
+                                           user=profile['auth'].get(
+                                               'username', getpass.getuser()),
+                                           ssh_private_key_file=profile['auth'].get(
+                                               'ssh_key', None),
+                                           port=profile['auth'].get(
+                                               'port', 22),
+                                           ssh_config=profile['auth'].get(
+                                               'ssh_config', None),
+                                           password=profile['auth'].get('password', None))
             CONNECTION_POOL[hostname] = dev
         dev = CONNECTION_POOL[hostname]
         _ = dev.connect()
@@ -202,32 +236,42 @@ class MetricsHandler(tornado.web.RequestHandler):
         # get and parse metrics
         types = profile['metrics']
         optics = ospf = True
-        if not 'ospf' in types:
-            ospf=False
-        if not 'optics' in types:
-            optics=False
-        if 'interface' in types:
-            get_interface_metrics(registry, dev, hostname, access=False, optics=optics, ospf=ospf)
-        if 'interface_specifics' in types:
-            get_interface_metrics(registry, dev, hostname, access=True, optics=optics, ospf=ospf)
-        if 'environment' in types:
-            get_environment_metrics(registry, dev, hostname)
-        if 'bgp' in types:
-            get_bgp_metrics(registry, dev, hostname)
-        print("{} :: {} :: took :: {} :: to be completed".format(hostname, start_time, datetime.now() - start_time))
-        return registry.collect()
+        try:
+            if not 'ospf' in types:
+                ospf = False
+            if not 'optics' in types:
+                optics = False
+            if 'interface' in types:
+                get_interface_metrics(registry, dev, hostname,
+                                      access=False, optics=optics, ospf=ospf)
+            if 'interface_specifics' in types:
+                get_interface_metrics(registry, dev, hostname,
+                                      access=True, optics=optics, ospf=ospf)
+            if 'environment' in types:
+                get_environment_metrics(registry, dev, hostname)
+            if 'bgp' in types:
+                get_bgp_metrics(registry, dev, hostname)
+        except AttributeError as e:
+            print(e)
+            return 500, "Device unreachable", "Device {} unreachable".format(hostname)
+        print("{} :: {} :: took :: {} :: to be completed".format(
+            hostname, start_time, datetime.now() - start_time))
+        return 200, "OK", registry.collect()
+
     @tornado.gen.coroutine
     def get(self):
-        self.set_status(200, reason="OK")
         self.set_header('Content-type', 'text/plain')
-        data = yield self.get_device_information()
+        code, status, data = yield self.get_device_information()
+        self.set_status(code, reason=status)
         self.write(bytes(data, 'utf-8'))
+
 
 class DisconnectHandler(tornado.web.RequestHandler):
     def get(self):
         for hostname, device in CONNECTION_POOL.items():
             device.disconnect()
-            print("{} :: Conection State {}".format(hostname,"Disconnected" if not device.is_connected() else "Connected"))
+            print("{} :: Conection State {}".format(
+                hostname, "Disconnected" if not device.is_connected() else "Connected"))
         self.set_status(200, reason="OK")
         self.set_header('Content-type', 'text/plain')
         self.write(bytes('Shutdown Completed', 'utf-8'))
@@ -249,19 +293,22 @@ class DisconnectHandler(tornado.web.RequestHandler):
 #             environ['app.url_args'] = match.groups()
 #             return callback(environ, start_response)
 #     return not_found(environ, start_response)
+
+
 def app():
     urls = [
-            (r'^/disconnect$', DisconnectHandler),
-            (r'^/disconnect/$', DisconnectHandler),
-            # (r'metrics$', self_service),
-            # (r'metrics/$', self_service),
-            (r'^/metrics/?$', MetricsHandler),
-            (r'^/metrics/(.+)$', MetricsHandler)
-        ]
+        (r'^/disconnect$', DisconnectHandler),
+        (r'^/disconnect/$', DisconnectHandler),
+        # (r'metrics$', self_service),
+        # (r'metrics/$', self_service),
+        (r'^/metrics/?$', MetricsHandler),
+        (r'^/metrics/(.+)$', MetricsHandler)
+    ]
     app = tornado.web.Application(urls)
-    server = tornado.httpserver.HTTPServer(app)    
+    server = tornado.httpserver.HTTPServer(app)
     server.listen(9332)
     tornado.ioloop.IOLoop.current().start()
+
 
 if __name__ == "__main__":
     app()

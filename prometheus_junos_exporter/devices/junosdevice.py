@@ -22,7 +22,6 @@ class JuniperNetworkDevice(basedevice.NetworkDevice):
                         password=password,
                         port=port)
         super().__init__(device)
-
     def get_bgp(self):
         try:
             bgp = dict(BGPNeighborTable(self.device).get())
@@ -78,6 +77,10 @@ class JuniperNetworkDevice(basedevice.NetworkDevice):
             **{'Power': {k: dict(v) for k, v in temperatures.items() if 'Power' == dict(v)['class']}}
         }
 
+    def lookup_ospf(self, ospf):
+        if 'neighbor_id' in ospf.keys():
+            ospf['neighbor_id'] = self.lookup(ospf['neighbor_id'])
+        return ospf
     def get_ospf(self, interface_name=None):
         result = {}
         ospf = dict(OspfNeighborTable(self.device).get()) if interface_name is None else dict(
@@ -87,11 +90,15 @@ class JuniperNetworkDevice(basedevice.NetworkDevice):
         for interface_name in ospf.keys():
             splitted_name = interface_name.split('.')
             interface = splitted_name[0]
-            unit = int(splitted_name[1])
-            if interface not in result.keys():
-                result[interface] = {}
-            result[interface]['ospf'] = {unit: dict(ospf.get(interface_name, {}))}
-            result[interface]['ospf3'] = {unit: dict(ospf3.get(interface_name, {}))}
+            try:
+                unit = int(splitted_name[1])
+                if interface not in result.keys():
+                    result[interface] = {}
+                result[interface]['ospf'] = {unit: self.lookup_ospf(dict(ospf.get(interface_name, {})))}
+                result[interface]['ospf3'] = {unit: self.lookup_ospf(dict(ospf3.get(interface_name, {})))}
+            except IndexError as e:
+                print(e)
+
         return result
 
     def get_optics(self, interface_name=None):

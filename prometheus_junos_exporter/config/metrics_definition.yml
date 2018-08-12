@@ -10,6 +10,16 @@ DEFINITIONS:
   NETWORK_REGEXES:
     - "[gxe][et]-*/1/*"
 
+  OSPF_METRICS:
+    Gauge:
+      - metrik: neighbor_state
+        key: ospf_neighbor_state
+        description: OSPF is (0(DOWN)/1(UP))
+        function: is_ok
+
+  OSPF_LABEL_WRAPPER:
+    - label: neighbor_fqdn
+      key: neighbor_id
   NETWORK_METRICS:
     Gauge:
       - metrik: last_flapped
@@ -69,8 +79,8 @@ DEFINITIONS:
         key: laser_bias_current
         description: Laser Bias Current
         type: amperes
-# Thresholds for alarms
-# temperature
+    # Thresholds for alarms
+    # temperature
       - metrik: module_temperature_high_alarm_threshold
         key: module_temperature_high_alarm
         description: Threshold for alarms
@@ -90,7 +100,7 @@ DEFINITIONS:
         key: module_temperature_low_warn
         description: Threshold for alarms
         type: celsius
-# receiving
+    # receiving
       - metrik: receiving_optic_power_high_alarm_threshold
         key: rx_optic_power_high_alarm
         description: Threshold for alarms
@@ -110,7 +120,7 @@ DEFINITIONS:
         key: rx_optic_power_low_warn
         description: Threshold for alarms
         type: amperes
-# sending
+    # sending
       - metrik: sending_optic_power_high_alarm_threshold
         key: tx_optic_power_high_alarm
         description: Threshold for alarms
@@ -130,7 +140,7 @@ DEFINITIONS:
         key: tx_optic_power_low_warn
         description: Threshold for alarms
         type: amperes
-# laser bias
+    # laser bias
       - metrik: laser_bias_high_alarm_threshold
         key: laser_bias_high_alarm
         description: Threshold for alarms
@@ -162,7 +172,7 @@ DEFINITIONS:
         description: Total transmitted Bytes of Port
         type: bytes_total
 
-## Error Counters
+    ## Error Counters
       - metrik: transmit_error_output
         type: total
         key: input_errors
