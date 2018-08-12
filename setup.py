@@ -86,7 +86,7 @@ setup(
         'dev': ['pylint', 'autopep8', 'pep8'],
     },
     package_data={
-        'prometheus_junos_exporter.views': ['*.yml'],
+        'prometheus_junos_exporter.views.junos': ['*.yml'],
         'prometheus_junos_exporter.config': ['metrics_definition.yml']
     },
     # Although 'package_data' is the preferred approach, in some case you may
