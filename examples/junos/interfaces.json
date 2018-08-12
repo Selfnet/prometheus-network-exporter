@@ -1,0 +1,54 @@
+{
+    "xe-0/0/0": {
+        "oper": true,
+        "admin": true,
+        "description": "description",
+        "mtu": 1514,
+        "link_mode": null,
+        "speed": "10Gbps",
+        "macaddr": "00:00:00:00:00:01",
+        "flapped": 1,
+        "running": true,
+        "present": true,
+        "rx_bytes": 20,
+        "tx_bytes": 30,
+        "input_errors": 0,
+        "output_errors": 0,
+        "rx_optic_power": "-11.39",
+        "tx_optic_power": "-2.98",
+        "module_temperature": 20.2,
+        "module_voltage": 3.322,
+        "laser_bias_current": 5.43,
+        "module_temperature_high_alarm": 125.0,
+        "module_temperature_low_alarm": -45.0,
+        "module_temperature_high_warn": 115.0,
+        "module_temperature_low_warn": -40.0,
+        "tx_laser_fault_alarm": false,
+        "laser_bias_high_alarm": 15.0,
+        "laser_bias_low_alarm": 1.0,
+        "laser_bias_high_warn": 12.0,
+        "laser_bias_low_warn": 2.0,
+        "tx_optic_power_high_alarm": 2.01,
+        "tx_optic_power_low_alarm": -10.04,
+        "tx_optic_power_high_warn": 0.76,
+        "tx_optic_power_low_warn": -8.27,
+        "rx_optic_power_high_alarm": 3.01,
+        "rx_optic_power_low_alarm": -16.02,
+        "rx_optic_power_high_warn": 1.76,
+        "rx_optic_power_low_warn": -14.26,
+        "ospf": {
+            "0": {
+                "interface_name": "xe-0/0/0.0",
+                "ospf_neighbor_state": "Full",
+                "neighbor_id": "127.0.0.1"
+            }
+        },
+        "ospf3": {
+            "0": {
+                "interface_name": "xe-0/0/0.0",
+                "ospf_neighbor_state": "Full",
+                "neighbor_id": "127.0.0.2"
+            }
+        }
+    }
+}

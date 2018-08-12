@@ -1,22 +1,20 @@
-from jnpr.junos import Device
 import re
-from cgi import escape, parse_qs
-import json
+import os
 import yaml
-import logging
 import getpass
 from datetime import datetime
-from pprint import pprint
+import tornado.ioloop
+import tornado.web
+from tornado import gen
+from tornado.concurrent import run_on_executor
+from concurrent.futures import ThreadPoolExecutor
 from prometheus_junos_exporter import wrapping
 from prometheus_junos_exporter.devices.junosdevice import JuniperNetworkDevice
-import os
-logger = logging.getLogger(__name__)
-
 CONNECTION_POOL = {}
+MAX_WORKERS = 150
 
 wrapping.init()
 config = None
-
 
 class Metrics(object):
     """
@@ -87,16 +85,16 @@ def not_found(environ, start_response):
     return [bytes('Not Found', 'utf-8')]
 
 
-def get_interface_metrics(registry, dev, hostname, access=True):
+def get_interface_metrics(registry, dev, hostname, access=True, ospf=True, optics=True):
     """
     Get interface metrics
     """
     # interfaces
     interfaces = {}
     if access:
-        interfaces = dev.get_interface(interface_names=wrapping.NETWORK_REGEXES, optics=True)
+        interfaces = dev.get_interface(interface_names=wrapping.NETWORK_REGEXES, optics=optics, ospf=ospf)
     else:
-        interfaces = dev.get_interface(optics=True)
+        interfaces = dev.get_interface(optics=optics, ospf=ospf)
 
     for MetricName, MetricFamily in wrapping.METRICS.items():
         for metrik_def in wrapping.NETWORK_METRICS.get(MetricName, []):
@@ -165,87 +163,105 @@ def get_bgp_metrics(registry, dev, hostname):
                             metrik_name, registry, key, labels, metriken, function=function)
 
 
-def metrics(environ, start_response):
+class MetricsHandler(tornado.web.RequestHandler):
+    executor = ThreadPoolExecutor(max_workers=MAX_WORKERS)
+    @run_on_executor
+    def get_device_information(self):
+        # load config
+        start_time = datetime.now()
+        CONF_DIR = os.path.join('/etc', 'prometheus-junos-exporter')
+        with open(os.path.join(CONF_DIR, 'config.yml'), 'r') as f:
+            config = yaml.load(f)
+        # parameters from url
+        # get profile from config
+        profile = config[self.get_argument('module', default='default')]
+        hostname = self.get_argument('target')
+        # open device connection
+        if not hostname in CONNECTION_POOL.keys() or not CONNECTION_POOL[hostname]:
+            if profile['auth']['method'] == 'password':
+                # using regular username/password
+                dev = JuniperNetworkDevice(host=hostname,
+                            user=profile['auth'].get('username', getpass.getuser()),
+                            password=profile['auth'].get('password', None),
+                            port=profile['auth'].get('port', 22))
+            elif profile['auth']['method'] == 'ssh_key':
+                # using ssh key
+                dev = JuniperNetworkDevice(host=hostname,
+                            user=profile['auth'].get('username', getpass.getuser()),
+                            ssh_private_key_file=profile['auth'].get(
+                                'ssh_key', None),
+                            port=profile['auth'].get('port', 22),
+                            ssh_config=profile['auth'].get('ssh_config', None),
+                            password=profile['auth'].get('password', None))
+            CONNECTION_POOL[hostname] = dev
+        dev = CONNECTION_POOL[hostname]
+        _ = dev.connect()
+        # create metrics registry
+        registry = Metrics()
 
-    # load config
-    start_time = datetime.now()
-    CONF_DIR = os.path.join('/etc', 'prometheus-junos-exporter')
-    with open(os.path.join(CONF_DIR, 'config.yml'), 'r') as f:
-        config = yaml.load(f)
-    pprint(CONNECTION_POOL)
-    # parameters from url
-    parameters = parse_qs(environ.get('QUERY_STRING', ''))
+        # get and parse metrics
+        types = profile['metrics']
+        optics = ospf = True
+        if not 'ospf' in types:
+            ospf=False
+        if not 'optics' in types:
+            optics=False
+        if 'interface' in types:
+            get_interface_metrics(registry, dev, hostname, access=False, optics=optics, ospf=ospf)
+        if 'interface_specifics' in types:
+            get_interface_metrics(registry, dev, hostname, access=True, optics=optics, ospf=ospf)
+        if 'environment' in types:
+            get_environment_metrics(registry, dev, hostname)
+        if 'bgp' in types:
+            get_bgp_metrics(registry, dev, hostname)
+        print("{} :: {} :: took :: {} :: to be completed".format(hostname, start_time, datetime.now() - start_time))
+        return registry.collect()
+    @tornado.gen.coroutine
+    def get(self):
+        self.set_status(200, reason="OK")
+        self.set_header('Content-type', 'text/plain')
+        data = yield self.get_device_information()
+        self.write(bytes(data, 'utf-8'))
 
-    # get profile from config
-    profile = config[parameters.get('module', ['default'])[0]]
-    hostname = parameters['target'][0]
-    # open device connection
-    if not hostname in CONNECTION_POOL.keys() or not CONNECTION_POOL[hostname]:
-        if profile['auth']['method'] == 'password':
-            # using regular username/password
-            junosdev = Device(host=hostname,
-                        user=profile['auth'].get('username', getpass.getuser()),
-                        password=profile['auth'].get('password', None),
-                        port=profile['auth'].get('port', 22))
-        elif profile['auth']['method'] == 'ssh_key':
-            # using ssh key
-            junosdev = Device(host=hostname,
-                        user=profile['auth'].get('username', getpass.getuser()),
-                        ssh_private_key_file=profile['auth'].get(
-                            'ssh_key', None),
-                        port=profile['auth'].get('port', 22),
-                        ssh_config=profile['auth'].get('ssh_config', None),
-                        password=profile['auth'].get('password', None))
-        CONNECTION_POOL[hostname] = junosdev
-    junosdev = CONNECTION_POOL[hostname]
-    dev = JuniperNetworkDevice(device=junosdev)
-    print(dev.connect())
-    # create metrics registry
-    registry = Metrics()
+class DisconnectHandler(tornado.web.RequestHandler):
+    def get(self):
+        for hostname, device in CONNECTION_POOL.items():
+            device.disconnect()
+            print("{} :: Conection State {}".format(hostname,"Disconnected" if not device.is_connected() else "Connected"))
+        self.set_status(200, reason="OK")
+        self.set_header('Content-type', 'text/plain')
+        self.write(bytes('Shutdown Completed', 'utf-8'))
 
-    # get and parse metrics
-    types = profile['metrics']
-    if 'interface' in types:
-        get_interface_metrics(registry, dev, hostname, access=False)
-    if 'interface_specifics' in types:
-        get_interface_metrics(registry, dev, hostname, access=True)
-    if 'environment' in types:
-        get_environment_metrics(registry, dev, hostname)
-    if 'bgp' in types:
-        get_bgp_metrics(registry, dev, hostname)
-    # start response
-    data = registry.collect()
-    status = '200 OK'
-    response_headers = [
-        ('Content-type', 'text/plain')
-    ]
-    start_response(status, response_headers)
-    print(datetime.now() - start_time)
-    return [bytes(data, 'utf-8')]
+# def app(environ, start_response):
+#     """
+#     The main WSGI application. Dispatch the current request to
+#     the functions from above and store the regular expression
+#     captures in the WSGI environment as  `myapp.url_args` so that
+#     the functions from above can access the url placeholders.
 
+#     If nothing matches call the `not_found` function.
+#     """
 
-# map urls to functions
-urls = [
-    # (r'metrics$', self_service),
-    # (r'metrics/$', self_service),
-    (r'metrics/?$', metrics),
-    (r'metrics/(.+)$', metrics)
-]
+#     path = environ.get('PATH_INFO', '').lstrip('/')
+#     for regex, callback in urls:
+#         match = re.search(regex, path)
+#         if match is not None:
+#             environ['app.url_args'] = match.groups()
+#             return callback(environ, start_response)
+#     return not_found(environ, start_response)
+def app():
+    urls = [
+            (r'^/disconnect$', DisconnectHandler),
+            (r'^/disconnect/$', DisconnectHandler),
+            # (r'metrics$', self_service),
+            # (r'metrics/$', self_service),
+            (r'^/metrics/?$', MetricsHandler),
+            (r'^/metrics/(.+)$', MetricsHandler)
+        ]
+    app = tornado.web.Application(urls)
+    server = tornado.httpserver.HTTPServer(app)    
+    server.listen(9332)
+    tornado.ioloop.IOLoop.current().start()
 
-
-def app(environ, start_response):
-    """
-    The main WSGI application. Dispatch the current request to
-    the functions from above and store the regular expression
-    captures in the WSGI environment as  `myapp.url_args` so that
-    the functions from above can access the url placeholders.
-
-    If nothing matches call the `not_found` function.
-    """
-    path = environ.get('PATH_INFO', '').lstrip('/')
-    for regex, callback in urls:
-        match = re.search(regex, path)
-        if match is not None:
-            environ['app.url_args'] = match.groups()
-            return callback(environ, start_response)
-    return not_found(environ, start_response)
+if __name__ == "__main__":
+    app()

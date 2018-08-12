@@ -2,7 +2,7 @@
 '''
     General Device 
 '''
-import socket
+from pprint import pprint
 from jnpr.junos import Device
 from jnpr.junos.exception import RpcError, ConnectError
 from prometheus_junos_exporter.devices import basedevice
@@ -14,7 +14,13 @@ from prometheus_junos_exporter.views.junos.ospf import OspfNeighborTable, Ospf3N
 
 
 class JuniperNetworkDevice(basedevice.NetworkDevice):
-    def __init__(self, device):
+    def __init__(self, host, user=None, password=None, port=22, ssh_private_key_file=None, ssh_config=None):
+        device = Device(host=host,
+                        user=user,
+                        ssh_private_key_file=ssh_private_key_file,
+                        ssh_config=ssh_config,
+                        password=password,
+                        port=port)
         super().__init__(device)
 
     def get_bgp(self):
@@ -32,8 +38,13 @@ class JuniperNetworkDevice(basedevice.NetworkDevice):
                 intopticdiag = self.get_optics()
             else:
                 intopticdiag = {}
+            if ospf:
+                ospf = self.get_ospf()
+            else:
+                ospf = {}
             for port in ports.keys():
-                result[port] = {**ports[port], **intopticdiag.get(port, {})}
+                result[port] = {**ports[port], **
+                                intopticdiag.get(port, {}), **ospf.get(port, {})}
         else:
             for interface_name in interface_names:
                 print(interface_name)
@@ -44,9 +55,13 @@ class JuniperNetworkDevice(basedevice.NetworkDevice):
                         interface_name=interface_name)
                 else:
                     intopticdiag = {}
+                if ospf:
+                    ospf = self.get_ospf(interface_name=interface_name)
+                else:
+                    ospf = {}
                 for port in ports.keys():
                     result[port] = {**ports[port], **
-                                    intopticdiag.get(port, {})}
+                                    intopticdiag.get(port, {}), **ospf.get(port, {})}
         return result
 
     def get_environment(self):
@@ -64,10 +79,24 @@ class JuniperNetworkDevice(basedevice.NetworkDevice):
         }
 
     def get_ospf(self, interface_name=None):
-        return dict(OspfNeighborTable(self.device).get())
+        result = {}
+        ospf = dict(OspfNeighborTable(self.device).get()) if interface_name is None else dict(
+            OspfNeighborTable(self.device).get(interface_name=interface_name))
+        ospf3 = dict(Ospf3NeighborTable(self.device).get()) if interface_name is None else dict(
+            Ospf3NeighborTable(self.device).get(interface_name=interface_name))
+        for interface_name in ospf.keys():
+            splitted_name = interface_name.split('.')
+            interface = splitted_name[0]
+            unit = int(splitted_name[1])
+            if interface not in result.keys():
+                result[interface] = {}
+            result[interface]['ospf'] = {unit: dict(ospf.get(interface_name, {}))}
+            result[interface]['ospf3'] = {unit: dict(ospf3.get(interface_name, {}))}
+        return result
 
     def get_optics(self, interface_name=None):
-        return dict(PhyPortDiagTable(self.device).get()) if interface_name is None else dict(PhyPortDiagTable(self.device).get(interface_name=interface_name))
+        return dict(PhyPortDiagTable(self.device).get()) if interface_name is None else dict(
+            PhyPortDiagTable(self.device).get(interface_name=interface_name))
 
     def is_connected(self):
         return self.device.connected
@@ -83,5 +112,6 @@ class JuniperNetworkDevice(basedevice.NetworkDevice):
         return False
 
     def disconnect(self):
-        if self.is_connected:
+        if self.is_connected():
             self.device.close()
+        return self.is_connected()

@@ -1,0 +1,22 @@
+{
+    "bgp": {
+        "reverse.peearadr.example.com": {
+            "description": null,
+            "peeraddr": "::d",
+            "peerstate": true,
+            "pfx_rx": "60"
+        },
+        "reverse.peearadr2.example.com": {
+            "description": null,
+            "peeraddr": "::f",
+            "peerstate": true,
+            "pfx_rx": "60"
+        },
+        "reverse.peearadr3.example.com": {
+            "description": null,
+            "peeraddr": "::2",
+            "peerstate": true,
+            "pfx_rx": "60"
+        }
+    }
+}
