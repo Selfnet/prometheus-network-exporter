@@ -83,9 +83,9 @@ class JuniperNetworkDevice(basedevice.NetworkDevice):
     def get_ospf(self, interface_name=None):
         result = {}
         ospf = dict(OspfNeighborTable(self.device).get()) if interface_name is None else dict(
-            OspfNeighborTable(self.device).get(interface_name=interface_name))
+            OspfNeighborTable(self.device).get(interface=interface_name))
         ospf3 = dict(Ospf3NeighborTable(self.device).get()) if interface_name is None else dict(
-            Ospf3NeighborTable(self.device).get(interface_name=interface_name))
+            Ospf3NeighborTable(self.device).get(interface=interface_name))
         for interface_name in ospf.keys():
             splitted_name = interface_name.split('.')
             interface = splitted_name[0]
