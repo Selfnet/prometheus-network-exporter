@@ -17,8 +17,8 @@ MetricsView:
     txerrs: output-error-list
 
   fields:
-    oper : { oper-status: flag }
-    admin : { admin-status: flag }
+    oper : { oper-status: True=up }
+    admin : { admin-status: True=up }
     description: description
     mtu: { mtu : int }
     link_mode: link-mode

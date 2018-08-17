@@ -19,5 +19,5 @@ Ospf3NeighborTable:
 OspfNeighborView:
   fields:
     interface_name: interface-name
-    ospf_neighbor_state: {  ospf-neighbor-state: True=Full }
+    ospf_neighbor_state: { ospf-neighbor-state: True=Full }
     neighbor_id: neighbor-id
