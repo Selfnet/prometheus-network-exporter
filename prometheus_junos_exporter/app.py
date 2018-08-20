@@ -12,6 +12,7 @@ from prometheus_junos_exporter import __version__ as VERSION
 from tornado.concurrent import run_on_executor
 from concurrent.futures import ThreadPoolExecutor
 from prometheus_junos_exporter import wrapping
+from jnpr.junos.exception import ConnectClosedError, RpcTimeoutError
 from prometheus_junos_exporter.devices.junosdevice import JuniperNetworkDevice
 CONNECTION_POOL = {}
 MAX_WAIT_SECONDS_BEFORE_SHUTDOWN = 30
@@ -254,7 +255,7 @@ class MetricsHandler(tornado.web.RequestHandler):
                 get_environment_metrics(registry, dev, hostname)
             if 'bgp' in types:
                 get_bgp_metrics(registry, dev, hostname)
-        except (AttributeError, jnpr.junos.exception.RpcTimeoutError) as e:
+        except (AttributeError, ConnectClosedError, RpcTimeoutError) as e:
             print(e)
             return 500, "Device unreachable", "Device {} unreachable".format(hostname)
         print("{} :: {} :: took :: {} :: to be completed".format(
