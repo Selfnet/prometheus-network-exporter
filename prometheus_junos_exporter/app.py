@@ -232,36 +232,35 @@ class MetricsHandler(tornado.web.RequestHandler):
                                            password=profile['auth'].get('password', None))
             CONNECTION_POOL[hostname] = dev
         dev = CONNECTION_POOL[hostname]
-        connected = dev.reconnect()
+        dev.connect()
         # create metrics registry
         registry = Metrics()
 
         # get and parse metrics
         types = profile['metrics']
         optics = ospf = True
-        if connected:
-            try:
-                if not 'ospf' in types:
-                    ospf = False
-                if not 'optics' in types:
-                    optics = False
-                if 'interface' in types:
-                    get_interface_metrics(registry, dev, hostname,
-                                        access=False, optics=optics, ospf=ospf)
-                if 'interface_specifics' in types:
-                    get_interface_metrics(registry, dev, hostname,
-                                        access=True, optics=optics, ospf=ospf)
-                if 'environment' in types:
-                    get_environment_metrics(registry, dev, hostname)
-                if 'bgp' in types:
-                    get_bgp_metrics(registry, dev, hostname)
-            except AttributeError as e:
-                print(e)
-                return 500, "Device unreachable", "Device {} unreachable".format(hostname)
-            print("{} :: {} :: took :: {} :: to be completed".format(
-                hostname, start_time, datetime.now() - start_time))
-            return 200, "OK", registry.collect()
-        return 500, "Device unreachable", "Device {} unreachable".format(hostname)
+        try:
+            if not 'ospf' in types:
+                ospf = False
+            if not 'optics' in types:
+                optics = False
+            if 'interface' in types:
+                get_interface_metrics(registry, dev, hostname,
+                                    access=False, optics=optics, ospf=ospf)
+            if 'interface_specifics' in types:
+                get_interface_metrics(registry, dev, hostname,
+                                    access=True, optics=optics, ospf=ospf)
+            if 'environment' in types:
+                get_environment_metrics(registry, dev, hostname)
+            if 'bgp' in types:
+                get_bgp_metrics(registry, dev, hostname)
+        except (AttributeError, jnpr.junos.exception.RpcTimeoutError) as e:
+            print(e)
+            return 500, "Device unreachable", "Device {} unreachable".format(hostname)
+        print("{} :: {} :: took :: {} :: to be completed".format(
+            hostname, start_time, datetime.now() - start_time))
+        dev.disconnect()
+        return 200, "OK", registry.collect()
 
     @tornado.   gen.coroutine
     def get(self):
