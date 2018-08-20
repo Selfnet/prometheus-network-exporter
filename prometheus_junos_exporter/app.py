@@ -3,7 +3,6 @@ import os
 import yaml
 import getpass
 import signal
-import time
 from datetime import datetime
 import argparse
 import tornado.ioloop
