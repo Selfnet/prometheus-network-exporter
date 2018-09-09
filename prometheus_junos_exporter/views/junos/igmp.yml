@@ -1,0 +1,11 @@
+IGMPGroupTable:
+  rpc: get-igmp-group-information
+  args:
+    terse: True
+  item: mgm-interface-groups
+  key: interface-name
+  view: IGMPGroupView
+
+IGMPGroupView:
+  fields:
+    mgm_addresses: mgm-group/multicast-group-address
