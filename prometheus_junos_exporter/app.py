@@ -22,6 +22,7 @@ wrapping.init()
 config = None
 SERVER = None
 
+
 class Metrics(object):
     """
     Store metrics and do conversions to PromQL syntax
@@ -84,6 +85,28 @@ class Metrics(object):
             lines.append("# TYPE {} {}".format(name, metric_type))
             lines.extend(self._metrics_registry[name])
         return "\n".join([str(x) for x in lines]) + '\n'
+
+
+def get_igmp_metrics(registry, dev, hostname):
+    igmp_groups = dev.get_igmp()
+    counter = {}
+    metrik_name = "{}_{}_{}".format(wrapping.METRICS_BASE.get(
+        'base', 'junos'),
+        wrapping.METRICS_BASE.get('igmp', 'igmp'),
+        'broadcasts_total')
+    description = "Users subscribed on broadcasting company/channel"
+    for firm in wrapping.IGMP_PREFIXES['prefixes'].values():
+        counter[firm] = 0
+    registry.register(metrik_name, description, 'gauge')
+    for prefix in wrapping.IGMP_PREFIXES['prefixes'].keys():
+        network = ipaddress.ip_network(prefix)
+        for mgm_addresses in igmp_groups.values():
+            for address in mgm_addresses['mgm_addresses']:
+                if ipaddress.ip_address(address) in network:
+                    counter[wrapping.IGMP_PREFIXES['prefixes'][prefix]] += 1
+
+        wrapping.create_metrik(metrik_name, registry, wrapping.IGMP_PREFIXES['prefixes'][prefix], {
+                               'hostname': hostname, 'broadcaster': wrapping.IGMP_PREFIXES['prefixes'][prefix]},counter)
 
 
 def get_interface_metrics(registry, dev, hostname, access=True, ospf=True, optics=True):
