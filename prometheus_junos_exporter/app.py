@@ -3,6 +3,7 @@ import os
 import yaml
 import getpass
 import signal
+import ipaddress
 from datetime import datetime
 import argparse
 import tornado.ioloop
@@ -247,14 +248,16 @@ class MetricsHandler(tornado.web.RequestHandler):
                 optics = False
             if 'interface' in types:
                 get_interface_metrics(registry, dev, hostname,
-                                    access=False, optics=optics, ospf=ospf)
+                                      access=False, optics=optics, ospf=ospf)
             if 'interface_specifics' in types:
                 get_interface_metrics(registry, dev, hostname,
-                                    access=True, optics=optics, ospf=ospf)
+                                      access=True, optics=optics, ospf=ospf)
             if 'environment' in types:
                 get_environment_metrics(registry, dev, hostname)
             if 'bgp' in types:
                 get_bgp_metrics(registry, dev, hostname)
+            if 'igmp' in types:
+                get_igmp_metrics(registry, dev, hostname)
         except (AttributeError, ConnectClosedError, RpcTimeoutError) as e:
             print(e)
             return 500, "Device unreachable", "Device {} unreachable".format(hostname)
@@ -307,12 +310,12 @@ def app():
 
     signal.signal(signal.SIGTERM, sig_handler)
     signal.signal(signal.SIGINT, sig_handler)
-    
+
     global SERVER
     SERVER = tornado.httpserver.HTTPServer(app)
     print("Listening on http://{}:{}".format(args.ip, args.port))
     SERVER.listen(args.port, address=args.ip)
-    
+
     tornado.ioloop.IOLoop.current().start()
     print("Exiting ...")
 
@@ -320,6 +323,7 @@ def app():
 def sig_handler(sig, frame):
     print('Caught signal: {}'.format(sig))
     tornado.ioloop.IOLoop.current().add_callback(shutdown)
+
 
 def shutdown():
     print('Stopping http server')

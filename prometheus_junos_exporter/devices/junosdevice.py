@@ -11,6 +11,7 @@ from prometheus_junos_exporter.views.junos.interface_metrics import MetricsTable
 from prometheus_junos_exporter.views.junos.bgp import BGPNeighborTable
 from prometheus_junos_exporter.views.junos.environment import RoutingEngineTable, EnvironmentTable
 from prometheus_junos_exporter.views.junos.ospf import OspfNeighborTable, Ospf3NeighborTable
+from prometheus_junos_exporter.views.junos.igmp import IGMPGroupTable
 
 
 class JuniperNetworkDevice(basedevice.NetworkDevice):
@@ -75,6 +76,13 @@ class JuniperNetworkDevice(basedevice.NetworkDevice):
             **{'Fans': {k: dict(v) for k, v in temperatures.items() if 'Fans' == dict(v)['class']}},
             **{'Power': {k: dict(v) for k, v in temperatures.items() if 'Power' == dict(v)['class']}}
         }
+    def get_igmp(self):
+        igmp = dict(IGMPGroupTable(self.device).get())
+        igmp = {k: dict(v) for k,v in igmp.items() if not 'local' in k}
+        for v in igmp.values():
+            if isinstance(v['mgm_addresses'], str):
+                v['mgm_addresses'] = [v['mgm_addresses']]
+        return igmp
 
     def lookup_ospf(self, ospf):
         if 'neighbor_id' in ospf.keys():
