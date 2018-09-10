@@ -89,24 +89,28 @@ class Metrics(object):
 
 def get_igmp_metrics(registry, dev, hostname):
     igmp_groups = dev.get_igmp()
+    ignored_networks = [ipaddress.ip_network(net) for net in wrapping.IGMP_NETWORKS.get('ignore', {}).keys()]
+    networks = [ipaddress.ip_network(prefix) for prefix in wrapping.IGMP_NETWORKS.get('allow', {}).keys()]
     counter = {}
     metrik_name = "{}_{}_{}".format(wrapping.METRICS_BASE.get(
         'base', 'junos'),
         wrapping.METRICS_BASE.get('igmp', 'igmp'),
         'broadcasts_total')
     description = "Users subscribed on broadcasting company/channel"
-    for firm in wrapping.IGMP_PREFIXES['prefixes'].values():
+    for firm in wrapping.IGMP_NETWORKS['allow'].values():
         counter[firm] = 0
     registry.register(metrik_name, description, 'gauge')
-    for prefix in wrapping.IGMP_PREFIXES['prefixes'].keys():
-        network = ipaddress.ip_network(prefix)
+    for network in networks:
         for mgm_addresses in igmp_groups.values():
             for address in mgm_addresses['mgm_addresses']:
-                if ipaddress.ip_address(address) in network:
-                    counter[wrapping.IGMP_PREFIXES['prefixes'][prefix]] += 1
+                current_addr = ipaddress.ip_address(address)
+                if current_addr in network:
+                    for ignore in ignored_networks:
+                        if current_addr not in ignore:
+                            counter[wrapping.IGMP_NETWORKS['allow'][str(network)]] += 1
 
-        wrapping.create_metrik(metrik_name, registry, wrapping.IGMP_PREFIXES['prefixes'][prefix], {
-                               'hostname': hostname, 'broadcaster': wrapping.IGMP_PREFIXES['prefixes'][prefix]},counter)
+        wrapping.create_metrik(metrik_name, registry, wrapping.IGMP_NETWORKS['allow'][str(network)], {
+                                'hostname': hostname, 'broadcaster': wrapping.IGMP_NETWORKS['allow'][str(network)]},counter)
 
 
 def get_interface_metrics(registry, dev, hostname, access=True, ospf=True, optics=True):
