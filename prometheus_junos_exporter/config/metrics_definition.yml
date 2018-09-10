@@ -19,7 +19,7 @@ DEFINITIONS:
       "239.193.0.0/16": ProSiebenSat.1 MediaSE
       "239.194.0.0/16": RTL Gruppe
       "239.195.0.0/16": Andere
-      "239.199.0.0/16": Lokale Streams"
+      "239.199.0.0/16": Lokale Streams
 
   OSPF_METRICS:
     Gauge:
