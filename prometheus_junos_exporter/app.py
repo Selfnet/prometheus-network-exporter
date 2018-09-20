@@ -4,7 +4,7 @@ import yaml
 import getpass
 import signal
 import ipaddress
-from datetime import datetime
+# from datetime import datetime
 import argparse
 import tornado.ioloop
 import tornado.web
@@ -224,7 +224,7 @@ class MetricsHandler(tornado.web.RequestHandler):
     @run_on_executor
     def get_device_information(self):
         # load config
-        start_time = datetime.now()
+        # start_time = datetime.now()
         CONF_DIR = os.path.join('/etc', 'prometheus-junos-exporter')
         with open(os.path.join(CONF_DIR, 'config.yml'), 'r') as f:
             config = yaml.load(f)
@@ -288,8 +288,8 @@ class MetricsHandler(tornado.web.RequestHandler):
         except (AttributeError, ConnectClosedError, RpcTimeoutError) as e:
             print(e)
             return 500, "Device unreachable", "Device {} unreachable".format(hostname)
-        print("{} :: {} :: took :: {} :: to be completed".format(
-            hostname, start_time, datetime.now() - start_time))
+        # print("{} :: {} :: took :: {} :: to be completed".format(
+        #     hostname, start_time, datetime.now() - start_time))
         dev.disconnect()
         return 200, "OK", registry.collect()
 
