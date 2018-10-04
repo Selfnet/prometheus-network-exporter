@@ -1,0 +1,7 @@
+libssh
+libssh2
+libcurl4-gnutls
+libxml2
+libxslt
+libtool
+cmake
