@@ -89,8 +89,10 @@ class Metrics(object):
 
 def get_igmp_metrics(registry, dev, hostname):
     igmp_groups = dev.get_igmp()
-    ignored_networks = [ipaddress.ip_network(net) for net in wrapping.IGMP_NETWORKS.get('ignore', {}).keys()]
-    networks = [ipaddress.ip_network(prefix) for prefix in wrapping.IGMP_NETWORKS.get('allow', {}).keys()]
+    ignored_networks = [ipaddress.ip_network(
+        net) for net in wrapping.IGMP_NETWORKS.get('ignore', {}).keys()]
+    networks = [ipaddress.ip_network(
+        prefix) for prefix in wrapping.IGMP_NETWORKS.get('allow', {}).keys()]
     counter = {}
     metrik_name = "{}_{}_{}".format(wrapping.METRICS_BASE.get(
         'base', 'junos'),
@@ -107,10 +109,11 @@ def get_igmp_metrics(registry, dev, hostname):
                 if current_addr in network:
                     for ignore in ignored_networks:
                         if current_addr not in ignore:
-                            counter[wrapping.IGMP_NETWORKS['allow'][str(network)]] += 1
+                            counter[wrapping.IGMP_NETWORKS['allow']
+                                    [str(network)]] += 1
 
         wrapping.create_metrik(metrik_name, registry, wrapping.IGMP_NETWORKS['allow'][str(network)], {
-                                'hostname': hostname, 'broadcaster': wrapping.IGMP_NETWORKS['allow'][str(network)]},counter)
+            'hostname': hostname, 'broadcaster': wrapping.IGMP_NETWORKS['allow'][str(network)]}, counter)
 
 
 def get_interface_metrics(registry, dev, hostname, access=True, ospf=True, optics=True):

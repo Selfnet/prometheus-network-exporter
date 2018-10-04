@@ -59,8 +59,11 @@ def is_ok(boolean):
         raise Exception("Unknown Type")
 
 # this function is for the api
+
+
 def boolify(string):
     return 'true' in string.lower()
+
 
 def floatify(string):
     if "- Inf" in string:
@@ -68,6 +71,7 @@ def floatify(string):
     elif "Inf" in string:
         return float('inf')
     return float(string)
+
 
 def fan_power_temp_status(metrik, registry, labels, data, create_metrik=None):
     for sensorname, information in data.items():

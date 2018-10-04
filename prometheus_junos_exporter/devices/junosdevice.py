@@ -23,6 +23,7 @@ class JuniperNetworkDevice(basedevice.NetworkDevice):
                         password=password,
                         port=port)
         super().__init__(device)
+
     def get_bgp(self):
         try:
             bgp = dict(BGPNeighborTable(self.device).get())
@@ -76,9 +77,10 @@ class JuniperNetworkDevice(basedevice.NetworkDevice):
             **{'Fans': {k: dict(v) for k, v in temperatures.items() if 'Fans' == dict(v)['class']}},
             **{'Power': {k: dict(v) for k, v in temperatures.items() if 'Power' == dict(v)['class']}}
         }
+
     def get_igmp(self):
         igmp = dict(IGMPGroupTable(self.device).get())
-        igmp = {k: dict(v) for k,v in igmp.items() if not 'local' in k}
+        igmp = {k: dict(v) for k, v in igmp.items() if not 'local' in k}
         for v in igmp.values():
             if isinstance(v['mgm_addresses'], str):
                 v['mgm_addresses'] = [v['mgm_addresses']]
@@ -88,6 +90,7 @@ class JuniperNetworkDevice(basedevice.NetworkDevice):
         if 'neighbor_id' in ospf.keys():
             ospf['neighbor_id'] = self.lookup(ospf['neighbor_id'])
         return ospf
+
     def get_ospf(self, interface_name=None):
         result = {}
         ospf = dict(OspfNeighborTable(self.device).get()) if interface_name is None else dict(
@@ -101,8 +104,10 @@ class JuniperNetworkDevice(basedevice.NetworkDevice):
                 unit = int(splitted_name[1])
                 if interface not in result.keys():
                     result[interface] = {}
-                result[interface]['ospf'] = {unit: self.lookup_ospf(dict(ospf.get(interface_name, {})))}
-                result[interface]['ospf3'] = {unit: self.lookup_ospf(dict(ospf3.get(interface_name, {})))}
+                result[interface]['ospf'] = {unit: self.lookup_ospf(
+                    dict(ospf.get(interface_name, {})))}
+                result[interface]['ospf3'] = {unit: self.lookup_ospf(
+                    dict(ospf3.get(interface_name, {})))}
             except IndexError as e:
                 print(e)
 
