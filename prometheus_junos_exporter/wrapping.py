@@ -84,7 +84,7 @@ def temp_celsius(metrik, registry, labels, data, create_metrik=None):
 
 
 def reboot(metrik, registry, labels, data, create_metrik=None):
-    reason_string = data['last_reboot_reason']
+    reason_string = data.get('last_reboot_reason', '')
     reason = 1
     for a in ["failure", "error", "failed"]:
         if a in reason_string.lower():
