@@ -139,7 +139,7 @@ class ArubaNetworkDevice(basedevice.Device):
     def disconnect(self):
         self.device.logout()
         return True
-    
+
     def is_connected(self):
         try:
             self.device.get_clients()
