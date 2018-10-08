@@ -1,12 +1,33 @@
 ---
 default:
+  device: junos
   auth:
     method: ssh_key
     username: pyez
     # password: 
     # ssh_key: ~/.ssh/priv_key
   metrics:
-    - interface
+    - ospf
+    - igmp
+    - optics
+    - inteface
+    - interface_specifics
     - environment
-    - bgp
 
+aruba_ac:
+  device: arubaos
+  auth:
+    method: password
+    username: username
+    password: password
+    # verify: no <default: no>
+    # port: 4343 <default: 4343>
+    # http_secure: yes <default: yes>
+    # proxy: socks5h://localhost:5050 <default: None>
+  metrics:
+    - clients
+    - cpu
+    - memory
+    - system information
+    - access point statistics
+    - access point state
