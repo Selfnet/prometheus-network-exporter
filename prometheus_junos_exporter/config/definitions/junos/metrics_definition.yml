@@ -1,0 +1,301 @@
+---
+DEFINITIONS:
+
+  METRICS_BASE:
+    base: pyez_junos
+    interface: interface
+    device: device
+    bgp: bgp
+    igmp: igmp
+
+  NETWORK_REGEXES:
+    - "[gxe][et]-*/1/*"
+
+  IGMP_NETWORKS:
+    ignore:
+      "239.195.255.255/32" : Senderliste
+    allow:
+      "239.192.0.0/16": GEMA
+      "239.193.0.0/16": ProSiebenSat.1 MediaSE
+      "239.194.0.0/16": RTL Gruppe
+      "239.195.0.0/16": Andere
+      "239.199.0.0/16": Lokale Streams
+
+  OSPF_METRICS:
+    Gauge:
+      - metrik: neighbor_state
+        key: ospf_neighbor_state
+        description: OSPF is (0(DOWN)/1(UP))
+        function: is_ok
+
+  OSPF_LABEL_WRAPPER:
+    - label: neighbor
+      key: neighbor_id
+  NETWORK_METRICS:
+    Gauge:
+      - metrik: last_flapped
+        key: flapped
+        type: seconds
+        description: Port Date (Unix TimeStamp) for last flap
+
+      - metrik: is_running
+        key: running
+        description: Port is_up (0(DOWN)/1(UP))
+        function: is_ok
+
+      - metrik: is_operational
+        key: oper
+        description: Port oper (0(DOWN)/1(UP))
+        function: is_ok
+
+      - metrik: is_admin
+        key: admin
+        description: Port admin (0(DOWN)/1(UP))
+        function: is_ok
+
+      - metrik: is_enabled
+        key: present
+        description: Port is_enabled (0(DOWN)/1(UP))
+        function: is_ok
+
+    # Optic Specific
+      - metrik: temperature
+        key: module_temperature
+        type: celsius
+        description: Port SFP temperature
+
+      - metrik: sending_laser_fault_alarm
+        key: tx_laser_fault_alarm
+        description: Port tx laser fault alarm on sfp (0(FAULT)/1(OK))
+        function: is_ok
+
+      - metrik: sending_optic_power
+        key: tx_optic_power
+        description: Sending Power on interface
+        type: amperes
+        function: floatify
+  
+      - metrik: receiving_optic_power
+        key: rx_optic_power
+        description: Receiving Power on interface
+        type: amperes
+        function: floatify
+
+      - metrik: voltage
+        key: module_voltage
+        description: Port SFP voltage
+        type: amperes
+
+      - metrik: laser_bias_current
+        key: laser_bias_current
+        description: Laser Bias Current
+        type: amperes
+    # Thresholds for alarms
+    # temperature
+      - metrik: module_temperature_high_alarm_threshold
+        key: module_temperature_high_alarm
+        description: Threshold for alarms
+        type: celsius
+
+      - metrik: module_temperature_low_alarm_threshold
+        key: module_temperature_low_alarm
+        description: Threshold for alarms
+        type: celsius
+
+      - metrik: module_temperature_high_warn_threshold
+        key: module_temperature_high_warn
+        description: Threshold for alarms
+        type: celsius
+
+      - metrik: module_temperature_low_warn_threshold
+        key: module_temperature_low_warn
+        description: Threshold for alarms
+        type: celsius
+    # receiving
+      - metrik: receiving_optic_power_high_alarm_threshold
+        key: rx_optic_power_high_alarm
+        description: Threshold for alarms
+        type: amperes
+
+      - metrik: receiving_optic_power_low_alarm_threshold
+        key: rx_optic_power_low_alarm
+        description: Threshold for alarms
+        type: amperes
+
+      - metrik: receiving_optic_power_high_warn_threshold
+        key: rx_optic_power_high_warn
+        description: Threshold for alarms
+        type: amperes
+
+      - metrik: receiving_optic_power_low_warn_threshold
+        key: rx_optic_power_low_warn
+        description: Threshold for alarms
+        type: amperes
+    # sending
+      - metrik: sending_optic_power_high_alarm_threshold
+        key: tx_optic_power_high_alarm
+        description: Threshold for alarms
+        type: amperes
+
+      - metrik: sending_optic_power_low_alarm_threshold
+        key: tx_optic_power_low_alarm
+        description: Threshold for alarms
+        type: amperes
+
+      - metrik: sending_optic_power_high_warn_threshold
+        key: tx_optic_power_high_warn
+        description: Threshold for alarms
+        type: amperes
+
+      - metrik: sending_optic_power_low_warn_threshold
+        key: tx_optic_power_low_warn
+        description: Threshold for alarms
+        type: amperes
+    # laser bias
+      - metrik: laser_bias_high_alarm_threshold
+        key: laser_bias_high_alarm
+        description: Threshold for alarms
+        type: amperes
+
+      - metrik: laser_bias_low_alarm_threshold
+        key: laser_bias_low_alarm
+        description: Threshold for alarms
+        type: amperes
+
+      - metrik: laser_bias_high_warn_threshold
+        key: laser_bias_high_warn
+        description: Threshold for alarms
+        type: amperes
+
+      - metrik: laser_bias_low_warn_threshold
+        key: laser_bias_low_warn
+        description: Threshold for alarms
+        type: amperes
+
+    Counter:
+      - metrik: received
+        key: rx_bytes
+        description: Total received Bytes by Port
+        type: bytes_total
+
+      - metrik: transmitted
+        key: tx_bytes
+        description: Total transmitted Bytes of Port
+        type: bytes_total
+
+    ## Error Counters
+      - metrik: transmit_error_output
+        type: total
+        key: input_errors
+        description: Errors in transmitted packets
+
+      - metrik: receive_error_input
+        type: total
+        key: output_errors
+        description: Errors in received packets
+
+  NETWORK_LABEL_WRAPPER:
+    - label: description
+      key: description
+
+    - label: MAC
+      key: macaddr
+
+    - label: speed
+      key: speed
+
+  ENVIRONMENT_METRICS:
+    Gauge:
+      - metrik: uptime
+        key: uptime
+        description: Uptime of the Host.
+        type: seconds_total
+
+      - metrik: fan
+        type: status
+        key: Fans
+        description: Fan STATUS (0(WRACKED)/1(OK))
+        function: fan_power_temp_status
+        specific: yes
+      
+      - metrik: power
+        type: status
+        key: Power
+        description: Power STATUS (0(WRACKED)/1(OK))
+        function: fan_power_temp_status
+        specific: yes
+  
+      - metrik: temp
+        type: status
+        key: Temp
+        description: Temperature Sensor STATUS (0(WRACKED)/1(OK))
+        function: fan_power_temp_status
+        specific: yes
+
+      - metrik: temp
+        type: celsius
+        key: Temp
+        description: Temperature Sensor Value in celsius
+        function: temp_celsius
+        specific: yes
+
+      - metrik: reboot
+        type: status
+        key: RE0
+        description: Last Reboot REASON (0(WRACKED)/1(OK))
+        function: reboot
+        specific: yes
+      
+      - metrik: cpu_usage
+        type: ratio
+        key: re_loads
+        description: Current CPU Load Ratio in percent
+        function: cpu_usage
+        specific: yes
+      
+      - metrik: cpu_idle
+        type: ratio
+        key: re_loads
+        description: Current CPU Idle Ratio in percent
+        function: cpu_idle
+        specific: yes
+
+      - metrik: ram
+        type: bytes
+        key: re_loads
+        description: Current Memory Usage in bytes
+        function: ram_usage
+        specific: yes
+
+      - metrik: ram
+        type: bytes_total
+        key: re_loads
+        description: Available Memory in bytes
+        function: ram
+        specific: yes
+
+  ENVIRONMENT_LABEL_WRAPPER:
+    - label: software_version
+      key: version
+  
+    - label: hardware_model
+      key: model
+
+    - label: personality
+      key: personality
+  
+  BGP_METRICS:
+    Counter:
+      - metrik: prefixes_received
+        type: total
+        key: pfx_rx
+        description: Received Prefixes from Peer
+    Gauge:
+      - metrik: is_up
+        key: peerstate
+        description: BGP Session is established (0(DOWN)/1(UP))
+        function: is_ok
+
+  BGP_LABEL_WRAPPER:
+    - label: peer_address
+      key: peeraddr
