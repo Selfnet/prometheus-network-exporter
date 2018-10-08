@@ -37,8 +37,11 @@ def is_ok(boolean):
         raise Exception("Unknown Type")
 
 # this function is for the api
+
+
 def boolify(string):
     return 'true' in string.lower()
+
 
 def floatify(string):
     if "- Inf" in string:
@@ -46,6 +49,7 @@ def floatify(string):
     elif "Inf" in string:
         return float('inf')
     return float(string)
+
 
 def fan_power_temp_status(metrik, registry, labels, data, create_metrik=None):
     for sensorname, information in data.items():
@@ -62,7 +66,7 @@ def temp_celsius(metrik, registry, labels, data, create_metrik=None):
 
 
 def reboot(metrik, registry, labels, data, create_metrik=None):
-    reason_string = data['last_reboot_reason']
+    reason_string = data.get('last_reboot_reason', '')
     reason = 1
     for a in ["failure", "error", "failed"]:
         if a in reason_string.lower():
