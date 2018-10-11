@@ -1,0 +1,59 @@
+{
+    "_global": {
+        "_version": {
+            "_image_version": "8.2.0.2",
+            "_supported_image_version": [
+                "8.2.0.2"
+            ]
+        },
+        "_switch_role": "standalone",
+        "_master_type": "N/A",
+        "_hostname": "example.example.com",
+        "_model": "Aruba7220",
+        "_user_info": {
+            "_role": "read-only",
+            "_name": "user",
+            "_perm_path": "/"
+        },
+        "_clock": {
+            "clock_set_timezone": {
+                "name": "Europe/Berlin"
+            }
+        }
+    },
+    "_local": {
+        "_type": "device",
+        "_feature": {
+            "airgroup": "Disabled",
+            "firewall_visibility": "Disabled",
+            "firewall_dpi": "Disabled",
+            "mobility_manager": "Disabled",
+            "uplink": "Disabled",
+            "stat_update": "Disabled",
+            "service_termination": "Disabled"
+        },
+        "_hardware": {
+            "_model": "A7220",
+            "_port_info": {
+                "_num_slots": 1,
+                "_num_ge_ports": 6,
+                "_num_ports": 6
+            },
+            "_country": "SAPM_DE",
+            "_name": "mynode",
+            "_capabilities": "interface_non_profile_based,layer2_non_profile_based,routing_non_profile_based,fastethernet,tunnel,loopback,dns_np,infra_np,ipv6_np,wlan,extifmgr,airgroup,iapmgr,dds,apcdump,platform_lcd_cli,web_cc,auth_survivability,hcm,intf_bwm,cluster,scm,jumbo_frames,openflow_agent,pan_gp,ip_flow_export,hotspot2phase2,aruba_central,tnm,plat_intf_sfp,slog_flash_knob",
+            "_mac": ""
+        },
+        "_sw_version": "8.2.0.2",
+        "_pending": {
+            "write_mem_reqd": false,
+            "last_save_time": "16 Sep 18 19:16",
+            "last_save_user": "user",
+            "last_config_time": "--",
+            "last_config_user": "--"
+        },
+        "_user_info": {
+            "_permission": "read-only"
+        }
+    }
+}

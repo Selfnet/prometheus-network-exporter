@@ -76,7 +76,7 @@ setup(
     # your project is installed. For an analysis of "install_requires" vs pip's
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
-    install_requires=['PyYAML', 'tornado', 'junos-eznc'],
+    install_requires=['PyYAML', 'tornado', 'junos-eznc', 'arubaos_client'],
 
     # List additional groups of dependencies here (e.g. development
     # dependencies). You can install these using the following syntax,
@@ -87,7 +87,7 @@ setup(
     },
     package_data={
         'prometheus_junos_exporter.views.junos': ['*.yml'],
-        'prometheus_junos_exporter.config': ['metrics_definition.yml']
+        'prometheus_junos_exporter.config.definitions.junos': ['metrics_definition.yml']
     },
     # Although 'package_data' is the preferred approach, in some case you may
     # need to place data files outside of your packages. See:

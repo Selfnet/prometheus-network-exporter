@@ -1,0 +1,66 @@
+{
+    "AP Database": [
+        {
+            "AP Type": "205H",
+            "Flags": "2",
+            "Group": "Group-AP",
+            "IP Address": "10.0.0.1",
+            "Name": "0-TestAP",
+            "Standby IP": "10.0.0.1",
+            "Status": {
+                "status": true,
+                "uptime": 639807
+            },
+            "Switch IP": "10.0.0.1"
+        },
+        {
+            "AP Type": "205H",
+            "Flags": "2",
+            "Group": "Group-AP",
+            "IP Address": "10.0.0.1",
+            "Name": "1-TestAP",
+            "Standby IP": "10.0.0.1",
+            "Status": {
+                "status": true,
+                "uptime": 91734
+            },
+            "Switch IP": "10.0.0.1"
+        },
+        {
+            "AP Type": "205H",
+            "Flags": "2",
+            "Group": "Group-AP",
+            "IP Address": "10.0.0.1",
+            "Name": "2-TestAP",
+            "Standby IP": "10.0.0.1",
+            "Status": {
+                "status": true,
+                "uptime": 684159
+            },
+            "Switch IP": "10.0.0.1"
+        }
+    ],
+    "_data": {
+        "flags": {
+            "U": "Unprovisioned",
+            "N": "Duplicate name",
+            "G": "No such group",
+            "L": "UnlicensedI = Inactive",
+            "D": "Dirty or no config",
+            "E": "Regulatory Domain MismatchX = Maintenance Mode",
+            "P": "PPPoE AP",
+            "B": "Built-in AP",
+            "s": "LACP stripingR = Remote AP",
+            "R-": "Remote AP requires Auth",
+            "C": "Cellular RAP",
+            "c": "CERT-based RAP",
+            "1": "802.1x authenticated AP",
+            "2": "Using IKE version 2u = Custom-Cert RAP",
+            "S": "Standby-mode AP",
+            "J": "USB cert at APf = No Spectrum FFT supporti = Indoor",
+            "o": "OutdoorM = Mesh node",
+            "Y": "Mesh Recoveryz = Datazone AP",
+            "e": "Custom EST cert3"
+        }
+    }
+}

@@ -1,0 +1,72 @@
+{
+    "2g": {
+        "Users": [],
+        "_data": {
+            "User Entries": {
+                "actual": 0.0,
+                "max": 0.0
+            }
+        },
+        "_meta": [
+            "IP",
+            "MAC",
+            "Name",
+            "Role",
+            "Age(d:h:m)",
+            "Auth",
+            "VPN link",
+            "AP name",
+            "Roaming",
+            "Essid/Bssid/Phy",
+            "Profile",
+            "Forward mode",
+            "Type",
+            "Host Name",
+            "User Type"
+        ]
+    },
+    "5g": {
+        "Users": [
+            {
+                "AP name": "0-TestAP",
+                "Age(d:h:m)": "00:04:05",
+                "Auth": "802.1x",
+                "Essid/Bssid/Phy": "BSSID/00:00:00:00:00:00/a-VHT",
+                "Forward mode": "tunnel",
+                "Host Name": null,
+                "IP": "100.116.46.186",
+                "MAC": "00:00:00:00:00:00",
+                "Name": "user@example.com",
+                "Profile": "Profile",
+                "Roaming": "Wireless",
+                "Role": "guest",
+                "Type": "Linux",
+                "User Type": "WIRELESS",
+                "VPN link": null
+            }
+        ],
+        "_data": {
+            "User Entries": {
+                "actual": 1.0,
+                "max": 1.0
+            }
+        },
+        "_meta": [
+            "IP",
+            "MAC",
+            "Name",
+            "Role",
+            "Age(d:h:m)",
+            "Auth",
+            "VPN link",
+            "AP name",
+            "Roaming",
+            "Essid/Bssid/Phy",
+            "Profile",
+            "Forward mode",
+            "Type",
+            "Host Name",
+            "User Type"
+        ]
+    }
+}

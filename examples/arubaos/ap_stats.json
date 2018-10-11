@@ -1,0 +1,110 @@
+{
+    "0-TestAP": {
+        "Stats": {
+            "ESSID": {
+                "5G": {
+                    "channel": 112.0,
+                    "channel_frame_retry_rate": 0.0,
+                    "channel_frame_low_speed_rate": 0.0,
+                    "channel_frame_non_unicast_rate": 0.0,
+                    "channel_frame_fragmentation_rate": 0.0,
+                    "channel_frame_error_rate": 0.0,
+                    "channel_bandwidth_rate_kbps": 0.0,
+                    "channel_noise": 92.0,
+                    "bssid": "00:00:00:00:00:00",
+                    "bss_frame_retry_rate": 0.0,
+                    "bss_frame_low_speed_rate": 0.0,
+                    "bss_frame_non_unicast_rate": 0.0,
+                    "bss_frame_fragmentation_rate": 0.0,
+                    "bss_frame_receive_error_rate": 0.0,
+                    "bss_bandwidth_rate_kbps": 0.0,
+                    "bss_tx_packets": 1119676.0,
+                    "bss_rx_packets": 1683592.0,
+                    "bss_tx_bytes": 641364005.0,
+                    "bss_rx_bytes": 115560381.0,
+                    "bss_snr": 27.0,
+                    "bss_tx_rate": 0,
+                    "bss_rx_rate": 0
+                },
+                "2G": {
+                    "channel": 1.0,
+                    "channel_frame_retry_rate": 0.0,
+                    "channel_frame_low_speed_rate": 0.0,
+                    "channel_frame_non_unicast_rate": 0.0,
+                    "channel_frame_fragmentation_rate": 0.0,
+                    "channel_frame_error_rate": 0.0,
+                    "channel_bandwidth_rate_kbps": 0.0,
+                    "channel_noise": 96.0,
+                    "bssid": "00:00:00:00:00:00",
+                    "bss_frame_retry_rate": 0.0,
+                    "bss_frame_low_speed_rate": 0.0,
+                    "bss_frame_non_unicast_rate": 0.0,
+                    "bss_frame_fragmentation_rate": 0.0,
+                    "bss_frame_receive_error_rate": 0.0,
+                    "bss_bandwidth_rate_kbps": 0.0,
+                    "bss_tx_packets": 1159849.0,
+                    "bss_rx_packets": 711521.0,
+                    "bss_tx_bytes": 722499048.0,
+                    "bss_rx_bytes": 39021082.0,
+                    "bss_snr": 16.0,
+                    "bss_tx_rate": 0,
+                    "bss_rx_rate": 0
+                }
+            }
+        },
+        "Active AP Table": [
+            {
+                "11a Clients": 2.0,
+                "11g Clients": 0.0,
+                "AP Type": "205H",
+                "Flags": "E2a",
+                "Group": "Group-AP",
+                "IP Address": "10.0.0.1",
+                "Name": "0-TestAP",
+                "Outer IP": "N/A",
+                "Uptime": 709811,
+                "11a_info": {
+                    "eirp": 9.0,
+                    "max_eirp": 18.5
+                },
+                "11g_info": {
+                    "eirp": 9.0,
+                    "max_eirp": 18.5
+                }
+            }
+        ],
+        "_data": {
+            "flags": {
+                "1": "802.1x authenticated AP",
+                "2": "Using IKE version 2",
+                "A": "Enet1 in active/standby mode",
+                "B": "Battery Boost On",
+                "C": "Cellular",
+                "D": "Disconn. Extra Calls On",
+                "E": "Wired AP enabled",
+                "F": "AP failed 802.1x authentication",
+                "H": "Hotspot Enabled",
+                "K": "802.11K Enabled",
+                "L": "Client Balancing Enabled",
+                "M": "Mesh",
+                "N": "802.11b protection disabled",
+                "P": "PPPOE",
+                "R": "Remote AP",
+                "S": "AP connected as standby",
+                "X": "Maintenance Mode",
+                "a": "Reduce ARP packets in the air",
+                "d": "Drop Mcast/Bcast On",
+                "u": "Custom-Cert RAP",
+                "i": "Provisioned as Indoor",
+                "o": "Provisioned as Outdoor",
+                "r": "802.11r Enabled",
+                "f": "No Spectrum FFT support",
+                "Q": "DFS CAC timer running",
+                "T": "Flex Radio Mode is 2.4GHz+5GHz",
+                "U": "Flex Radio Mode is 5GHz",
+                "V": "Flex Radio Mode is 2.4GHz",
+                "e": "custom EST certChannel"
+            }
+        }
+    }
+}
