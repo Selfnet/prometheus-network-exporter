@@ -2,7 +2,7 @@ import json
 
 from prometheus_junos_exporter.devices import basedevice
 
-from aruba_os.client import MobilityControllerAPIClient
+from arubaos_client.client import MobilityControllerAPIClient
 
 BASE = "arubaos"
 
@@ -215,7 +215,7 @@ class ArubaMetrics(basedevice.Metrics):
             registry.add_metric(name, value)
 
     def get_memory(self, registry, dev, hostname):
-        data = dev.device.memory_load()
+        data = dev.device.memory_usage()
         key = 'ram'
         for stat in data[key].keys():
             name = "{}_{}_{}_bytes".format(BASE, key, stat)

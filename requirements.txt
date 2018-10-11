@@ -1,3 +1,4 @@
 junos-eznc
 PyYAML
 tornado
+arubaos_client

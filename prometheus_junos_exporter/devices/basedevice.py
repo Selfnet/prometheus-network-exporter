@@ -4,6 +4,7 @@
 '''
 import socket
 
+
 class Device():
     def __init__(self, hostname, device):
         self.hostname = hostname
@@ -27,6 +28,7 @@ class Device():
     def reconnect(self):
         self.disconnect()
         return self.connect()
+
 
 class Metrics(object):
     def metrics(self, types, dev, registry):

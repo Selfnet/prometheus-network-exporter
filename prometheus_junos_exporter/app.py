@@ -4,7 +4,6 @@ import yaml
 import getpass
 import signal
 import ipaddress
-# from datetime import datetime
 import argparse
 import tornado.ioloop
 import tornado.web

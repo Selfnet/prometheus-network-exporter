@@ -209,7 +209,7 @@ class JuniperMetrics(basedevice.Metrics):
                                     labels = {**labels_data, **
                                               labels_variable, **labels_ospf}
                                     create_metrik(metrik_name,
-                                                           registry, key, labels, data, function=function)
+                                                  registry, key, labels, data, function=function)
 
         for MetricName, MetricFamily in METRICS.items():
             for metrik_def in wrapping.NETWORK_METRICS.get(MetricName, []):
@@ -226,7 +226,7 @@ class JuniperMetrics(basedevice.Metrics):
                             label['key'], "") for label in wrapping.NETWORK_LABEL_WRAPPER}
                         labels = {**labels_data, **labels_variable}
                         create_metrik(metrik_name,
-                                               registry, key, labels, metriken, function=function)
+                                      registry, key, labels, metriken, function=function)
 
     def get_environment_metrics(self, registry, dev, hostname):
         """

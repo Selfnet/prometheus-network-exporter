@@ -17,6 +17,7 @@ METRICS = {
     'Gauge': 'gauge'
 }
 
+
 def create_metrik(metrik_name, registry, key, labels, metriken, function=None):
     if metriken.get(key) is not None:
         try:

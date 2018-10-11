@@ -1,20 +1,22 @@
 from voluptuous import Schema, Required, Any
 
 import yaml
+
+
 class Configuration(object):
     def __init__(self):
         self.schema = Schema({
             Required(str): {
-                Required('device') : Any('junos', 'arubaos', 'ios'),
-                Required('auth') : {
-                    Required('method'): Any('password','ssh_key'),
+                Required('device'): Any('junos', 'arubaos', 'ios'),
+                Required('auth'): {
+                    Required('method'): Any('password', 'ssh_key'),
                     'username': str,
                     Any('password', 'ssh_key', 'proxy'): str,
                     'port': int,
                     Any('http_secure', 'verify'): bool
                 },
                 Required('metrics'): [
-                # Junos Metrics
+                    # Junos Metrics
                     'ospf',
                     'optics',
                     'interface',
@@ -22,7 +24,7 @@ class Configuration(object):
                     'igmp',
                     'environment',
                     'bgp',
-                # ArubaOS Metrics
+                    # ArubaOS Metrics
                     'clients',
                     'cpu',
                     'memory',
@@ -31,6 +33,7 @@ class Configuration(object):
                     'access point state']
             }
         })
+
     def validate(self, config):
         try:
             self.schema(config)
@@ -38,6 +41,7 @@ class Configuration(object):
         except Exception as e:
             print(e)
             return False
+
 
 if __name__ == '__main__':
     config = Configuration()
