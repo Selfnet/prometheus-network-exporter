@@ -7,7 +7,7 @@ import datetime
 from getpass import getpass, getuser
 import yaml
 # If u want to have more metrics. You must edit the config/metrics_definitions.yml
-with open(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'config', 'metrics_definition.yml'), 'r') as metrics_definitions:
+with open(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'metrics_definition.yml'), 'r') as metrics_definitions:
     DEFINITIONS = yaml.load(metrics_definitions).get('DEFINITIONS', {})
 
 # Get the Metrics DEFINITIONS
@@ -22,28 +22,6 @@ ENVIRONMENT_LABEL_WRAPPER = DEFINITIONS.get('ENVIRONMENT_LABEL_WRAPPER', [])
 BGP_METRICS = DEFINITIONS.get('BGP_METRICS', {})
 BGP_LABEL_WRAPPER = DEFINITIONS.get('BGP_LABEL_WRAPPER', [])
 IGMP_NETWORKS = DEFINITIONS.get('IGMP_NETWORKS', {})
-
-global FUNCTIONS
-
-
-def init():
-    global FUNCTIONS, METRICS
-    FUNCTIONS = {
-        'is_ok': is_ok,
-        'floatify': floatify,
-        'fan_power_temp_status': fan_power_temp_status,
-        'temp_celsius': temp_celsius,
-        'reboot': reboot,
-        'cpu_idle': cpu_idle,
-        'cpu_usage': cpu_usage,
-        'ram': ram,
-        'ram_usage': ram_usage
-    }
-
-    METRICS = {
-        'Counter': 'counter',
-        'Gauge': 'gauge'
-    }
 
 
 def is_ok(boolean):
@@ -146,16 +124,3 @@ def create_metrik_params(metrik_def, call='interfaces'):
     if type_of:
         metrik_name = '{}_{}'.format(metrik_name, type_of)
     return metrik_name, description, key, function, specific
-
-
-def create_metrik(metrik_name, registry, key, labels, metriken, function=None):
-    if metriken.get(key) is not None:
-        try:
-            if function:
-                registry.add_metric(metrik_name, FUNCTIONS[function](
-                    metriken.get(key)), labels=labels)
-            else:
-                registry.add_metric(
-                    metrik_name, metriken.get(key), labels=labels)
-        except (ValueError, KeyError) as e:
-            print("Error :: {}".format(e))
