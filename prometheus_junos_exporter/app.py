@@ -55,8 +55,8 @@ class MetricsHandler(tornado.web.RequestHandler):
         # open device connection
         if not hostname in CONNECTION_POOL.keys() or not CONNECTION_POOL[hostname]:
             dev = None
-            if profile['device'] is 'junos':
-                if profile['auth']['method'] is 'password':
+            if profile['device'] == 'junos':
+                if profile['auth']['method'] == 'password':
                     # using regular username/password
                     dev = JuniperNetworkDevice(hostname=hostname,
                                                user=profile['auth'].get(
@@ -76,8 +76,8 @@ class MetricsHandler(tornado.web.RequestHandler):
                                                ssh_config=profile['auth'].get(
                                                    'ssh_config', None),
                                                password=profile['auth'].get('password', None))
-            elif profile['device'] is 'arubaos':
-                if profile['auth']['method'] is 'password':
+            elif profile['device'] == 'arubaos':
+                if profile['auth']['method'] == 'password':
                     try:
                         http = 'https' if profile['auth'].get(
                             'http_secure', True) else 'http'
