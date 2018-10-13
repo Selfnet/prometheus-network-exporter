@@ -124,4 +124,3 @@ def create_metrik_params(metrik_def, call='interfaces'):
     if type_of:
         metrik_name = '{}_{}'.format(metrik_name, type_of)
     return metrik_name, description, key, function, specific
-
