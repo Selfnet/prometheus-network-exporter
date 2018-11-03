@@ -7,7 +7,7 @@ class Configuration(object):
     def __init__(self):
         self.schema = Schema({
             Required(str): {
-                Required('device'): Any('junos', 'arubaos', 'ios'),
+                Required('device'): Any('junos', 'arubaos', 'ios', 'airmax'),
                 Required('auth'): {
                     Required('method'): Any('password', 'ssh_key'),
                     'username': str,
@@ -24,6 +24,8 @@ class Configuration(object):
                     'igmp',
                     'environment',
                     'bgp',
+                    # AirMax Metrics
+                    'wireless statistics',
                     # ArubaOS Metrics
                     'clients',
                     'cpu',

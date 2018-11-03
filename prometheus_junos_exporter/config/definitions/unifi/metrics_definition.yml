@@ -1,0 +1,40 @@
+---
+
+DEFINITIONS:
+  METRICS_BASE:
+    base: ubiquity_airmax
+    interface: interface
+    device: device
+    wireless: wireless
+  NETWORK_METRICS:
+    Counter:
+      - metrik: tx
+        key: tx_bytes
+        type: bytes_total
+        description: Total number of transmitted bytes
+      - metrik: rx
+        key: rx_bytes
+        type: bytes_total
+        description: Total number of received bytes
+      - metrik: tx_errors
+        key: tx_errors
+        type: total
+        description: Total transmition errors
+      - metrik: rx_errors
+        key: rx_errors
+        type: total
+        description: Total received errors
+    Gauge:
+      - metrik: is_up
+        key: plugged
+        type: status
+        description: Status of interface (0 DOWN/1 UP)
+        function: is_ok
+      - metrik: cable_length
+        key: cable_len
+        type: meters
+        description: 
+  NETWORK_LABEL_WRAPPER:
+    - label: speed
+      key: speed
+  

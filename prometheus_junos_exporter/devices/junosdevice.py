@@ -10,7 +10,7 @@ import ipaddress
 
 from prometheus_junos_exporter.devices import basedevice
 from prometheus_junos_exporter.config.definitions.junos import wrapping
-from prometheus_junos_exporter.utitlities import create_metrik, FUNCTIONS, METRICS
+from prometheus_junos_exporter.utitlities import create_metric, FUNCTIONS, METRICS
 
 from prometheus_junos_exporter.views.junos.optic import PhyPortDiagTable
 from prometheus_junos_exporter.views.junos.interface_metrics import MetricsTable
@@ -150,14 +150,14 @@ class JuniperMetrics(basedevice.Metrics):
         networks = [ipaddress.ip_network(
             prefix) for prefix in wrapping.IGMP_NETWORKS.get('allow', {}).keys()]
         counter = {}
-        metrik_name = "{}_{}_{}".format(wrapping.METRICS_BASE.get(
+        metric_name = "{}_{}_{}".format(wrapping.METRICS_BASE.get(
             'base', 'junos'),
             wrapping.METRICS_BASE.get('igmp', 'igmp'),
             'broadcasts_total')
         description = "Users subscribed on broadcasting company/channel"
         for firm in wrapping.IGMP_NETWORKS['allow'].values():
             counter[firm] = 0
-        registry.register(metrik_name, description, 'gauge')
+        registry.register(metric_name, description, 'gauge')
         for network in networks:
             for mgm_addresses in igmp_groups.values():
                 for address in mgm_addresses['mgm_addresses']:
@@ -168,7 +168,7 @@ class JuniperMetrics(basedevice.Metrics):
                                 counter[wrapping.IGMP_NETWORKS['allow']
                                         [str(network)]] += 1
 
-            create_metrik(metrik_name, registry, wrapping.IGMP_NETWORKS['allow'][str(network)], {
+            create_metric(metric_name, registry, wrapping.IGMP_NETWORKS['allow'][str(network)], {
                 'hostname': hostname, 'broadcaster': wrapping.IGMP_NETWORKS['allow'][str(network)]}, counter)
 
     def get_interface_metrics(self, registry, dev, hostname, access=True, ospf=True, optics=True):
@@ -184,49 +184,49 @@ class JuniperMetrics(basedevice.Metrics):
             interfaces = dev.get_interface(optics=optics, ospf=ospf)
         if ospf:
             for MetricName, MetricFamily in METRICS.items():
-                for metrik_def in wrapping.OSPF_METRICS.get(MetricName, []):
-                    name, description, key, function, _ = wrapping.create_metrik_params(
-                        metrik_def)
+                for metric_def in wrapping.OSPF_METRICS.get(MetricName, []):
+                    name, description, key, function, _ = wrapping.create_metric_params(
+                        metric_def)
                     for ospf in ['ospf', 'ospf3']:
-                        metrik_name = "{}_{}_{}_{}".format(wrapping.METRICS_BASE.get(
+                        metric_name = "{}_{}_{}_{}".format(wrapping.METRICS_BASE.get(
                             'base', 'junos'),
                             wrapping.METRICS_BASE.get(
                                 'interface', 'interface'),
                             ospf,
                             name)
                         registry.register(
-                            metrik_name, description, MetricFamily)
-                        for interface, metriken in interfaces.items():
-                            for unit, data in metriken.get(ospf, {}).items():
+                            metric_name, description, MetricFamily)
+                        for interface, metrics in interfaces.items():
+                            for unit, data in metrics.get(ospf, {}).items():
                                 if data.get(key) is not None:
                                     labels_data = {'hostname': hostname,
                                                    'interface': interface,
                                                    'unit': unit}
-                                    labels_variable = {label['label']: metriken.get(
+                                    labels_variable = {label['label']: metrics.get(
                                         label['key'], "") for label in wrapping.NETWORK_LABEL_WRAPPER}
                                     labels_ospf = {label['label']: data.get(
                                         label['key'], "") for label in wrapping.OSPF_LABEL_WRAPPER}
                                     labels = {**labels_data, **
                                               labels_variable, **labels_ospf}
-                                    create_metrik(metrik_name,
+                                    create_metric(metric_name,
                                                   registry, key, labels, data, function=function)
 
         for MetricName, MetricFamily in METRICS.items():
-            for metrik_def in wrapping.NETWORK_METRICS.get(MetricName, []):
-                metrik_name, description, key, function, _ = wrapping.create_metrik_params(
-                    metrik_def)
-                metrik_name = "{}_{}_{}".format(wrapping.METRICS_BASE.get(
-                    'base', 'junos'), wrapping.METRICS_BASE.get('interface', 'interface'), metrik_name)
-                registry.register(metrik_name, description, MetricFamily)
-                for interface, metriken in interfaces.items():
-                    if metriken.get(key) is not None:
+            for metric_def in wrapping.NETWORK_METRICS.get(MetricName, []):
+                metric_name, description, key, function, _ = wrapping.create_metric_params(
+                    metric_def)
+                metric_name = "{}_{}_{}".format(wrapping.METRICS_BASE.get(
+                    'base', 'junos'), wrapping.METRICS_BASE.get('interface', 'interface'), metric_name)
+                registry.register(metric_name, description, MetricFamily)
+                for interface, metrics in interfaces.items():
+                    if metrics.get(key) is not None:
                         labels_data = {'hostname': hostname,
                                        'interface': interface}
-                        labels_variable = {label['label']: metriken.get(
+                        labels_variable = {label['label']: metrics.get(
                             label['key'], "") for label in wrapping.NETWORK_LABEL_WRAPPER}
                         labels = {**labels_data, **labels_variable}
-                        create_metrik(metrik_name,
-                                      registry, key, labels, metriken, function=function)
+                        create_metric(metric_name,
+                                      registry, key, labels, metrics, function=function)
 
     def get_environment_metrics(self, registry, dev, hostname):
         """
@@ -234,12 +234,12 @@ class JuniperMetrics(basedevice.Metrics):
         """
         environment = dev.get_environment()
         for MetricName, MetricFamily in METRICS.items():
-            for metrik_def in wrapping.ENVIRONMENT_METRICS.get(MetricName, []):
-                metrik_name, description, key, function, specific = wrapping.create_metrik_params(
-                    metrik_def)
-                metrik_name = "{}_{}_{}".format(
-                    wrapping.METRICS_BASE['base'], wrapping.METRICS_BASE['device'], metrik_name)
-                registry.register(metrik_name, description, MetricFamily)
+            for metric_def in wrapping.ENVIRONMENT_METRICS.get(MetricName, []):
+                metric_name, description, key, function, specific = wrapping.create_metric_params(
+                    metric_def)
+                metric_name = "{}_{}_{}".format(
+                    wrapping.METRICS_BASE['base'], wrapping.METRICS_BASE['device'], metric_name)
+                registry.register(metric_name, description, MetricFamily)
                 labels_data = {'hostname': hostname}
                 labels_variable = {label['label']: environment.get(
                     label['key'], "") for label in wrapping.ENVIRONMENT_LABEL_WRAPPER}
@@ -247,10 +247,10 @@ class JuniperMetrics(basedevice.Metrics):
                 if specific and function:
                     data = environment.get(key, None)
                     FUNCTIONS[function](
-                        metrik_name, registry, labels, data, create_metrik=create_metrik)
+                        metric_name, registry, labels, data, create_metric=create_metric)
                 elif environment.get(key):
-                    create_metrik(
-                        metrik_name, registry, key, labels, environment, function=function)
+                    create_metric(
+                        metric_name, registry, key, labels, environment, function=function)
 
     def get_bgp_metrics(self, registry, dev, hostname):
         """
@@ -258,22 +258,22 @@ class JuniperMetrics(basedevice.Metrics):
         """
         bgp = dev.get_bgp()
         for MetricName, MetricFamily in METRICS.items():
-            for metrik_def in wrapping.BGP_METRICS.get(MetricName, []):
-                metrik_name, description, key, function, _ = wrapping.create_metrik_params(
-                    metrik_def)
-                metrik_name = "{}_{}_{}".format(
-                    wrapping.METRICS_BASE['base'], wrapping.METRICS_BASE['bgp'], metrik_name)
-                registry.register(metrik_name, description, MetricFamily)
+            for metric_def in wrapping.BGP_METRICS.get(MetricName, []):
+                metric_name, description, key, function, _ = wrapping.create_metric_params(
+                    metric_def)
+                metric_name = "{}_{}_{}".format(
+                    wrapping.METRICS_BASE['base'], wrapping.METRICS_BASE['bgp'], metric_name)
+                registry.register(metric_name, description, MetricFamily)
                 if bgp:
-                    for peername, metriken in bgp.items():
-                        if metriken.get(key) is not None:
+                    for peername, metrics in bgp.items():
+                        if metrics.get(key) is not None:
                             labels_data = {'hostname': hostname,
                                            'peername': peername}
-                            labels_variable = {label['key']: metriken.get(
+                            labels_variable = {label['key']: metrics.get(
                                 label['key'], "") for label in wrapping.BGP_LABEL_WRAPPER}
                             labels = {**labels_data, **labels_variable}
-                            create_metrik(
-                                metrik_name, registry, key, labels, metriken, function=function)
+                            create_metric(
+                                metric_name, registry, key, labels, metrics, function=function)
 
     def metrics(self, types, dev, registry):
         dev.connect()
