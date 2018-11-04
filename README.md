@@ -1,4 +1,4 @@
-# prometheus_junos_exporter
+# prometheus_network_exporter
 
 ## Install Requirements
 
