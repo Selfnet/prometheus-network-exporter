@@ -72,24 +72,24 @@ DEFINITIONS:
       - metric: sending_optic_power
         key: tx_optic_power
         description: Sending Power on interface
-        type: amperes
+        type: dbm
         function: floatify
   
       - metric: receiving_optic_power
         key: rx_optic_power
         description: Receiving Power on interface
-        type: amperes
+        type: dbm
         function: floatify
 
       - metric: voltage
         key: module_voltage
         description: Port SFP voltage
-        type: amperes
+        type: dbm
 
       - metric: laser_bias_current
         key: laser_bias_current
         description: Laser Bias Current
-        type: amperes
+        type: dbm
     # Thresholds for alarms
     # temperature
       - metric: module_temperature_high_alarm_threshold
@@ -115,62 +115,62 @@ DEFINITIONS:
       - metric: receiving_optic_power_high_alarm_threshold
         key: rx_optic_power_high_alarm
         description: Threshold for alarms
-        type: amperes
+        type: dbm
 
       - metric: receiving_optic_power_low_alarm_threshold
         key: rx_optic_power_low_alarm
         description: Threshold for alarms
-        type: amperes
+        type: dbm
 
       - metric: receiving_optic_power_high_warn_threshold
         key: rx_optic_power_high_warn
         description: Threshold for alarms
-        type: amperes
+        type: dbm
 
       - metric: receiving_optic_power_low_warn_threshold
         key: rx_optic_power_low_warn
         description: Threshold for alarms
-        type: amperes
+        type: dbm
     # sending
       - metric: sending_optic_power_high_alarm_threshold
         key: tx_optic_power_high_alarm
         description: Threshold for alarms
-        type: amperes
+        type: dbm
 
       - metric: sending_optic_power_low_alarm_threshold
         key: tx_optic_power_low_alarm
         description: Threshold for alarms
-        type: amperes
+        type: dbm
 
       - metric: sending_optic_power_high_warn_threshold
         key: tx_optic_power_high_warn
         description: Threshold for alarms
-        type: amperes
+        type: dbm
 
       - metric: sending_optic_power_low_warn_threshold
         key: tx_optic_power_low_warn
         description: Threshold for alarms
-        type: amperes
+        type: dbm
     # laser bias
       - metric: laser_bias_high_alarm_threshold
         key: laser_bias_high_alarm
         description: Threshold for alarms
-        type: amperes
+        type: dbm
 
       - metric: laser_bias_low_alarm_threshold
         key: laser_bias_low_alarm
         description: Threshold for alarms
-        type: amperes
+        type: dbm
 
       - metric: laser_bias_high_warn_threshold
         key: laser_bias_high_warn
         description: Threshold for alarms
-        type: amperes
+        type: dbm
 
       - metric: laser_bias_low_warn_threshold
         key: laser_bias_low_warn
         description: Threshold for alarms
-        type: amperes
+        type: dbm
 
     Counter:
       - metric: received
@@ -292,6 +292,7 @@ DEFINITIONS:
         description: Received Prefixes from Peer
     Gauge:
       - metric: is_up
+        type: status
         key: peerstate
         description: BGP Session is established (0(DOWN)/1(UP))
         function: is_ok
