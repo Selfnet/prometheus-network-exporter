@@ -8,33 +8,51 @@ DEFINITIONS:
     wireless: wireless
   NETWORK_METRICS:
     Counter:
-      - metrik: tx
+      - metric: tx
         key: tx_bytes
         type: bytes_total
         description: Total number of transmitted bytes
-      - metrik: rx
+      - metric: rx
         key: rx_bytes
         type: bytes_total
         description: Total number of received bytes
-      - metrik: tx_errors
+      - metric: tx_errors
         key: tx_errors
         type: total
         description: Total transmition errors
-      - metrik: rx_errors
+      - metric: rx_errors
         key: rx_errors
         type: total
         description: Total received errors
     Gauge:
-      - metrik: is_up
+      - metric: is_up
         key: plugged
         type: status
         description: Status of interface (0 DOWN/1 UP)
         function: is_ok
-      - metrik: cable_length
+      - metric: cable_length
         key: cable_len
         type: meters
-        description: 
+        description: Cable length to the Port
   NETWORK_LABEL_WRAPPER:
     - label: speed
       key: speed
-  
+
+  ENVIRONMENT_METRICS:
+    Gauge:
+      - metric: uptime
+        key: uptime
+        description: Uptime of the host.
+        type: seconds
+      - metric: ram
+        key: totalram
+        type: bytes_total
+        description: Total ram in bytes.
+      - metric: ram
+        type: bytes_free
+        key: freeram
+        description: Free ram in bytes
+      - metric: cpu_load
+        type: percent
+        key: cpuload
+        description: CPU Load in percent.

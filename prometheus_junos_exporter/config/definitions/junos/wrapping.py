@@ -51,47 +51,47 @@ def floatify(string):
     return float(string)
 
 
-def fan_power_temp_status(metrik, registry, labels, data, create_metrik=None):
+def fan_power_temp_status(metric, registry, labels, data, create_metric=None):
     for sensorname, information in data.items():
         labels['sensorname'] = sensorname
-        create_metrik(metrik, registry, 'status', labels,
+        create_metric(metric, registry, 'status', labels,
                       information, function='is_ok')
 
 
-def temp_celsius(metrik, registry, labels, data, create_metrik=None):
+def temp_celsius(metric, registry, labels, data, create_metric=None):
     for sensorname, information in data.items():
         labels['sensorname'] = sensorname
-        create_metrik(metrik, registry, 'temperature',
+        create_metric(metric, registry, 'temperature',
                       labels, information)
 
 
-def reboot(metrik, registry, labels, data, create_metrik=None):
+def reboot(metric, registry, labels, data, create_metric=None):
     reason_string = data.get('last_reboot_reason', '')
     reason = 1
     for a in ["failure", "error", "failed"]:
         if a in reason_string.lower():
             reason = 0
     labels['reboot_reason'] = reason_string
-    registry.add_metric(metrik, reason, labels=labels)
+    registry.add_metric(metric, reason, labels=labels)
 
 
-def cpu_usage(metrik, registry, labels, data, create_metrik=None):
+def cpu_usage(metric, registry, labels, data, create_metric=None):
     for slot, perf in data.items():
         label = "cpu_{}".format(str(slot))
         labels['cpu'] = label
         cpu_usage = 100 - int(perf['cpu-idle'])
-        registry.add_metric(metrik, cpu_usage, labels=labels)
+        registry.add_metric(metric, cpu_usage, labels=labels)
 
 
-def cpu_idle(metrik, registry, labels, data, create_metrik=None):
+def cpu_idle(metric, registry, labels, data, create_metric=None):
     for slot, perf in data.items():
         label = "cpu_{}".format(str(slot))
         labels['cpu'] = label
         cpu_idle = int(perf['cpu-idle'])
-        registry.add_metric(metrik, cpu_idle, labels=labels)
+        registry.add_metric(metric, cpu_idle, labels=labels)
 
 
-def ram_usage(metrik, registry, labels, data, create_metrik=None):
+def ram_usage(metric, registry, labels, data, create_metric=None):
     for slot, perf in data.items():
         label = "ram_{}".format(str(slot))
         labels['ram'] = label
@@ -100,10 +100,10 @@ def ram_usage(metrik, registry, labels, data, create_metrik=None):
         memory_complete = int(memory_complete)
         memory_usage = int(perf['memory-buffer-utilization'])
         memory_bytes_usage = (memory_complete * memory_usage / 100) * 1049000
-        registry.add_metric(metrik, memory_bytes_usage, labels=labels)
+        registry.add_metric(metric, memory_bytes_usage, labels=labels)
 
 
-def ram(metrik, registry, labels, data, create_metrik=None):
+def ram(metric, registry, labels, data, create_metric=None):
     for slot, perf in data.items():
         label = "ram_{}".format(str(slot))
         labels['ram'] = label
@@ -111,16 +111,16 @@ def ram(metrik, registry, labels, data, create_metrik=None):
                                                                    "").strip()
         memory_complete = int(memory_complete)
         memory_bytes = memory_complete * 1049000
-        registry.add_metric(metrik, memory_bytes, labels=labels)
+        registry.add_metric(metric, memory_bytes, labels=labels)
 
 
-def create_metrik_params(metrik_def, call='interfaces'):
-    metrik_name = metrik_def['metrik']
-    key = metrik_def['key']
-    description = metrik_def.get('description', '')
-    type_of = metrik_def.get('type', None)
-    function = metrik_def.get('function', None)
-    specific = metrik_def.get('specific', False)
+def create_metric_params(metric_def, call='interfaces'):
+    metric_name = metric_def['metric']
+    key = metric_def['key']
+    description = metric_def.get('description', '')
+    type_of = metric_def.get('type', None)
+    function = metric_def.get('function', None)
+    specific = metric_def.get('specific', False)
     if type_of:
-        metrik_name = '{}_{}'.format(metrik_name, type_of)
-    return metrik_name, description, key, function, specific
+        metric_name = '{}_{}'.format(metric_name, type_of)
+    return metric_name, description, key, function, specific

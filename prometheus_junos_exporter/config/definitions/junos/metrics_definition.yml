@@ -23,7 +23,7 @@ DEFINITIONS:
 
   OSPF_METRICS:
     Gauge:
-      - metrik: neighbor_state
+      - metric: neighbor_state
         key: ospf_neighbor_state
         description: OSPF is (0(DOWN)/1(UP))
         function: is_ok
@@ -33,163 +33,163 @@ DEFINITIONS:
       key: neighbor_id
   NETWORK_METRICS:
     Gauge:
-      - metrik: last_flapped
+      - metric: last_flapped
         key: flapped
         type: seconds
         description: Port Date (Unix TimeStamp) for last flap
 
-      - metrik: is_running
+      - metric: is_running
         key: running
         description: Port is_up (0(DOWN)/1(UP))
         function: is_ok
 
-      - metrik: is_operational
+      - metric: is_operational
         key: oper
         description: Port oper (0(DOWN)/1(UP))
         function: is_ok
 
-      - metrik: is_admin
+      - metric: is_admin
         key: admin
         description: Port admin (0(DOWN)/1(UP))
         function: is_ok
 
-      - metrik: is_enabled
+      - metric: is_enabled
         key: present
         description: Port is_enabled (0(DOWN)/1(UP))
         function: is_ok
 
     # Optic Specific
-      - metrik: temperature
+      - metric: temperature
         key: module_temperature
         type: celsius
         description: Port SFP temperature
 
-      - metrik: sending_laser_fault_alarm
+      - metric: sending_laser_fault_alarm
         key: tx_laser_fault_alarm
         description: Port tx laser fault alarm on sfp (0(FAULT)/1(OK))
         function: is_ok
 
-      - metrik: sending_optic_power
+      - metric: sending_optic_power
         key: tx_optic_power
         description: Sending Power on interface
         type: amperes
         function: floatify
   
-      - metrik: receiving_optic_power
+      - metric: receiving_optic_power
         key: rx_optic_power
         description: Receiving Power on interface
         type: amperes
         function: floatify
 
-      - metrik: voltage
+      - metric: voltage
         key: module_voltage
         description: Port SFP voltage
         type: amperes
 
-      - metrik: laser_bias_current
+      - metric: laser_bias_current
         key: laser_bias_current
         description: Laser Bias Current
         type: amperes
     # Thresholds for alarms
     # temperature
-      - metrik: module_temperature_high_alarm_threshold
+      - metric: module_temperature_high_alarm_threshold
         key: module_temperature_high_alarm
         description: Threshold for alarms
         type: celsius
 
-      - metrik: module_temperature_low_alarm_threshold
+      - metric: module_temperature_low_alarm_threshold
         key: module_temperature_low_alarm
         description: Threshold for alarms
         type: celsius
 
-      - metrik: module_temperature_high_warn_threshold
+      - metric: module_temperature_high_warn_threshold
         key: module_temperature_high_warn
         description: Threshold for alarms
         type: celsius
 
-      - metrik: module_temperature_low_warn_threshold
+      - metric: module_temperature_low_warn_threshold
         key: module_temperature_low_warn
         description: Threshold for alarms
         type: celsius
     # receiving
-      - metrik: receiving_optic_power_high_alarm_threshold
+      - metric: receiving_optic_power_high_alarm_threshold
         key: rx_optic_power_high_alarm
         description: Threshold for alarms
         type: amperes
 
-      - metrik: receiving_optic_power_low_alarm_threshold
+      - metric: receiving_optic_power_low_alarm_threshold
         key: rx_optic_power_low_alarm
         description: Threshold for alarms
         type: amperes
 
-      - metrik: receiving_optic_power_high_warn_threshold
+      - metric: receiving_optic_power_high_warn_threshold
         key: rx_optic_power_high_warn
         description: Threshold for alarms
         type: amperes
 
-      - metrik: receiving_optic_power_low_warn_threshold
+      - metric: receiving_optic_power_low_warn_threshold
         key: rx_optic_power_low_warn
         description: Threshold for alarms
         type: amperes
     # sending
-      - metrik: sending_optic_power_high_alarm_threshold
+      - metric: sending_optic_power_high_alarm_threshold
         key: tx_optic_power_high_alarm
         description: Threshold for alarms
         type: amperes
 
-      - metrik: sending_optic_power_low_alarm_threshold
+      - metric: sending_optic_power_low_alarm_threshold
         key: tx_optic_power_low_alarm
         description: Threshold for alarms
         type: amperes
 
-      - metrik: sending_optic_power_high_warn_threshold
+      - metric: sending_optic_power_high_warn_threshold
         key: tx_optic_power_high_warn
         description: Threshold for alarms
         type: amperes
 
-      - metrik: sending_optic_power_low_warn_threshold
+      - metric: sending_optic_power_low_warn_threshold
         key: tx_optic_power_low_warn
         description: Threshold for alarms
         type: amperes
     # laser bias
-      - metrik: laser_bias_high_alarm_threshold
+      - metric: laser_bias_high_alarm_threshold
         key: laser_bias_high_alarm
         description: Threshold for alarms
         type: amperes
 
-      - metrik: laser_bias_low_alarm_threshold
+      - metric: laser_bias_low_alarm_threshold
         key: laser_bias_low_alarm
         description: Threshold for alarms
         type: amperes
 
-      - metrik: laser_bias_high_warn_threshold
+      - metric: laser_bias_high_warn_threshold
         key: laser_bias_high_warn
         description: Threshold for alarms
         type: amperes
 
-      - metrik: laser_bias_low_warn_threshold
+      - metric: laser_bias_low_warn_threshold
         key: laser_bias_low_warn
         description: Threshold for alarms
         type: amperes
 
     Counter:
-      - metrik: received
+      - metric: received
         key: rx_bytes
         description: Total received Bytes by Port
         type: bytes_total
 
-      - metrik: transmitted
+      - metric: transmitted
         key: tx_bytes
         description: Total transmitted Bytes of Port
         type: bytes_total
 
     ## Error Counters
-      - metrik: transmit_error_output
+      - metric: transmit_error_output
         type: total
         key: input_errors
         description: Errors in transmitted packets
 
-      - metrik: receive_error_input
+      - metric: receive_error_input
         type: total
         key: output_errors
         description: Errors in received packets
@@ -206,68 +206,68 @@ DEFINITIONS:
 
   ENVIRONMENT_METRICS:
     Gauge:
-      - metrik: uptime
+      - metric: uptime
         key: uptime
-        description: Uptime of the Host.
-        type: seconds_total
+        description: Uptime of the host.
+        type: seconds
 
-      - metrik: fan
+      - metric: fan
         type: status
         key: Fans
         description: Fan STATUS (0(WRACKED)/1(OK))
         function: fan_power_temp_status
         specific: yes
       
-      - metrik: power
+      - metric: power
         type: status
         key: Power
         description: Power STATUS (0(WRACKED)/1(OK))
         function: fan_power_temp_status
         specific: yes
   
-      - metrik: temp
+      - metric: temp
         type: status
         key: Temp
         description: Temperature Sensor STATUS (0(WRACKED)/1(OK))
         function: fan_power_temp_status
         specific: yes
 
-      - metrik: temp
+      - metric: temp
         type: celsius
         key: Temp
         description: Temperature Sensor Value in celsius
         function: temp_celsius
         specific: yes
 
-      - metrik: reboot
+      - metric: reboot
         type: status
         key: RE0
         description: Last Reboot REASON (0(WRACKED)/1(OK))
         function: reboot
         specific: yes
       
-      - metrik: cpu_usage
+      - metric: cpu_usage
         type: ratio
         key: re_loads
         description: Current CPU Load Ratio in percent
         function: cpu_usage
         specific: yes
       
-      - metrik: cpu_idle
+      - metric: cpu_idle
         type: ratio
         key: re_loads
         description: Current CPU Idle Ratio in percent
         function: cpu_idle
         specific: yes
 
-      - metrik: ram
+      - metric: ram
         type: bytes
         key: re_loads
         description: Current Memory Usage in bytes
         function: ram_usage
         specific: yes
 
-      - metrik: ram
+      - metric: ram
         type: bytes_total
         key: re_loads
         description: Available Memory in bytes
@@ -286,16 +286,16 @@ DEFINITIONS:
   
   BGP_METRICS:
     Counter:
-      - metrik: prefixes_received
+      - metric: prefixes_received
         type: total
         key: pfx_rx
         description: Received Prefixes from Peer
     Gauge:
-      - metrik: is_up
+      - metric: is_up
         key: peerstate
         description: BGP Session is established (0(DOWN)/1(UP))
         function: is_ok
 
   BGP_LABEL_WRAPPER:
-    - label: peer_address
+    - label: peername
       key: peeraddr
