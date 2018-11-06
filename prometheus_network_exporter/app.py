@@ -8,15 +8,15 @@ import argparse
 import tornado.ioloop
 import tornado.web
 from tornado import gen
-from prometheus_junos_exporter import __version__ as VERSION
+from prometheus_network_exporter import __version__ as VERSION
 from tornado.concurrent import run_on_executor
 from concurrent.futures import ThreadPoolExecutor
-from prometheus_junos_exporter.registry import Metrics
-from prometheus_junos_exporter.devices.junosdevice import JuniperNetworkDevice, JuniperMetrics
-from prometheus_junos_exporter.devices.arubadevice import ArubaNetworkDevice, ArubaMetrics
-from prometheus_junos_exporter.devices.ubntdevice import AirMaxDevice, AirMaxMetrics
-from prometheus_junos_exporter.devices.ciscodevice import CiscoMetrics
-from prometheus_junos_exporter.schema import Configuration
+from prometheus_network_exporter.registry import Metrics
+from prometheus_network_exporter.devices.junosdevice import JuniperNetworkDevice, JuniperMetrics
+from prometheus_network_exporter.devices.arubadevice import ArubaNetworkDevice, ArubaMetrics
+from prometheus_network_exporter.devices.ubntdevice import AirMaxDevice, AirMaxMetrics
+from prometheus_network_exporter.devices.ciscodevice import CiscoMetrics
+from prometheus_network_exporter.schema import Configuration
 CONNECTION_POOL = {}
 MAX_WAIT_SECONDS_BEFORE_SHUTDOWN = 30
 MAX_WORKERS = 150
@@ -39,7 +39,7 @@ class MetricsHandler(tornado.web.RequestHandler):
     def get_device_information(self):
         # load config
         # start_time = datetime.now()
-        CONF_DIR = os.path.join('/etc', 'prometheus-junos-exporter')
+        CONF_DIR = os.path.join('/etc', 'prometheus-network-exporter')
         with open(os.path.join(CONF_DIR, 'config.yml'), 'r') as f:
             config = yaml.load(f)
         if not Configuration().validate(config):
@@ -151,8 +151,8 @@ class DisconnectHandler(tornado.web.RequestHandler):
 
 def app():
     global MAX_WORKERS
-    parser = argparse.ArgumentParser(prog='prometheus-junos-exporter',
-                                     description="Prometheus exporter for JunOS switches and routers.")
+    parser = argparse.ArgumentParser(prog='prometheus-network-exporter',
+                                     description="Prometheus exporter for JunOS switches and routers + Others")
     parser.add_argument('--version', action='version',
                         version='%(prog)s{}'.format(VERSION))
     parser.add_argument('--port', type=int, default=9332,

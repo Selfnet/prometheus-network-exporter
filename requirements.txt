@@ -2,3 +2,4 @@ junos-eznc
 PyYAML
 tornado
 arubaos_client
+unifi_client

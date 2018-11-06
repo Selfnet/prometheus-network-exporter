@@ -6,16 +6,16 @@ from jnpr.junos import Device
 from jnpr.junos.exception import RpcError, ConnectError, ConnectClosedError, RpcTimeoutError
 import ipaddress
 
-from prometheus_junos_exporter.devices import basedevice
-from prometheus_junos_exporter.config.definitions.junos import wrapping
-from prometheus_junos_exporter.utitlities import create_metric_params, create_metric, FUNCTIONS, METRICS
+from prometheus_network_exporter.devices import basedevice
+from prometheus_network_exporter.config.definitions.junos import wrapping
+from prometheus_network_exporter.utitlities import create_metric_params, create_metric, FUNCTIONS, METRICS
 
-from prometheus_junos_exporter.views.junos.optic import PhyPortDiagTable
-from prometheus_junos_exporter.views.junos.interface_metrics import MetricsTable
-from prometheus_junos_exporter.views.junos.bgp import BGPNeighborTable
-from prometheus_junos_exporter.views.junos.environment import RoutingEngineTable, EnvironmentTable
-from prometheus_junos_exporter.views.junos.ospf import OspfNeighborTable, Ospf3NeighborTable
-from prometheus_junos_exporter.views.junos.igmp import IGMPGroupTable
+from prometheus_network_exporter.views.junos.optic import PhyPortDiagTable
+from prometheus_network_exporter.views.junos.interface_metrics import MetricsTable
+from prometheus_network_exporter.views.junos.bgp import BGPNeighborTable
+from prometheus_network_exporter.views.junos.environment import RoutingEngineTable, EnvironmentTable
+from prometheus_network_exporter.views.junos.ospf import OspfNeighborTable, Ospf3NeighborTable
+from prometheus_network_exporter.views.junos.igmp import IGMPGroupTable
 
 
 class JuniperNetworkDevice(basedevice.Device):

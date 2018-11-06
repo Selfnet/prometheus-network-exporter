@@ -4,9 +4,9 @@
 '''
 
 from unifi_client import AirMaxAPIClient
-from prometheus_junos_exporter.config.definitions.unifi import wrapping
-from prometheus_junos_exporter.devices import basedevice
-from prometheus_junos_exporter.utitlities import create_metric, create_metric_params, FUNCTIONS, METRICS, flatten
+from prometheus_network_exporter.config.definitions.unifi import wrapping
+from prometheus_network_exporter.devices import basedevice
+from prometheus_network_exporter.utitlities import create_metric, create_metric_params, FUNCTIONS, METRICS, flatten
 
 
 class AirMaxDevice(basedevice.Device):

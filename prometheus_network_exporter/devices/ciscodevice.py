@@ -1,4 +1,4 @@
-from prometheus_junos_exporter.devices import basedevice
+from prometheus_network_exporter.devices import basedevice
 
 
 class CiscoNetworkDevice(basedevice.Device):

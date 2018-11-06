@@ -1,5 +1,5 @@
 import collections
-from prometheus_junos_exporter.config.definitions.junos import wrapping as junos
+from prometheus_network_exporter.config.definitions.junos import wrapping as junos
 
 FUNCTIONS = {
     'is_ok': junos.is_ok,
