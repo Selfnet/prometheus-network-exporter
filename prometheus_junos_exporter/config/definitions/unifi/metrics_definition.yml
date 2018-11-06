@@ -8,19 +8,19 @@ DEFINITIONS:
     wireless: wireless
   NETWORK_METRICS:
     Counter:
-      - metric: tx
+      - metric: transmitted
         key: tx_bytes
         type: bytes_total
         description: Total number of transmitted bytes
-      - metric: rx
+      - metric: received
         key: rx_bytes
         type: bytes_total
         description: Total number of received bytes
-      - metric: tx_errors
+      - metric: transmit_errors
         key: tx_errors
         type: total
         description: Total transmition errors
-      - metric: rx_errors
+      - metric: receive_errors
         key: rx_errors
         type: total
         description: Total received errors
@@ -56,3 +56,96 @@ DEFINITIONS:
         type: percent
         key: cpuload
         description: CPU Load in percent.
+
+  WIRELESS_METRICS:
+    Gauge:
+      - metric: radio_band
+        type: type
+        key: band
+        description: Band Type of the Radio used (2 5GHz, 1 2.4GHz)
+      - metric: radio_antenna_gain
+        type: decibel
+        key: antenna_gain
+        description: Antenna gain in decibel
+      - metric: radio_frequency
+        type: mhz
+        key: frequency
+        description: The base frequency.
+      - metric: radio_frequency_center1
+        type: mhz
+        key: center1_freq
+        description: Center 1 frequency of the device
+      - metric: distance
+        type: meters
+        key: distance
+        description: Distance between remote and local station
+      - metric: radio_noise_floor
+        type: dbm
+        key: noisef
+        description: The noise floor in dbm
+      - metric: radio_transmitting_power
+        type: dbm
+        key: txpower
+        description: TX Power of the station
+      - metric: channel_bandwith
+        type: percent
+        key: chanbw
+        description: Channel bandwith in percent 0-100%
+
+  POLLING_METRICS:
+    Gauge:
+      - metric: receiving_capacity
+        key: dcap
+        type: kilo_bytes
+        description: The available capacity for receiving packets
+      - metric: transmitting_capacity
+        key: ucap
+        type: kilo_bytes
+        description: The available capacity for transmitting packets
+      - metric: receiving_capacity_used
+        key: rx_use
+        type: percent
+        description: The used capacity inbound
+      - metric: transmitting_capacity_used
+        key: tx_use
+        type: percent
+        description: The used capacity outbound
+      - metric: capacity_used
+        key: use
+        type: percent
+        description: The used capacity
+  
+  STATS_METRICS:
+    Counter:
+      - metric: received
+        type: bytes_total
+        key: rx_bytes
+        description: Received bytes total on the wireless link.
+      - metric: transmitted
+        type: bytes_total
+        key: tx_bytes
+        description: Transmitted bytes total on the wireless link.
+
+  # STATION_METRICS:
+  #   Gauge:
+  #     - metric
+  # "mac": "F0:9F:C2:E6:3E:3E",
+  #               "lastip": "0.0.0.0",
+  #               "signal": -46,
+  #               "rssi": 50,
+  #               "noisefloor": -92,
+  #               "chainrssi": [
+  #                   48,
+  #                   45,
+  #                   0
+  #               ],
+  #               "tx_idx": 9,
+  #               "rx_idx": 9,
+  #               "tx_nss": 2,
+  #               "rx_nss": 2,
+  #               "tx_latency": 0,
+  #               "distance": 450,
+  #               "tx_packets": 0,
+  #               "tx_lretries": 0,
+  #               "tx_sretries": 0,
+  #               "uptime": 244975,

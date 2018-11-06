@@ -168,8 +168,7 @@ class JuniperMetrics(basedevice.Metrics):
                                 counter[wrapping.IGMP_NETWORKS['allow']
                                         [str(network)]] += 1
 
-            create_metric(metric_name, registry, wrapping.IGMP_NETWORKS['allow'][str(network)], {
-                'hostname': hostname, 'broadcaster': wrapping.IGMP_NETWORKS['allow'][str(network)]}, counter)
+            create_metric(metric_name, registry, wrapping.IGMP_NETWORKS['allow'][str(network)], {'broadcaster': wrapping.IGMP_NETWORKS['allow'][str(network)]}, counter)
 
     def get_interface_metrics(self, registry, dev, hostname, access=True, ospf=True, optics=True):
         """
@@ -199,8 +198,7 @@ class JuniperMetrics(basedevice.Metrics):
                         for interface, metrics in interfaces.items():
                             for unit, data in metrics.get(ospf, {}).items():
                                 if data.get(key) is not None:
-                                    labels_data = {'hostname': hostname,
-                                                   'interface': interface,
+                                    labels_data = {'interface': interface,
                                                    'unit': unit}
                                     labels_variable = {label['label']: metrics.get(
                                         label['key'], "") for label in wrapping.NETWORK_LABEL_WRAPPER}
@@ -220,8 +218,7 @@ class JuniperMetrics(basedevice.Metrics):
                 registry.register(metric_name, description, MetricFamily)
                 for interface, metrics in interfaces.items():
                     if metrics.get(key) is not None:
-                        labels_data = {'hostname': hostname,
-                                       'interface': interface}
+                        labels_data = {'interface': interface}
                         labels_variable = {label['label']: metrics.get(
                             label['key'], "") for label in wrapping.NETWORK_LABEL_WRAPPER}
                         labels = {**labels_data, **labels_variable}
@@ -240,7 +237,7 @@ class JuniperMetrics(basedevice.Metrics):
                 metric_name = "{}_{}_{}".format(
                     wrapping.METRICS_BASE['base'], wrapping.METRICS_BASE['device'], metric_name)
                 registry.register(metric_name, description, MetricFamily)
-                labels_data = {'hostname': hostname}
+                labels_data = {}
                 labels_variable = {label['label']: environment.get(
                     label['key'], "") for label in wrapping.ENVIRONMENT_LABEL_WRAPPER}
                 labels = {**labels_data, **labels_variable}
@@ -265,10 +262,9 @@ class JuniperMetrics(basedevice.Metrics):
                     wrapping.METRICS_BASE['base'], wrapping.METRICS_BASE['bgp'], metric_name)
                 registry.register(metric_name, description, MetricFamily)
                 if bgp:
-                    for peername, metrics in bgp.items():
+                    for peeraddr, metrics in bgp.items():
                         if metrics.get(key) is not None:
-                            labels_data = {'hostname': hostname,
-                                           'peeraddr': peername}
+                            labels_data = {'peeraddr': peeraddr}
                             labels_variable = {label['key']: metrics.get(
                                 label['key'], "") for label in wrapping.BGP_LABEL_WRAPPER}
                             labels = {**labels_data, **labels_variable}
