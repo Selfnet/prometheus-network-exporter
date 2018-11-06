@@ -46,7 +46,7 @@ DEFINITIONS:
         type: seconds
       - metric: ram
         key: totalram
-        type: bytes_total
+        type: bytes
         description: Total ram in bytes.
       - metric: ram
         type: bytes_free
@@ -59,19 +59,19 @@ DEFINITIONS:
 
   WIRELESS_METRICS:
     Gauge:
-      - metric: radio_band
+      - metric: band
         type: type
         key: band
-        description: Band Type of the Radio used (2 5GHz, 1 2.4GHz)
-      - metric: radio_antenna_gain
+        description: Band Type of the Radio used (2 5GHz (11acvht), 1 2.4GHz (11nght))
+      - metric: antenna_gain
         type: decibel
         key: antenna_gain
         description: Antenna gain in decibel
-      - metric: radio_frequency
+      - metric: frequency
         type: mhz
         key: frequency
         description: The base frequency.
-      - metric: radio_frequency_center1
+      - metric: frequency_center1
         type: mhz
         key: center1_freq
         description: Center 1 frequency of the device
@@ -79,11 +79,7 @@ DEFINITIONS:
         type: meters
         key: distance
         description: Distance between remote and local station
-      - metric: radio_noise_floor
-        type: dbm
-        key: noisef
-        description: The noise floor in dbm
-      - metric: radio_transmitting_power
+      - metric: transmitting_power
         type: dbm
         key: txpower
         description: TX Power of the station
@@ -96,24 +92,24 @@ DEFINITIONS:
     Gauge:
       - metric: receiving_capacity
         key: dcap
-        type: kilo_bytes
+        type: kilobytes
         description: The available capacity for receiving packets
       - metric: transmitting_capacity
         key: ucap
-        type: kilo_bytes
+        type: kilobytes
         description: The available capacity for transmitting packets
       - metric: receiving_capacity_used
-        key: rx_use
+        key: receiving_airtime
         type: percent
-        description: The used capacity inbound
-      - metric: transmitting_capacity_used
+        description: Airtime inbound in percent 10 times
+      - metric: transmitting_airtime
         key: tx_use
         type: percent
-        description: The used capacity outbound
-      - metric: capacity_used
+        description: Airtime outbound in percent 10 times
+      - metric: airtime
         key: use
         type: percent
-        description: The used capacity
+        description: The Airtime 10 times 
   
   STATS_METRICS:
     Counter:
@@ -126,26 +122,39 @@ DEFINITIONS:
         key: tx_bytes
         description: Transmitted bytes total on the wireless link.
 
-  # STATION_METRICS:
-  #   Gauge:
-  #     - metric
-  # "mac": "F0:9F:C2:E6:3E:3E",
-  #               "lastip": "0.0.0.0",
-  #               "signal": -46,
-  #               "rssi": 50,
-  #               "noisefloor": -92,
-  #               "chainrssi": [
-  #                   48,
-  #                   45,
-  #                   0
-  #               ],
-  #               "tx_idx": 9,
-  #               "rx_idx": 9,
-  #               "tx_nss": 2,
-  #               "rx_nss": 2,
-  #               "tx_latency": 0,
-  #               "distance": 450,
-  #               "tx_packets": 0,
-  #               "tx_lretries": 0,
-  #               "tx_sretries": 0,
-  #               "uptime": 244975,
+  STATION_METRICS:
+    Gauge:
+      - metric: transmition_latency
+        key: tx_latency
+        type: milliseconds
+        description: The transmition latency between the stations
+      - metric: receiving_power
+        key: signal
+        type: dbm
+        description: The power of the received signal
+      - metric:  received_signal_strength_indication
+        key: tx_latency
+        type: indication
+        description: The rssi value of the remote bridge
+      - metric: noise_floor
+        type: dbm
+        key: noisefloor
+        description: The noise floor in dbm
+  AIRMAX_METRICS:
+    Gauge:
+      - metric: transmition
+        key: tx_cinr
+        type: cinr
+        description: TX CINR Value of AP
+      - metric: receiving
+        key: rx_cinr
+        type: cinr
+        description: RX CINR Value of AP
+      - metric: transmition_usage
+        key: tx_usage
+        type: percent
+        description: TX Usage Value of AP 10 times
+      - metric: receiving_usage
+        key: rx_usage
+        type: percent
+        description: RX Usage Value of AP 10 times

@@ -2,12 +2,11 @@
 '''
     General Device 
 '''
-from pprint import pprint
-import json
+
 from unifi_client import AirMaxAPIClient
 from prometheus_junos_exporter.config.definitions.unifi import wrapping
 from prometheus_junos_exporter.devices import basedevice
-from prometheus_junos_exporter.utitlities import create_metric, create_metric_params, FUNCTIONS, METRICS
+from prometheus_junos_exporter.utitlities import create_metric, create_metric_params, FUNCTIONS, METRICS, flatten
 
 
 class AirMaxDevice(basedevice.Device):
@@ -37,7 +36,7 @@ class AirMaxDevice(basedevice.Device):
 
 class AirMaxMetrics(object):
 
-    def get_interface_metrics(self, registry, dev, hostname):
+    def get_interface_metrics(self, registry, dev):
         interfaces = dev.statistics.get("interfaces", {})
 
         for MetricName, MetricFamily in METRICS.items():
@@ -60,19 +59,35 @@ class AirMaxMetrics(object):
                         create_metric(metric_name,
                                       registry, key, labels, metrics, function=function)
 
-    def get_wireless_metrics(self, registry, dev, hostname):
+    def get_wireless_metrics(self, registry, dev):
         wireless = dev.statistics.get("wireless", {})
         polling = wireless.get('polling', {})
+        self._get_wireless_metrics(
+            polling, wrapping.POLLING_METRICS, registry, dev)
         sta = wireless.get('sta', [{}])
-        airmax = sta[0].get('airmax', {})
+        self._get_wireless_metrics(
+            sta[0], wrapping.STATION_METRICS, registry, dev)
         stats = sta[0].get('stats', {})
-        tx = sta[0].get('tx', {})
-        rx = sta[0].get('rx', {})
-        
+        self._get_wireless_metrics(
+            stats, wrapping.STATS_METRICS, registry, dev)
+        airmax = flatten(sta[0].get('airmax', {}))
+        self._get_wireless_metrics(
+            airmax, wrapping.AIRMAX_METRICS, registry, dev)
 
+    def _get_wireless_metrics(self, metrics, definitions, registry, dev):
+        for MetricName, MetricFamily in METRICS.items():
+            for metric_def in definitions.get(MetricName, []):
+                metric_name, description, key, function, _ = create_metric_params(
+                    metric_def)
+                metric_name = "{}_{}_{}".format(wrapping.METRICS_BASE.get(
+                    'base', 'junos'), wrapping.METRICS_BASE.get('wireless', 'wireless'), metric_name)
+                registry.register(metric_name, description, MetricFamily)
+                if metrics.get(key) is not None:
+                    labels = None
+                    create_metric(metric_name,
+                                  registry, key, labels, metrics, function=function)
 
-
-    def get_host_information(self, registry, dev, hostname):
+    def get_host_information(self, registry, dev):
         host = dev.statistics.get("host", {})
         metrics = host
         for MetricName, MetricFamily in METRICS.items():
@@ -85,18 +100,18 @@ class AirMaxMetrics(object):
                 if metrics.get(key) is not None:
                     labels = None
                     create_metric(metric_name,
-                                    registry, key, labels, metrics, function=function)
+                                  registry, key, labels, metrics, function=function)
 
     def metrics(self, types, dev, registry):
         try:
             dev.connect()
             dev.init()
             if 'interface' in types:
-                self.get_interface_metrics(registry, dev, dev.hostname)
+                self.get_interface_metrics(registry, dev)
             if 'wireless statistics' in types:
-                self.get_wireless_metrics(registry, dev, dev.hostname)
+                self.get_wireless_metrics(registry, dev)
             if 'environment' in types:
-                self.get_host_information(registry, dev, dev.hostname)
+                self.get_host_information(registry, dev)
         except Exception as e:
             print(e)
             return 500, "Device unreachable", "Device {} unreachable".format(dev.hostname)

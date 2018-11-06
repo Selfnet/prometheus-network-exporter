@@ -33,10 +33,11 @@ class JuniperNetworkDevice(basedevice.Device):
             bgp = dict(BGPNeighborTable(self.device).get())
         except RpcError:
             return {}
-        bgp = { k: dict(v) for k, v in bgp.items()}
+        bgp = {k: dict(v) for k, v in bgp.items()}
         for information in bgp.values():
             information['peeraddr'] = self.lookup(information['peeraddr'])
         return bgp
+
     def get_interface(self, interface_names=None, ospf=False, optics=False):
         result = {}
         if not interface_names:
@@ -168,7 +169,8 @@ class JuniperMetrics(basedevice.Metrics):
                                 counter[wrapping.IGMP_NETWORKS['allow']
                                         [str(network)]] += 1
 
-            create_metric(metric_name, registry, wrapping.IGMP_NETWORKS['allow'][str(network)], {'broadcaster': wrapping.IGMP_NETWORKS['allow'][str(network)]}, counter)
+            create_metric(metric_name, registry, wrapping.IGMP_NETWORKS['allow'][str(network)], {
+                          'broadcaster': wrapping.IGMP_NETWORKS['allow'][str(network)]}, counter)
 
     def get_interface_metrics(self, registry, dev, hostname, access=True, ospf=True, optics=True):
         """
