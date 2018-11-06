@@ -76,7 +76,7 @@ setup(
     # your project is installed. For an analysis of "install_requires" vs pip's
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
-    install_requires=['PyYAML', 'tornado', 'junos-eznc', 'arubaos_client', 'unifi_client' 'voluptuous'],
+    install_requires=['PyYAML', 'tornado', 'junos-eznc', 'arubaos_client', 'unifi_client', 'voluptuous'],
 
     # List additional groups of dependencies here (e.g. development
     # dependencies). You can install these using the following syntax,
