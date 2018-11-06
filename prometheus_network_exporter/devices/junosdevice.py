@@ -35,7 +35,7 @@ class JuniperNetworkDevice(basedevice.Device):
             return {}
         bgp = {k: dict(v) for k, v in bgp.items()}
         for information in bgp.values():
-            information['peeraddr'] = self.lookup(information['peeraddr'])
+            information['peername'] = self.lookup(information['peeraddr'])
         return bgp
 
     def get_interface(self, interface_names=None, ospf=False, optics=False):
@@ -265,6 +265,7 @@ class JuniperMetrics(basedevice.Metrics):
                 registry.register(metric_name, description, MetricFamily)
                 if bgp:
                     for peeraddr, metrics in bgp.items():
+                        print(peeraddr)
                         if metrics.get(key) is not None:
                             labels_data = {'peeraddr': peeraddr}
                             labels_variable = {label['key']: metrics.get(

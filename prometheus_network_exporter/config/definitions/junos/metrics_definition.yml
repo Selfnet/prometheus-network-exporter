@@ -299,4 +299,4 @@ DEFINITIONS:
 
   BGP_LABEL_WRAPPER:
     - label: peername
-      key: peeraddr
+      key: peername
