@@ -9,7 +9,7 @@ See:
 # To use a consistent encoding
 import os
 from os import path
-from prometheus_junos_exporter import __version__ as VERSION
+from prometheus_network_exporter import __version__ as VERSION
 # Always prefer setuptools over distutils
 from setuptools import setup, find_packages
 
@@ -76,7 +76,7 @@ setup(
     # your project is installed. For an analysis of "install_requires" vs pip's
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
-    install_requires=['PyYAML', 'tornado', 'junos-eznc', 'arubaos_client', 'voluptuous'],
+    install_requires=['PyYAML', 'tornado', 'junos-eznc', 'arubaos_client', 'unifi_client' 'voluptuous'],
 
     # List additional groups of dependencies here (e.g. development
     # dependencies). You can install these using the following syntax,
@@ -86,15 +86,16 @@ setup(
         'dev': ['pylint', 'autopep8', 'pep8'],
     },
     package_data={
-        'prometheus_junos_exporter.views.junos': ['*.yml'],
-        'prometheus_junos_exporter.config.definitions.junos': ['metrics_definition.yml']
+        'prometheus_network_exporter.views.junos': ['*.yml'],
+        'prometheus_network_exporter.config.definitions.junos': ['metrics_definition.yml'],
+        'prometheus_network_exporter.config.definitions.unifi': ['metrics_definition.yml']
     },
     # Although 'package_data' is the preferred approach, in some case you may
     # need to place data files outside of your packages. See:
     # http://docs.python.org/3.4/distutils/setupscript.html#installing-additional-files # noqa
     # In this case, 'data_file' will be installed into '<sys.prefix>/my_data'
-    data_files=[(os.path.join('/etc', 'prometheus-junos-exporter'),
-                 ['prometheus_junos_exporter/config/config.yml'])],
+    data_files=[(os.path.join('/etc', 'prometheus-network-exporter'),
+                 ['prometheus_network_exporter/config/config.yml'])],
     # To provide executable scripts, use entry points in preference to the
     # "scripts" keyword. Entry points provide cross-platform support and allow
     # pip to create the appropriate form of executable for the target platform.

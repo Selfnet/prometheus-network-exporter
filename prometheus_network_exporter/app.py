@@ -8,14 +8,15 @@ import argparse
 import tornado.ioloop
 import tornado.web
 from tornado import gen
-from prometheus_junos_exporter import __version__ as VERSION
+from prometheus_network_exporter import __version__ as VERSION
 from tornado.concurrent import run_on_executor
 from concurrent.futures import ThreadPoolExecutor
-from prometheus_junos_exporter.registry import Metrics
-from prometheus_junos_exporter.devices.junosdevice import JuniperNetworkDevice, JuniperMetrics
-from prometheus_junos_exporter.devices.arubadevice import ArubaNetworkDevice, ArubaMetrics
-from prometheus_junos_exporter.devices.ciscodevice import CiscoMetrics
-from prometheus_junos_exporter.schema import Configuration
+from prometheus_network_exporter.registry import Metrics
+from prometheus_network_exporter.devices.junosdevice import JuniperNetworkDevice, JuniperMetrics
+from prometheus_network_exporter.devices.arubadevice import ArubaNetworkDevice, ArubaMetrics
+from prometheus_network_exporter.devices.ubntdevice import AirMaxDevice, AirMaxMetrics
+from prometheus_network_exporter.devices.ciscodevice import CiscoMetrics
+from prometheus_network_exporter.schema import Configuration
 CONNECTION_POOL = {}
 MAX_WAIT_SECONDS_BEFORE_SHUTDOWN = 30
 MAX_WORKERS = 150
@@ -26,7 +27,8 @@ SERVER = None
 collectors = {
     'junos': JuniperMetrics(),
     'arubaos': ArubaMetrics(),
-    'ios': CiscoMetrics()
+    'ios': CiscoMetrics(),
+    'airmax': AirMaxMetrics()
 }
 
 
@@ -37,7 +39,7 @@ class MetricsHandler(tornado.web.RequestHandler):
     def get_device_information(self):
         # load config
         # start_time = datetime.now()
-        CONF_DIR = os.path.join('/etc', 'prometheus-junos-exporter')
+        CONF_DIR = os.path.join('/etc', 'prometheus-network-exporter')
         with open(os.path.join(CONF_DIR, 'config.yml'), 'r') as f:
             config = yaml.load(f)
         if not Configuration().validate(config):
@@ -55,17 +57,9 @@ class MetricsHandler(tornado.web.RequestHandler):
         # open device connection
         if not hostname in CONNECTION_POOL.keys() or not CONNECTION_POOL[hostname]:
             dev = None
-            if profile['device'] == 'junos':
-                if profile['auth']['method'] == 'password':
-                    # using regular username/password
-                    dev = JuniperNetworkDevice(hostname=hostname,
-                                               user=profile['auth'].get(
-                                                   'username', getpass.getuser()),
-                                               password=profile['auth'].get(
-                                                   'password', None),
-                                               port=profile['auth'].get('port', 22))
-                elif profile['auth']['method'] == 'ssh_key':
+            if profile['auth']['method'] == 'ssh_key':
                     # using ssh key
+                if profile['device'] == 'junos':
                     dev = JuniperNetworkDevice(hostname=hostname,
                                                user=profile['auth'].get(
                                                    'username', getpass.getuser()),
@@ -76,25 +70,51 @@ class MetricsHandler(tornado.web.RequestHandler):
                                                ssh_config=profile['auth'].get(
                                                    'ssh_config', None),
                                                password=profile['auth'].get('password', None))
-            elif profile['device'] == 'arubaos':
-                if profile['auth']['method'] == 'password':
-                    try:
+            elif profile['auth']['method'] == 'password':
+                try:
+                    if profile['device'] == 'arubaos':
+
                         http = 'https' if profile['auth'].get(
                             'http_secure', True) else 'http'
                         port = profile['auth'].get('port', 4343)
-                        dev = ArubaNetworkDevice(hostname=hostname,
-                                                 username=profile['auth'].get(
-                                                     'username', getpass.getuser()),
-                                                 password=profile['auth']['password'],
-                                                 protocol=http,
-                                                 port=port,
-                                                 proxy=profile['auth'].get(
-                                                     'proxy'),
-                                                 verify=profile['auth'].get(
-                                                     'verify', False)
-                                                 )
-                    except KeyError:
-                        return 500, 'Config Error', "You must specify a password."
+                        dev = ArubaNetworkDevice(
+                            hostname=hostname,
+                            username=profile['auth'].get(
+                                'username', getpass.getuser()),
+                            password=profile['auth']['password'],
+                            protocol=http,
+                            port=port,
+                            proxy=profile['auth'].get(
+                                'proxy'),
+                            verify=profile['auth'].get(
+                                'verify', False)
+                        )
+                    elif profile['device'] == 'junos':
+                        dev = JuniperNetworkDevice(
+                            hostname=hostname,
+                            user=profile['auth'].get(
+                                'username', getpass.getuser()),
+                            password=profile['auth']['password'],
+                            port=profile['auth'].get('port', 22)
+                        )
+                    elif profile['device'] == 'airmax':
+                        http = 'https' if profile['auth'].get(
+                            'http_secure', True) else 'http'
+                        port = profile['auth'].get('port', 443)
+                        dev = AirMaxDevice(
+                            hostname=hostname,
+                            username=profile['auth'].get(
+                                'username', getpass.getuser()),
+                            password=profile['auth']['password'],
+                            protocol=http,
+                            port=port,
+                            proxy=profile['auth'].get(
+                                'proxy'),
+                            verify=profile['auth'].get(
+                                'verify', False)
+                        )
+                except KeyError:
+                    return 500, 'Config Error', "You must specify a password."
             CONNECTION_POOL[hostname] = dev
         dev = CONNECTION_POOL[hostname]
         # create metrics registry
@@ -105,7 +125,7 @@ class MetricsHandler(tornado.web.RequestHandler):
 
         return collectors[profile['device']].metrics(types, dev, registry)
 
-    @tornado.   gen.coroutine
+    @tornado.gen.coroutine
     def get(self):
         self.set_header('Content-type', 'text/plain')
         code, status, data = yield self.get_device_information()
@@ -118,7 +138,7 @@ class DisconnectHandler(tornado.web.RequestHandler):
         for hostname, device in CONNECTION_POOL.items():
             try:
                 device.disconnect()
-            except AttributeError:
+            except (AttributeError, Exception):
                 pass
             except:
                 pass
@@ -131,8 +151,8 @@ class DisconnectHandler(tornado.web.RequestHandler):
 
 def app():
     global MAX_WORKERS
-    parser = argparse.ArgumentParser(prog='prometheus-junos-exporter',
-                                     description="Prometheus exporter for JunOS switches and routers.")
+    parser = argparse.ArgumentParser(prog='prometheus-network-exporter',
+                                     description="Prometheus exporter for JunOS switches and routers + Others")
     parser.add_argument('--version', action='version',
                         version='%(prog)s{}'.format(VERSION))
     parser.add_argument('--port', type=int, default=9332,
@@ -173,7 +193,12 @@ def shutdown():
     print('Stopping http server')
     SERVER.stop()
     for hostname, device in CONNECTION_POOL.items():
-        device.disconnect()
+        try:
+            device.disconnect()
+        except (AttributeError, Exception):
+            pass
+        except:
+            pass
         print("{} :: Connection State {}".format(
             hostname, "Disconnected" if not device.is_connected() else "Connected"))
     exit(0)

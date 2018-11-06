@@ -1,6 +1,6 @@
 import json
 
-from prometheus_junos_exporter.devices import basedevice
+from prometheus_network_exporter.devices import basedevice
 
 from arubaos_client.client import MobilityControllerAPIClient
 

@@ -14,5 +14,7 @@ BGPNeighborView:
   fields:
     peeraddr: peer-address
     description: description
+    elapsed_time: { elapsed-time/@seconds: int }
     peerstate: { peer-state: True=Established }
     pfx_rx: { bgp-rib/received-prefix-count: int }
+    pfx_rx_accepted: { bgp-rib/accepted-prefix-count: int }

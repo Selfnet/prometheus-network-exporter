@@ -7,7 +7,7 @@ class Configuration(object):
     def __init__(self):
         self.schema = Schema({
             Required(str): {
-                Required('device'): Any('junos', 'arubaos', 'ios'),
+                Required('device'): Any('junos', 'arubaos', 'ios', 'airmax'),
                 Required('auth'): {
                     Required('method'): Any('password', 'ssh_key'),
                     'username': str,
@@ -24,6 +24,8 @@ class Configuration(object):
                     'igmp',
                     'environment',
                     'bgp',
+                    # AirMax Metrics
+                    'wireless statistics',
                     # ArubaOS Metrics
                     'clients',
                     'cpu',
@@ -45,6 +47,6 @@ class Configuration(object):
 
 if __name__ == '__main__':
     config = Configuration()
-    with open('prometheus_junos_exporter/config/config.yml', 'r') as file:
+    with open('prometheus_network_exporter/config/config.yml', 'r') as file:
         data = yaml.load(file.read())
     config.validate(data)

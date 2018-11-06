@@ -17,7 +17,7 @@ The SSH config is also used.
 #### example
 
 ```bash
-    python -m prometheus_junos_exporter.app
+    python -m prometheus_network_exporter.app
 ```
 
 ## HowTo: Query for junos_devices
