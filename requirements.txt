@@ -3,3 +3,4 @@ PyYAML
 tornado
 arubaos_client
 unifi_client
+prometheus_client
