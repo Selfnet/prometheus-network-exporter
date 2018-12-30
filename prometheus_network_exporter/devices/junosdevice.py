@@ -277,7 +277,8 @@ class JuniperMetrics(basedevice.Metrics):
                                 metric_name, registry, key, labels, metrics, function=function)
 
     def metrics(self, types, dev, registry):
-        dev.connect()
+        if not dev.is_connected():
+            dev.connect()
         optics = ospf = True
         try:
             if not 'ospf' in types:
@@ -310,5 +311,4 @@ class JuniperMetrics(basedevice.Metrics):
             print(e)
             return 500, "RPC command timed out!", "Device {} unreachable".format(dev.hostname)
 
-        dev.disconnect()
         return 200, "OK", registry.collect()
