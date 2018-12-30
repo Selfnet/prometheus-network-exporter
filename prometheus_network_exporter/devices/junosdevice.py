@@ -144,6 +144,9 @@ class JuniperNetworkDevice(basedevice.Device):
 
 
 class JuniperMetrics(basedevice.Metrics):
+    def __init__(self, *args, **kwargs):
+        super(JuniperMetrics, self).__init__(*args, **kwargs)
+
     def get_igmp_metrics(self, registry, dev, hostname):
         igmp_groups = dev.get_igmp()
         ignored_networks = [ipaddress.ip_network(
@@ -265,7 +268,6 @@ class JuniperMetrics(basedevice.Metrics):
                 registry.register(metric_name, description, MetricFamily)
                 if bgp:
                     for peeraddr, metrics in bgp.items():
-                        print(peeraddr)
                         if metrics.get(key) is not None:
                             labels_data = {'peeraddr': peeraddr}
                             labels_variable = {label['key']: metrics.get(
@@ -294,9 +296,19 @@ class JuniperMetrics(basedevice.Metrics):
                 self.get_bgp_metrics(registry, dev, dev.hostname)
             if 'igmp' in types:
                 self.get_igmp_metrics(registry, dev, dev.hostname)
-        except (AttributeError, ConnectClosedError, RpcTimeoutError) as e:
+        except AttributeError as e:
+            self.exception_counter.labels(dev.hostname, "AttributeError").inc()
             print(e)
             return 500, "Device unreachable", "Device {} unreachable".format(dev.hostname)
+        except ConnectClosedError as e:
+            self.exception_counter.labels(dev.hostname, "ConnectClosedError").inc()
+            print(e)
+            return 500, "Connection closed unexpectedly!", "Device {} unreachable".format(dev.hostname)
+
+        except RpcTimeoutError as e:
+            self.exception_counter.labels(dev.hostname, "RpcTimeoutError").inc()
+            print(e)
+            return 500, "RPC command timed out!", "Device {} unreachable".format(dev.hostname)
 
         dev.disconnect()
         return 200, "OK", registry.collect()
