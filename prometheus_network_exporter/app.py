@@ -8,33 +8,66 @@ import argparse
 import tornado.ioloop
 import tornado.web
 from tornado import gen
-from prometheus_network_exporter import __version__ as VERSION
+from prometheus_client import Counter, Gauge, Info, REGISTRY, exposition
 from tornado.concurrent import run_on_executor
 from concurrent.futures import ThreadPoolExecutor
+from prometheus_network_exporter import __version__ as VERSION
 from prometheus_network_exporter.registry import Metrics
 from prometheus_network_exporter.devices.junosdevice import JuniperNetworkDevice, JuniperMetrics
 from prometheus_network_exporter.devices.arubadevice import ArubaNetworkDevice, ArubaMetrics
 from prometheus_network_exporter.devices.ubntdevice import AirMaxDevice, AirMaxMetrics
-from prometheus_network_exporter.devices.ciscodevice import CiscoMetrics
+from prometheus_network_exporter.devices.ciscodevice import CiscoNetworkDevice, CiscoMetrics
 from prometheus_network_exporter.schema import Configuration
+import prometheus_network_exporter.netstat as netstat
 CONNECTION_POOL = {}
 MAX_WAIT_SECONDS_BEFORE_SHUTDOWN = 30
 MAX_WORKERS = 150
-
 config = None
 SERVER = None
 
+## Counter initialization
+used_workers = Gauge('network_exporter_used_workers', 'The amount of workers being busy scraping Devices.')
+total_workers = Gauge('network_exporter_workers', 'The total amount of workers')
+total_workers.set(MAX_WORKERS)
+scraped_errors = Counter('network_exporter_died_sessions', 'The count of exceptions raised by connection', ['hostname', 'exception'])
+connections = Gauge('network_exporter_tcp_states', 'The count per tcp state and protocol', ['state', 'protocol'])
 collectors = {
-    'junos': JuniperMetrics(),
-    'arubaos': ArubaMetrics(),
-    'ios': CiscoMetrics(),
-    'airmax': AirMaxMetrics()
+    'junos': JuniperMetrics(exception_counter=scraped_errors),
+    'arubaos': ArubaMetrics(exception_counter=scraped_errors),
+    'ios': CiscoMetrics(exception_counter=scraped_errors),
+    'airmax': AirMaxMetrics(exception_counter=scraped_errors)
 }
 
-
 class MetricsHandler(tornado.web.RequestHandler):
-    executor = ThreadPoolExecutor(max_workers=MAX_WORKERS)
+    """
+    Tornado ``Handler`` that serves prometheus metrics.
+    """
+    def initialize(self, registry=REGISTRY):
+        self.registry = registry
 
+    def get(self):
+        encoder, content_type = exposition.choose_encoder(self.request.headers.get('Accept'))
+        ssh = netstat.ssh(v4=True) + netstat.ssh(v6=True)
+        http = netstat.http(v4=True) + netstat.http(v6=True)
+        states = {}
+        for conn in ssh:
+            if not conn['state'] in states:
+                states[conn['state']] = 0
+            states[conn['state']] += 1
+        for state, count in states.items():
+            connections.labels(state, 'ssh').set(count)
+        states = {}
+        for conn in http:
+            if not conn['state'] in states:
+                states[conn['state']] = 0
+            states[conn['state']] += 1
+        for state, count in states.items():
+            connections.labels(state, 'http').set(count)
+        self.set_header('Content-Type', content_type)
+        self.write(encoder(self.registry))
+
+class ExporterHandler(tornado.web.RequestHandler):
+    executor = ThreadPoolExecutor(max_workers=MAX_WORKERS)
     @run_on_executor
     def get_device_information(self):
         # load config
@@ -55,7 +88,7 @@ class MetricsHandler(tornado.web.RequestHandler):
         except KeyError:
             return 404, "Wrong module!", "you're holding it wrong!:\nAvailable modules are: {}".format(list(config.keys()))
         # open device connection
-        if not hostname in CONNECTION_POOL.keys() or not CONNECTION_POOL[hostname]:
+        if not hostname in CONNECTION_POOL.keys() or not CONNECTION_POOL[hostname] or not CONNECTION_POOL[hostname]['device']:
             dev = None
             if profile['auth']['method'] == 'ssh_key':
                     # using ssh key
@@ -115,8 +148,9 @@ class MetricsHandler(tornado.web.RequestHandler):
                         )
                 except KeyError:
                     return 500, 'Config Error', "You must specify a password."
-            CONNECTION_POOL[hostname] = dev
-        dev = CONNECTION_POOL[hostname]
+            CONNECTION_POOL[hostname] = {}
+            CONNECTION_POOL[hostname]['device'] = dev
+        dev = CONNECTION_POOL[hostname]['device']
         # create metrics registry
         registry = Metrics()
 
@@ -128,16 +162,18 @@ class MetricsHandler(tornado.web.RequestHandler):
     @tornado.gen.coroutine
     def get(self):
         self.set_header('Content-type', 'text/plain')
+        used_workers.inc()
         code, status, data = yield self.get_device_information()
+        used_workers.dec()
         self.set_status(code, reason=status)
         self.write(bytes(data, 'utf-8'))
 
 
 class DisconnectHandler(tornado.web.RequestHandler):
     def get(self):
-        for hostname, device in CONNECTION_POOL.items():
+        for hostname, data in CONNECTION_POOL.items():
             try:
-                device.disconnect()
+                data['device'].disconnect()
             except (AttributeError, Exception):
                 pass
             except:
@@ -166,8 +202,8 @@ def app():
     urls = [
         (r'^/disconnect$', DisconnectHandler),
         (r'^/disconnect/$', DisconnectHandler),
-        (r'^/metrics/?$', MetricsHandler),
-        (r'^/metrics/(.+)$', MetricsHandler)
+        (r'^/metrics$', MetricsHandler),
+        (r'^/device$', ExporterHandler)
     ]
     MAX_WORKERS = args.worker
     app = tornado.web.Application(urls)
@@ -192,15 +228,15 @@ def sig_handler(sig, frame):
 def shutdown():
     print('Stopping http server')
     SERVER.stop()
-    for hostname, device in CONNECTION_POOL.items():
+    for hostname, data in CONNECTION_POOL.items():
         try:
-            device.disconnect()
+            data['device'].disconnect()
         except (AttributeError, Exception):
             pass
         except:
             pass
         print("{} :: Connection State {}".format(
-            hostname, "Disconnected" if not device.is_connected() else "Connected"))
+            hostname, "Disconnected" if not data['device'].is_connected() else "Connected"))
     exit(0)
 
 
