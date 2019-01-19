@@ -334,7 +334,7 @@ class ArubaMetrics(basedevice.Metrics):
                                 registry.add_metric(
                                     "{}_{}_{}_{}".format(
                                         BASE, metric_key, key, eirp),
-                                    data('Active AP Table', [{}])[0].get(key, {}).get(eirp),
+                                    data.get('Active AP Table', [{}])[0].get(key, {}).get(eirp),
                                     labels={
                                         'name': ap_name,
                                         'group': group
