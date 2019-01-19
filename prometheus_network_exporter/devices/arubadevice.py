@@ -235,7 +235,7 @@ class ArubaMetrics(basedevice.Metrics):
         description_uptime = "Duration of AP status in seconds."
         registry.register(metric_status, description_status, 'gauge')
         registry.register(metric_uptime, description_uptime, 'gauge')
-        for ap in aps['AP Database']:
+        for ap in aps.get('AP Database', []):
             name = ap['Name']
             group = ap['Group']
             status = ap['Status']
@@ -248,7 +248,7 @@ class ArubaMetrics(basedevice.Metrics):
         metric_key = 'ap'
 
         aps = dev.device.aps()
-        ap_names = [ap['Name'] for ap in aps['AP Database']]
+        ap_names = [ap.get('Name') for ap in aps.get('AP Database', [])]
         ap_stats = []
         for ap_name in ap_names:
             ap_stats.append(dev.device.ap(ap_name=ap_name))
@@ -330,11 +330,11 @@ class ArubaMetrics(basedevice.Metrics):
                             registry.add_metric("{}_{}_uptime_seconds".format(BASE, metric_key), data['Active AP Table'][0]['Uptime'], labels={
                                                 'name': ap_name, 'group': group})
                         elif key in ["11a_info", "11g_info"]:
-                            for eirp in data['Active AP Table'][0][key].keys():
+                            for eirp in data.get('Active AP Table', [{}])[0].get(key, {}).keys():
                                 registry.add_metric(
                                     "{}_{}_{}_{}".format(
                                         BASE, metric_key, key, eirp),
-                                    data['Active AP Table'][0][key][eirp],
+                                    data('Active AP Table', [{}])[0].get(key, {}).get(eirp),
                                     labels={
                                         'name': ap_name,
                                         'group': group
