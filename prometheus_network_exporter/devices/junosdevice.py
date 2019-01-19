@@ -265,7 +265,6 @@ class JuniperMetrics(basedevice.Metrics):
                 registry.register(metric_name, description, MetricFamily)
                 if bgp:
                     for peeraddr, metrics in bgp.items():
-                        print(peeraddr)
                         if metrics.get(key) is not None:
                             labels_data = {'peeraddr': peeraddr}
                             labels_variable = {label['key']: metrics.get(
