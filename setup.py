@@ -20,7 +20,7 @@ with open(path.join(HERE, 'README.md'), encoding='utf-8') as f:
     LONG_DESCRIPTION = f.read()
 
 setup(
-    name='prometheus-junos-exporter',
+    name='prometheus-network-exporter',
 
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
@@ -31,7 +31,7 @@ setup(
     long_description=LONG_DESCRIPTION,
 
     # The project's main homepage.
-    url='https://github.com/Selfnet/prometheus-junos-exporter',
+    url='https://github.com/Selfnet/prometheus-network-exporter',
 
     # Author details
     author='Marcel Fest',
