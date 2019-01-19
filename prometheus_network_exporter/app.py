@@ -24,13 +24,18 @@ MAX_WAIT_SECONDS_BEFORE_SHUTDOWN = 30
 MAX_WORKERS = 150
 config = None
 SERVER = None
+CONF_DIR = os.path.join('/etc', 'prometheus-network-exporter')
 
-## Counter initialization
-used_workers = Gauge('network_exporter_used_workers', 'The amount of workers being busy scraping Devices.')
-total_workers = Gauge('network_exporter_workers', 'The total amount of workers')
+# Counter initialization
+used_workers = Gauge('network_exporter_used_workers',
+                     'The amount of workers being busy scraping Devices.')
+total_workers = Gauge('network_exporter_workers',
+                      'The total amount of workers')
 total_workers.set(MAX_WORKERS)
-scraped_errors = Counter('network_exporter_died_sessions', 'The count of exceptions raised by connection', ['hostname', 'exception'])
-connections = Gauge('network_exporter_tcp_states', 'The count per tcp state and protocol', ['state', 'protocol'])
+scraped_errors = Counter('network_exporter_died_sessions',
+                         'The count of exceptions raised by connection', ['hostname', 'exception'])
+connections = Gauge('network_exporter_tcp_states',
+                    'The count per tcp state and protocol', ['state', 'protocol'])
 collectors = {
     'junos': JuniperMetrics(exception_counter=scraped_errors),
     'arubaos': ArubaMetrics(exception_counter=scraped_errors),
@@ -38,15 +43,18 @@ collectors = {
     'airmax': AirMaxMetrics(exception_counter=scraped_errors)
 }
 
+
 class MetricsHandler(tornado.web.RequestHandler):
     """
     Tornado ``Handler`` that serves prometheus metrics.
     """
+
     def initialize(self, registry=REGISTRY):
         self.registry = registry
 
     def get(self):
-        encoder, content_type = exposition.choose_encoder(self.request.headers.get('Accept'))
+        encoder, content_type = exposition.choose_encoder(
+            self.request.headers.get('Accept'))
         ssh = netstat.ssh(v4=True) + netstat.ssh(v6=True)
         http = netstat.http(v4=True) + netstat.http(v6=True)
         states = {}
@@ -66,29 +74,17 @@ class MetricsHandler(tornado.web.RequestHandler):
         self.set_header('Content-Type', content_type)
         self.write(encoder(self.registry))
 
+
 class ExporterHandler(tornado.web.RequestHandler):
     executor = ThreadPoolExecutor(max_workers=MAX_WORKERS)
+
     @run_on_executor
-    def get_device_information(self):
+    def get_device_information(self, module, hostname):
         # load config
         # start_time = datetime.now()
-        CONF_DIR = os.path.join('/etc', 'prometheus-network-exporter')
-        with open(os.path.join(CONF_DIR, 'config.yml'), 'r') as f:
-            config = yaml.load(f)
-        if not Configuration().validate(config):
-            print('Invalid Configuration!')
-            exit(1)
-        # parameters from url
-        # get profile from config
-        try:
-            profile = config[self.get_argument('module')]
-            hostname = self.get_argument('target')
-        except tornado.web.MissingArgumentError:
-            return 404, "you're holding it wrong!", "you're holding it wrong!:\n{}\n/metrics?module=default&target=target.example.com".format(self.request.uri)
-        except KeyError:
-            return 404, "Wrong module!", "you're holding it wrong!:\nAvailable modules are: {}".format(list(config.keys()))
         # open device connection
-        if not hostname in CONNECTION_POOL.keys() or not CONNECTION_POOL[hostname] or not CONNECTION_POOL[hostname]['device']:
+        if not CONNECTION_POOL[hostname]['device']:
+            CONNECTION_POOL[hostname] = {}
             dev = None
             if profile['auth']['method'] == 'ssh_key':
                     # using ssh key
@@ -148,7 +144,6 @@ class ExporterHandler(tornado.web.RequestHandler):
                         )
                 except KeyError:
                     return 500, 'Config Error', "You must specify a password."
-            CONNECTION_POOL[hostname] = {}
             CONNECTION_POOL[hostname]['device'] = dev
         dev = CONNECTION_POOL[hostname]['device']
         # create metrics registry
@@ -162,12 +157,57 @@ class ExporterHandler(tornado.web.RequestHandler):
     @tornado.gen.coroutine
     def get(self):
         self.set_header('Content-type', 'text/plain')
-        used_workers.inc()
-        code, status, data = yield self.get_device_information()
-        used_workers.dec()
+        module = None
+        hostname = None
+        config = None
+        with open(os.path.join(CONF_DIR, 'config.yml'), 'r') as f:
+            config = yaml.load(f)
+        if not Configuration().validate(config):
+            print('{} :: Invalid Configuration for module {}'.format(hostname, module))
+            code, status, data = 500, 'Config Error', "Please fix your config."
+            self.set_status(code, reason=status)
+            self.write(bytes(data, 'utf-8'))
+            return
+        try:
+            module = config[self.get_argument('module')]
+            hostname = self.get_argument('target')
+        except tornado.web.MissingArgumentError:
+            code, status, data = 404, "you're holding it wrong!", "you're holding it wrong!:\n{}\n/metrics?module=default&target=target.example.com".format(self.request.uri)
+        except KeyError:
+            code, status, data = 404, "Wrong module!", "you're holding it wrong!:\nAvailable modules are: {}".format(list(config.keys()))
+        if config and hostname and module:
+            if not hostname in CONNECTION_POOL.keys():
+                CONNECTION_POOL[hostname] = {}
+            
+            used_workers.inc()
+            CONNECTION_POOL[hostname]['locked'] = True
+            code, status, data = yield self.get_device_information(module=module, hostname=hostname)
+            CONNECTION_POOL[hostname]['locked'] = False
+            used_workers.dec()
+
         self.set_status(code, reason=status)
         self.write(bytes(data, 'utf-8'))
 
+
+class AllDeviceReloadHandler(tornado.web.RequestHandler):
+    def get(self):
+        entries = list(CONNECTION_POOL.keys())
+        for entry in entries:
+            if entry in CONNECTION_POOL and not CONNECTION_POOL[entry].get('locked', False):
+                try:
+                    CONNECTION_POOL[entry]['device'].disconnect()
+                except (AttributeError, Exception):
+                    pass
+                except:
+                    pass
+                print("{} :: Conection State {}".format(
+                    entry, "Disconnected" if not CONNECTION_POOL[entry]['device'].is_connected() else "Connected"))
+                del CONNECTION_POOL[entry]
+                print("{} :: Connection Object {}".format(
+                    entry, "deleted" if not entry in CONNECTION_POOL.keys() else "what the f***"))
+
+class DeviceReloadHandler(tornado.web.RequestHandler):
+    pass
 
 class DisconnectHandler(tornado.web.RequestHandler):
     def get(self):
@@ -203,7 +243,8 @@ def app():
         (r'^/disconnect$', DisconnectHandler),
         (r'^/disconnect/$', DisconnectHandler),
         (r'^/metrics$', MetricsHandler),
-        (r'^/device$', ExporterHandler)
+        (r'^/device$', ExporterHandler),
+        (r'^/reload$', AllDeviceReloadHandler)
     ]
     MAX_WORKERS = args.worker
     app = tornado.web.Application(urls)
