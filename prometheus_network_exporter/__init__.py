@@ -28,7 +28,7 @@ class Application(_Application):
         buckets = kwargs.pop('prometheus_buckets', None)
 
         histogram_kwargs = {
-            'labelnames': ['method', 'path', 'status'],
+            'labelnames': ['method', 'handler', 'status'],
             'registry': self.registry,
         }
         if buckets is not None:
@@ -44,6 +44,6 @@ class Application(_Application):
         self.request_time_histogram \
             .labels(
                 method=handler.request.method.lower(),
-                path=handler.request.uri.lower(),
+                handler=type(handler).__name__.lower(),
                 status=int(handler.get_status())) \
             .observe(handler.request.request_time())
