@@ -365,10 +365,12 @@ class ArubaMetrics(basedevice.Metrics):
         except (AttributeError) as e:
             self.exception_counter.labels(dev.hostname, "AttributeError").inc()
             print(e)
+            dev.disconnect()
             return 500, "Device unreachable", "Device {} unreachable".format(dev.hostname)
         except (KeyError) as e:
             self.exception_counter.labels(dev.hostname, 'KeyError').inc()
             print(e)
+            dev.disconnect()
             return 500, 'Device unreachable', "Device {} unreachable".format(dev.hostname)
         dev.disconnect()
         return 200, "OK", registry.collect()
