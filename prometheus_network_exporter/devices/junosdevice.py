@@ -25,8 +25,10 @@ class JuniperNetworkDevice(basedevice.Device):
                         ssh_private_key_file=ssh_private_key_file,
                         ssh_config=ssh_config,
                         password=password,
-                        port=port)
+                        port=port,
+                        gather_facts=False)
         super().__init__(hostname, device)
+        self.device.timeout = 50
 
     def get_bgp(self):
         try:
