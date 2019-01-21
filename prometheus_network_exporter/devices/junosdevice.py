@@ -280,8 +280,8 @@ class JuniperMetrics(basedevice.Metrics):
     def metrics(self, types, dev, registry):
         optics = ospf = True
         dev.connect()
-        dev.device.timeout = 50
         try:
+            dev.device.timeout = 50
             if not 'ospf' in types:
                 ospf = False
             if not 'optics' in types:
