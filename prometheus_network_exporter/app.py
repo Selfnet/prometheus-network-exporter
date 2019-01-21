@@ -74,13 +74,15 @@ class MetricsHandler(tornado.web.RequestHandler):
             states[conn['state']] += 1
         for state, count in states.items():
             CONNECTIONS.labels(state, 'http').set(count)
-        return self.registry
+        return
+
+    @tornado.gen.coroutine
     def get(self):
         encoder, content_type = exposition.choose_encoder(
         self.request.headers.get('Accept'))
         self.set_header('Content-Type', content_type)
-        data = yield self.get_metrics()
-        self.write(encoder(data))
+        yield self.get_metrics()
+        self.write(encoder(self.registry))
 
 class ExporterHandler(tornado.web.RequestHandler):
     executor = ThreadPoolExecutor(max_workers=MAX_WORKERS)
