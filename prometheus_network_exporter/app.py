@@ -202,7 +202,11 @@ class ExporterHandler(tornado.web.RequestHandler):
 
             used_workers.inc()
             CONNECTION_POOL[hostname]['locked'] = True
-            code, status, data = yield self.get_device_information(hostname=hostname)
+            try:
+                code, status, data = yield self.get_device_information(hostname=hostname)
+            except Exception as e:
+                print(e)
+                raise e
             CONNECTION_POOL[hostname]['locked'] = False
             used_workers.dec()
 
