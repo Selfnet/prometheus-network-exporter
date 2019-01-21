@@ -149,6 +149,9 @@ class ArubaNetworkDevice(basedevice.Device):
 
 
 class ArubaMetrics(basedevice.Metrics):
+    def __init__(self, *args, **kwargs):
+        super(ArubaMetrics, self).__init__(*args, **kwargs)
+
     def get_system_information(self, registry, dev, hostname):
         data = dev.device.sys_info()
         metric_key = 'device'
@@ -360,7 +363,12 @@ class ArubaMetrics(basedevice.Metrics):
             if 'access point state' in types:
                 self.get_access_point_state(registry, dev, dev.hostname)
         except (AttributeError) as e:
+            self.exception_counter.labels(dev.hostname, "AttributeError").inc()
             print(e)
             return 500, "Device unreachable", "Device {} unreachable".format(dev.hostname)
+        except (KeyError) as e:
+            self.exception_counter.labels(dev.hostname, 'KeyError').inc()
+            print(e)
+            return 500, 'Device unreachable', "Device {} unreachable".format(dev.hostname)
         dev.disconnect()
         return 200, "OK", registry.collect()

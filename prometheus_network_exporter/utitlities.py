@@ -1,6 +1,7 @@
 import collections
 from prometheus_network_exporter.config.definitions.junos import wrapping as junos
 
+
 FUNCTIONS = {
     'is_ok': junos.is_ok,
     'floatify': junos.floatify,

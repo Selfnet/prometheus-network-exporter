@@ -34,7 +34,9 @@ class AirMaxDevice(basedevice.Device):
         self.statistics = self.device.statistics()
 
 
-class AirMaxMetrics(object):
+class AirMaxMetrics(basedevice.Metrics):
+    def __init__(self, *args, **kwargs):
+        super(AirMaxMetrics, self).__init__(*args, **kwargs)
 
     def get_interface_metrics(self, registry, dev):
         interfaces = dev.statistics.get("interfaces", {})

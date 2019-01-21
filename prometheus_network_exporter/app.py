@@ -7,143 +7,251 @@ import ipaddress
 import argparse
 import tornado.ioloop
 import tornado.web
+from fqdn import FQDN
 from tornado import gen
-from prometheus_network_exporter import __version__ as VERSION
+from prometheus_client import Counter, Gauge, Info, REGISTRY, exposition, Summary
 from tornado.concurrent import run_on_executor
 from concurrent.futures import ThreadPoolExecutor
+from prometheus_network_exporter import __version__ as VERSION
+from prometheus_network_exporter import Application
 from prometheus_network_exporter.registry import Metrics
 from prometheus_network_exporter.devices.junosdevice import JuniperNetworkDevice, JuniperMetrics
 from prometheus_network_exporter.devices.arubadevice import ArubaNetworkDevice, ArubaMetrics
 from prometheus_network_exporter.devices.ubntdevice import AirMaxDevice, AirMaxMetrics
-from prometheus_network_exporter.devices.ciscodevice import CiscoMetrics
+from prometheus_network_exporter.devices.ciscodevice import CiscoNetworkDevice, CiscoMetrics
 from prometheus_network_exporter.schema import Configuration
+import prometheus_network_exporter.netstat as netstat
 CONNECTION_POOL = {}
 MAX_WAIT_SECONDS_BEFORE_SHUTDOWN = 30
 MAX_WORKERS = 150
-
 config = None
 SERVER = None
+CONF_DIR = os.path.join('/etc', 'prometheus-network-exporter')
+
+# Counter initialization
+used_workers = Gauge('network_exporter_used_workers',
+                     'The amount of workers being busy scraping Devices.')
+total_workers = Gauge('network_exporter_workers',
+                      'The total amount of workers')
+total_workers.set(MAX_WORKERS)
+SCRAPED_ERRORS = Counter('network_exporter_died_sessions',
+                         'The count of exceptions raised by connection', ['hostname', 'exception'])
+CONNECTIONS = Gauge('network_exporter_tcp_states',
+                    'The count per tcp state and protocol', ['state', 'protocol'])
+
 
 collectors = {
-    'junos': JuniperMetrics(),
-    'arubaos': ArubaMetrics(),
-    'ios': CiscoMetrics(),
-    'airmax': AirMaxMetrics()
+    'junos': JuniperMetrics(exception_counter=SCRAPED_ERRORS),
+    'arubaos': ArubaMetrics(exception_counter=SCRAPED_ERRORS),
+    'ios': CiscoMetrics(exception_counter=SCRAPED_ERRORS),
+    'airmax': AirMaxMetrics(exception_counter=SCRAPED_ERRORS)
 }
 
 
 class MetricsHandler(tornado.web.RequestHandler):
+    """
+    Tornado ``Handler`` that serves prometheus metrics.
+    """
+
+    def initialize(self, registry=REGISTRY):
+        self.registry = registry
+
+    def get(self):
+        encoder, content_type = exposition.choose_encoder(
+            self.request.headers.get('Accept'))
+        ssh = netstat.ssh(v4=True) + netstat.ssh(v6=True)
+        http = netstat.http(v4=True) + netstat.http(v6=True)
+        states = {}
+        for conn in ssh:
+            if not conn['state'] in states:
+                states[conn['state']] = 0
+            states[conn['state']] += 1
+        for state, count in states.items():
+            CONNECTIONS.labels(state, 'ssh').set(count)
+        states = {}
+        for conn in http:
+            if not conn['state'] in states:
+                states[conn['state']] = 0
+            states[conn['state']] += 1
+        for state, count in states.items():
+            CONNECTIONS.labels(state, 'http').set(count)
+        self.set_header('Content-Type', content_type)
+        self.write(encoder(self.registry))
+
+
+class ExporterHandler(tornado.web.RequestHandler):
     executor = ThreadPoolExecutor(max_workers=MAX_WORKERS)
 
     @run_on_executor
-    def get_device_information(self):
+    def get_device_information(self, module, hostname):
         # load config
         # start_time = datetime.now()
-        CONF_DIR = os.path.join('/etc', 'prometheus-network-exporter')
-        with open(os.path.join(CONF_DIR, 'config.yml'), 'r') as f:
-            config = yaml.load(f)
-        if not Configuration().validate(config):
-            print('Invalid Configuration!')
-            exit(1)
-        # parameters from url
-        # get profile from config
-        try:
-            profile = config[self.get_argument('module')]
-            hostname = self.get_argument('target')
-        except tornado.web.MissingArgumentError:
-            return 404, "you're holding it wrong!", "you're holding it wrong!:\n{}\n/metrics?module=default&target=target.example.com".format(self.request.uri)
-        except KeyError:
-            return 404, "Wrong module!", "you're holding it wrong!:\nAvailable modules are: {}".format(list(config.keys()))
         # open device connection
-        if not hostname in CONNECTION_POOL.keys() or not CONNECTION_POOL[hostname]:
+        if not CONNECTION_POOL[hostname] or not CONNECTION_POOL[hostname].get('device'):
+            CONNECTION_POOL[hostname] = {}
             dev = None
-            if profile['auth']['method'] == 'ssh_key':
+            if module['auth']['method'] == 'ssh_key':
                     # using ssh key
-                if profile['device'] == 'junos':
+                if module['device'] == 'junos':
                     dev = JuniperNetworkDevice(hostname=hostname,
-                                               user=profile['auth'].get(
+                                               user=module['auth'].get(
                                                    'username', getpass.getuser()),
-                                               ssh_private_key_file=profile['auth'].get(
+                                               ssh_private_key_file=module['auth'].get(
                                                    'ssh_key', None),
-                                               port=profile['auth'].get(
+                                               port=module['auth'].get(
                                                    'port', 22),
-                                               ssh_config=profile['auth'].get(
+                                               ssh_config=module['auth'].get(
                                                    'ssh_config', None),
-                                               password=profile['auth'].get('password', None))
-            elif profile['auth']['method'] == 'password':
+                                               password=module['auth'].get('password', None))
+            elif module['auth']['method'] == 'password':
                 try:
-                    if profile['device'] == 'arubaos':
+                    if module['device'] == 'arubaos':
 
-                        http = 'https' if profile['auth'].get(
+                        http = 'https' if module['auth'].get(
                             'http_secure', True) else 'http'
-                        port = profile['auth'].get('port', 4343)
+                        port = module['auth'].get('port', 4343)
                         dev = ArubaNetworkDevice(
                             hostname=hostname,
-                            username=profile['auth'].get(
+                            username=module['auth'].get(
                                 'username', getpass.getuser()),
-                            password=profile['auth']['password'],
+                            password=module['auth']['password'],
                             protocol=http,
                             port=port,
-                            proxy=profile['auth'].get(
+                            proxy=module['auth'].get(
                                 'proxy'),
-                            verify=profile['auth'].get(
+                            verify=module['auth'].get(
                                 'verify', False)
                         )
-                    elif profile['device'] == 'junos':
+                    elif module['device'] == 'junos':
                         dev = JuniperNetworkDevice(
                             hostname=hostname,
-                            user=profile['auth'].get(
+                            user=module['auth'].get(
                                 'username', getpass.getuser()),
-                            password=profile['auth']['password'],
-                            port=profile['auth'].get('port', 22)
+                            password=module['auth']['password'],
+                            port=module['auth'].get('port', 22)
                         )
-                    elif profile['device'] == 'airmax':
-                        http = 'https' if profile['auth'].get(
+                    elif module['device'] == 'airmax':
+                        http = 'https' if module['auth'].get(
                             'http_secure', True) else 'http'
-                        port = profile['auth'].get('port', 443)
+                        port = module['auth'].get('port', 443)
                         dev = AirMaxDevice(
                             hostname=hostname,
-                            username=profile['auth'].get(
+                            username=module['auth'].get(
                                 'username', getpass.getuser()),
-                            password=profile['auth']['password'],
+                            password=module['auth']['password'],
                             protocol=http,
                             port=port,
-                            proxy=profile['auth'].get(
+                            proxy=module['auth'].get(
                                 'proxy'),
-                            verify=profile['auth'].get(
+                            verify=module['auth'].get(
                                 'verify', False)
                         )
                 except KeyError:
                     return 500, 'Config Error', "You must specify a password."
-            CONNECTION_POOL[hostname] = dev
-        dev = CONNECTION_POOL[hostname]
+            CONNECTION_POOL[hostname]['device'] = dev
+        dev = CONNECTION_POOL[hostname]['device']
         # create metrics registry
         registry = Metrics()
 
         # get metrics from file
-        types = profile['metrics']
+        types = module['metrics']
 
-        return collectors[profile['device']].metrics(types, dev, registry)
+        return collectors[module['device']].metrics(types, dev, registry)
 
     @tornado.gen.coroutine
     def get(self):
         self.set_header('Content-type', 'text/plain')
-        code, status, data = yield self.get_device_information()
+        module = None
+        hostname = None
+        config = None
+        with open(os.path.join(CONF_DIR, 'config.yml'), 'r') as f:
+            config = yaml.load(f)
+        if not Configuration().validate(config):
+            print('{} :: Invalid Configuration for module {}'.format(
+                hostname, module))
+            code, status, data = 500, 'Config Error', "Please fix your config."
+            self.set_status(code, reason=status)
+            self.write(bytes(data, 'utf-8'))
+            return
+        try:
+            module = config[self.get_argument('module')]
+            hostname = self.get_argument('target')
+        except tornado.web.MissingArgumentError:
+            code, status, data = 404, "you're holding it wrong!", "you're holding it wrong!:\n{}\n/metrics?module=default&target=target.example.com".format(
+                self.request.uri)
+        except KeyError:
+            code, status, data = 404, "Wrong module!", "you're holding it wrong!:\nAvailable modules are: {}".format(
+                list(config.keys()))
+        if not FQDN(hostname).is_valid:
+            self.set_status(409, reason="FQDN is invalid!")
+            self.write(bytes("{} is not a valid FQDN!".format(hostname)))
+            return
+        if config and hostname and module:
+            if not hostname in CONNECTION_POOL.keys():
+                CONNECTION_POOL[hostname] = {}
+
+            used_workers.inc()
+            CONNECTION_POOL[hostname]['locked'] = True
+            code, status, data = yield self.get_device_information(module=module, hostname=hostname)
+            CONNECTION_POOL[hostname]['locked'] = False
+            used_workers.dec()
+
+        self.set_status(code, reason=status)
+        self.write(bytes(data, 'utf-8'))
+
+
+class AllDeviceReloadHandler(tornado.web.RequestHandler):
+    def get(self):
+        entries = list(CONNECTION_POOL.keys())
+        for entry in entries:
+            if entry in CONNECTION_POOL and not CONNECTION_POOL[entry].get('locked', False):
+                try:
+                    CONNECTION_POOL[entry]['device'].disconnect()
+                except (AttributeError, Exception, KeyError):
+                    pass
+                except:
+                    pass
+                del CONNECTION_POOL[entry]
+                print("{} :: Connection Object {}".format(
+                    entry, "deleted" if not entry in CONNECTION_POOL.keys() else "what the f***"))
+
+
+class DeviceReloadHandler(tornado.web.RequestHandler):
+    def delete(self, hostname):
+        if FQDN(hostname).is_valid:
+            if hostname in CONNECTION_POOL and not CONNECTION_POOL[hostname].get('locked', False):
+                try:
+                    CONNECTION_POOL[hostname]['device'].disconnect()
+                except (AttributeError, Exception, KeyError):
+                    pass
+                except:
+                    pass
+                del CONNECTION_POOL[hostname]
+                print("{} :: Connection Object {}".format(
+                    hostname, "deleted" if not hostname in CONNECTION_POOL.keys() else "what the f***"))
+                code, status, data = 200, 'Deleted!', "{} got deleted!".format(
+                    hostname)
+            else:
+                code, status, data = 404, 'Element not Found or Locked!', "{} is locked or not found.".format(
+                    hostname)
+        else:
+            code, status, data = 409, "FQDN is invalid!", "{} is not a valid FQDN!".format(
+                hostname)
         self.set_status(code, reason=status)
         self.write(bytes(data, 'utf-8'))
 
 
 class DisconnectHandler(tornado.web.RequestHandler):
     def get(self):
-        for hostname, device in CONNECTION_POOL.items():
+        for hostname, data in CONNECTION_POOL.items():
             try:
-                device.disconnect()
+                data['device'].disconnect()
             except (AttributeError, Exception):
                 pass
             except:
                 pass
             print("{} :: Conection State {}".format(
-                hostname, "Disconnected" if not device.is_connected() else "Connected"))
+                hostname, "Disconnected" if not data['device'].is_connected() else "Connected"))
         self.set_status(200, reason="OK")
         self.set_header('Content-type', 'text/plain')
         self.write(bytes('Shutdown Completed', 'utf-8'))
@@ -166,11 +274,13 @@ def app():
     urls = [
         (r'^/disconnect$', DisconnectHandler),
         (r'^/disconnect/$', DisconnectHandler),
-        (r'^/metrics/?$', MetricsHandler),
-        (r'^/metrics/(.+)$', MetricsHandler)
+        (r'^/metrics$', MetricsHandler),
+        (r'^/device$', ExporterHandler),
+        (r'^/reload$', AllDeviceReloadHandler),
+        (r'^/reload/(.*?)', DeviceReloadHandler)
     ]
     MAX_WORKERS = args.worker
-    app = tornado.web.Application(urls)
+    app = Application(urls)
 
     signal.signal(signal.SIGTERM, sig_handler)
     signal.signal(signal.SIGINT, sig_handler)
@@ -192,15 +302,15 @@ def sig_handler(sig, frame):
 def shutdown():
     print('Stopping http server')
     SERVER.stop()
-    for hostname, device in CONNECTION_POOL.items():
+    for hostname, data in CONNECTION_POOL.items():
         try:
-            device.disconnect()
+            data['device'].disconnect()
         except (AttributeError, Exception):
             pass
         except:
             pass
         print("{} :: Connection State {}".format(
-            hostname, "Disconnected" if not device.is_connected() else "Connected"))
+            hostname, "Disconnected" if not data.get('device') or not data['device'].is_connected() else "Connected"))
     exit(0)
 
 
