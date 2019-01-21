@@ -28,7 +28,6 @@ class JuniperNetworkDevice(basedevice.Device):
                         port=port,
                         gather_facts=False)
         super().__init__(hostname, device)
-        self.device.timeout = 50
 
     def get_bgp(self):
         try:
@@ -281,6 +280,7 @@ class JuniperMetrics(basedevice.Metrics):
     def metrics(self, types, dev, registry):
         optics = ospf = True
         dev.connect()
+        device.timeout = 50
         try:
             if not 'ospf' in types:
                 ospf = False
