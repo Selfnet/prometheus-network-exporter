@@ -34,9 +34,17 @@ used_workers = Gauge('network_exporter_used_workers',
 total_workers = Gauge('network_exporter_workers',
                       'The total amount of workers')
 total_workers.set(MAX_WORKERS)
+
 CONNECTIONS = Gauge('network_exporter_tcp_states',
                     'The count per tcp state and protocol', ['state', 'protocol'])
 
+
+collectors = {
+    'junos': JuniperMetrics(),
+    'arubaos': ArubaMetrics(),
+    'ios': CiscoMetrics(),
+    'airmax': AirMaxMetrics()
+}
 
 
 class MetricsHandler(tornado.web.RequestHandler):
