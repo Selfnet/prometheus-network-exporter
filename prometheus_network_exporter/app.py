@@ -97,8 +97,8 @@ class ExporterHandler(tornado.web.RequestHandler):
         with open(os.path.join(CONF_DIR, 'config.yml'), 'r') as f:
             config = yaml.load(f)
         if not Configuration().validate(config):
-            print('{} :: Invalid Configuration for module {}'.format(
-                hostname, module))
+            print('{} :: Invalid Configuration for module!'.format(
+                hostname))
             return 500, 'Config Error', "Please fix your config."
         try:
             module = config[self.get_argument('module')]
