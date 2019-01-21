@@ -34,18 +34,9 @@ used_workers = Gauge('network_exporter_used_workers',
 total_workers = Gauge('network_exporter_workers',
                       'The total amount of workers')
 total_workers.set(MAX_WORKERS)
-SCRAPED_ERRORS = Counter('network_exporter_died_sessions',
-                         'The count of exceptions raised by connection', ['hostname', 'exception'])
 CONNECTIONS = Gauge('network_exporter_tcp_states',
                     'The count per tcp state and protocol', ['state', 'protocol'])
 
-
-collectors = {
-    'junos': JuniperMetrics(exception_counter=SCRAPED_ERRORS),
-    'arubaos': ArubaMetrics(exception_counter=SCRAPED_ERRORS),
-    'ios': CiscoMetrics(exception_counter=SCRAPED_ERRORS),
-    'airmax': AirMaxMetrics(exception_counter=SCRAPED_ERRORS)
-}
 
 
 class MetricsHandler(tornado.web.RequestHandler):
@@ -74,15 +65,15 @@ class MetricsHandler(tornado.web.RequestHandler):
             states[conn['state']] += 1
         for state, count in states.items():
             CONNECTIONS.labels(state, 'http').set(count)
-        return
+        return self.registry
 
     @tornado.gen.coroutine
     def get(self):
         encoder, content_type = exposition.choose_encoder(
         self.request.headers.get('Accept'))
         self.set_header('Content-Type', content_type)
-        yield self.get_metrics()
-        self.write(encoder(self.registry))
+        data = yield self.get_metrics()
+        self.write(encoder(data))
 
 class ExporterHandler(tornado.web.RequestHandler):
     executor = ThreadPoolExecutor(max_workers=MAX_WORKERS)

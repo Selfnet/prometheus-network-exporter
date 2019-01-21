@@ -300,17 +300,14 @@ class JuniperMetrics(basedevice.Metrics):
                 self.get_igmp_metrics(registry, dev, dev.hostname)
             dev.disconnect()
         except AttributeError as e:
-            self.exception_counter.labels(dev.hostname, "AttributeError").inc()
             print(e)
             dev.disconnect()
             return 500, "Device unreachable", "Device {} unreachable".format(dev.hostname)
         except ConnectClosedError as e:
-            self.exception_counter.labels(dev.hostname, "ConnectClosedError").inc()
             print(e)
             dev.disconnect()
             return 500, "Connection closed unexpectedly!", "Device {} unreachable".format(dev.hostname)
         except RpcTimeoutError as e:
-            self.exception_counter.labels(dev.hostname, "RpcTimeoutError").inc()
             print(e)
             dev.disconnect()
             return 500, "RPC command timed out!", "Device {} unreachable".format(dev.hostname)

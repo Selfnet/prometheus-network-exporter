@@ -32,7 +32,6 @@ class Device():
 
 class Metrics(object):
     def __init__(self, *args, **kwargs):
-        self.exception_counter = kwargs.pop('exception_counter')
         super(Metrics, self).__init__(*args, **kwargs)
 
     def metrics(self, types, dev, registry):

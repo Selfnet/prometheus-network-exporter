@@ -363,12 +363,10 @@ class ArubaMetrics(basedevice.Metrics):
             if 'access point state' in types:
                 self.get_access_point_state(registry, dev, dev.hostname)
         except (AttributeError) as e:
-            self.exception_counter.labels(dev.hostname, "AttributeError").inc()
             print(e)
             dev.disconnect()
             return 500, "Device unreachable", "Device {} unreachable".format(dev.hostname)
         except (KeyError) as e:
-            self.exception_counter.labels(dev.hostname, 'KeyError').inc()
             print(e)
             dev.disconnect()
             return 500, 'Device unreachable', "Device {} unreachable".format(dev.hostname)
