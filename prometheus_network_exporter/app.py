@@ -7,6 +7,7 @@ import ipaddress
 import argparse
 import tornado.ioloop
 import tornado.web
+import copy
 from fqdn import FQDN
 from tornado import gen
 from prometheus_client import Counter, Gauge, Info, REGISTRY, exposition, Summary
@@ -46,6 +47,10 @@ class MetricsHandler(tornado.web.RequestHandler):
     
     @run_on_executor
     def get_metrics(self):
+        encoder, content_type = exposition.choose_encoder(
+        self.request.headers.get('Accept'))
+        self.set_header('Content-Type', content_type)
+
         ssh = netstat.ssh(v4=True) + netstat.ssh(v6=True)
         http = netstat.http(v4=True) + netstat.http(v6=True)
         states = {}
@@ -62,15 +67,12 @@ class MetricsHandler(tornado.web.RequestHandler):
             states[conn['state']] += 1
         for state, count in states.items():
             self.application.CONNECTIONS.labels(state, 'http').set(count)
-        return self.registry
+        return encoder(self.registry)
 
     @tornado.gen.coroutine
     def get(self):
-        encoder, content_type = exposition.choose_encoder(
-        self.request.headers.get('Accept'))
-        self.set_header('Content-Type', content_type)
         data = yield self.get_metrics()
-        self.write(encoder(data))
+        self.write(data)
 
 class ExporterHandler(tornado.web.RequestHandler):
     executor = ThreadPoolExecutor(max_workers=MAX_WORKERS)
