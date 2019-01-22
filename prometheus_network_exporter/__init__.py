@@ -4,7 +4,7 @@ __version__ = "0.7.0.9"
 
 from logging import getLogger
 
-from prometheus_client import Histogram, start_http_server
+from prometheus_client import Histogram, Gauge
 from prometheus_client import REGISTRY as DEFAULT_REGISTRY
 from tornado.web import Application as _Application
 
@@ -24,13 +24,23 @@ class Application(_Application):
         super(Application, self).__init__(*args, **kwargs)
 
         self.registry = kwargs.pop('registry', DEFAULT_REGISTRY)
-
+        self.max_workers = kwargs.pop('max_workers', 10)
         buckets = kwargs.pop('prometheus_buckets', None)
 
         histogram_kwargs = {
             'labelnames': ['method', 'handler', 'status'],
             'registry': self.registry,
         }
+
+        # Counter initialization
+        self.used_workers = Gauge('network_exporter_used_workers',
+                            'The amount of workers being busy scraping Devices.')
+        self.total_workers = Gauge('network_exporter_workers',
+                            'The total amount of workers')
+        self.total_workers.set(self.max_workers)
+
+        self.CONNECTIONS = Gauge('network_exporter_tcp_states',
+                            'The count per tcp state and protocol', ['state', 'protocol'])
         if buckets is not None:
             histogram_kwargs['buckets'] = buckets
         self.request_time_histogram = Histogram(

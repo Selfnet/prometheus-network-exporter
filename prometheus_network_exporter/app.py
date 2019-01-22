@@ -22,22 +22,11 @@ from prometheus_network_exporter.devices.ciscodevice import CiscoNetworkDevice, 
 from prometheus_network_exporter.schema import Configuration
 import prometheus_network_exporter.netstat as netstat
 CONNECTION_POOL = {}
-MAX_WAIT_SECONDS_BEFORE_SHUTDOWN = 30
-MAX_WORKERS = 150
+MAX_WAIT_SECONDS_BEFORE_SHUTDOWN = 60
+MAX_WORKERS = 90
 config = None
 SERVER = None
 CONF_DIR = os.path.join('/etc', 'prometheus-network-exporter')
-
-# Counter initialization
-used_workers = Gauge('network_exporter_used_workers',
-                     'The amount of workers being busy scraping Devices.')
-total_workers = Gauge('network_exporter_workers',
-                      'The total amount of workers')
-total_workers.set(MAX_WORKERS)
-
-CONNECTIONS = Gauge('network_exporter_tcp_states',
-                    'The count per tcp state and protocol', ['state', 'protocol'])
-
 
 collectors = {
     'junos': JuniperMetrics(),
@@ -65,14 +54,14 @@ class MetricsHandler(tornado.web.RequestHandler):
                 states[conn['state']] = 0
             states[conn['state']] += 1
         for state, count in states.items():
-            CONNECTIONS.labels(state, 'ssh').set(count)
+            self.application.CONNECTIONS.labels(state, 'ssh').set(count)
         states = {}
         for conn in http:
             if not conn['state'] in states:
                 states[conn['state']] = 0
             states[conn['state']] += 1
         for state, count in states.items():
-            CONNECTIONS.labels(state, 'http').set(count)
+            self.application.CONNECTIONS.labels(state, 'http').set(count)
         return self.registry
 
     @tornado.gen.coroutine
@@ -199,7 +188,7 @@ class ExporterHandler(tornado.web.RequestHandler):
             if not hostname in CONNECTION_POOL.keys():
                 CONNECTION_POOL[hostname] = {}
 
-            used_workers.inc()
+            self.application.used_workers.inc()
             CONNECTION_POOL[hostname]['locked'] = True
             try:
                 code, status, data = yield self.get_device_information(hostname=hostname)
@@ -207,7 +196,7 @@ class ExporterHandler(tornado.web.RequestHandler):
                 print(e)
                 raise e
             CONNECTION_POOL[hostname]['locked'] = False
-            used_workers.dec()
+            self.application.used_workers.dec()
 
         self.set_status(code, reason=status)
         self.write(bytes(data, 'utf-8'))
@@ -316,9 +305,8 @@ def app():
         (r'^/reload$', AllDeviceReloadHandler),
         (r'^/reload/(.*?)', DeviceReloadHandler)
     ]
-    MAX_WORKERS = args.worker
-    app = Application(urls)
-
+    app = Application(urls, max_workers=args.worker)
+    MAX_WORKERS = app.max_workers
     signal.signal(signal.SIGTERM, sig_handler)
     signal.signal(signal.SIGINT, sig_handler)
 
