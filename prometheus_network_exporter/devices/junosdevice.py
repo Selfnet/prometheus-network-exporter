@@ -303,16 +303,16 @@ class JuniperMetrics(basedevice.Metrics):
         except AttributeError as e:
             print(e)
             dev.disconnect()
-            self.exception_counter.labels(exception='AttributeError', collector='JuniperMetrics').inc()
+            # self.exception_counter.labels(exception='AttributeError', collector='JuniperMetrics').inc()
             return 500, "Device unreachable", "Device {} unreachable".format(dev.hostname)
         except ConnectClosedError as e:
             print(e)
             dev.disconnect()
-            self.exception_counter.labels(exception='ConnectClosedError', collector='JuniperMetrics').inc()
+            # self.exception_counter.labels(exception='ConnectClosedError', collector='JuniperMetrics').inc()
             return 500, "Connection closed unexpectedly!", "Device {} unreachable".format(dev.hostname)
         except RpcTimeoutError as e:
             print(e)
             dev.disconnect()
-            self.exception_counter.labels(exception='RpcTimeoutError', collector='JuniperMetrics').inc()
+            # self.exception_counter.labels(exception='RpcTimeoutError', collector='JuniperMetrics').inc()
             return 500, "RPC command timed out!", "Device {} unreachable".format(dev.hostname)
         return 200, "OK", registry.collect()

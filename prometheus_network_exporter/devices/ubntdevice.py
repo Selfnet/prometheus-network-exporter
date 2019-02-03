@@ -117,7 +117,7 @@ class AirMaxMetrics(basedevice.Metrics):
         except Exception as e:
             print(e)
             dev.disconnect()
-            self.exception_counter.labels(exception='Exception', collector='AirMaxMetrics').inc()
+            # self.exception_counter.labels(exception='Exception', collector='AirMaxMetrics').inc()
             return 500, "Device unreachable", "Device {} unreachable".format(dev.hostname)
         dev.disconnect()
         return 200, "OK", registry.collect()
