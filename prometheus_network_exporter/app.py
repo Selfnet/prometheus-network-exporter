@@ -28,7 +28,6 @@ config = None
 SERVER = None
 CONF_DIR = os.path.join('/etc', 'prometheus-network-exporter')
 
-
 class MetricsHandler(tornado.web.RequestHandler):
     """
     Tornado ``Handler`` that serves prometheus metrics.
@@ -66,6 +65,13 @@ class MetricsHandler(tornado.web.RequestHandler):
 class ExporterHandler(tornado.web.RequestHandler):
     executor = ThreadPoolExecutor(max_workers=MAX_WORKERS)
 
+    def initialize(self):
+        self.collectors = {
+            'junos': JuniperMetrics(),# exception_counter=exception_counter),
+            'arubaos': ArubaMetrics(), # exception_counter=exception_counter),
+            'ios': CiscoMetrics(), # exception_counter=exception_counter),
+            'airmax': AirMaxMetrics() # exception_counter=exception_counter)
+        }
     @run_on_executor
     def get_device_information(self, hostname):
         # load config
@@ -157,7 +163,7 @@ class ExporterHandler(tornado.web.RequestHandler):
         # get metrics from file
         types = module['metrics']
 
-        return self.application.collectors[module['device']].metrics(types, dev, registry)
+        return self.collectors[module['device']].metrics(types, dev, registry)
 
     @tornado.gen.coroutine
     def get(self):

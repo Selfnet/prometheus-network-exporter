@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-__version__ = "0.7.0.14"
+__version__ = "0.7.0.15"
 
 from logging import getLogger
 
@@ -36,12 +36,6 @@ class Application(_Application):
             'registry': self.registry,
         }
         # exception_counter = Counter('network_exporter_raised_exceptions', 'Count of raised Exceptions in the Exporter', ['exception', 'collector'])
-        self.collectors = {
-            'junos': JuniperMetrics(),# exception_counter=exception_counter),
-            'arubaos': ArubaMetrics(), # exception_counter=exception_counter),
-            'ios': CiscoMetrics(), # exception_counter=exception_counter),
-            'airmax': AirMaxMetrics() # exception_counter=exception_counter)
-        }
 
         # Counter initialization
         self.used_workers = Gauge('network_exporter_used_workers',
