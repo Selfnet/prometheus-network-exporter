@@ -159,7 +159,8 @@ class ExporterHandler(tornado.web.RequestHandler):
 
         return self.application.collectors[module['device']].metrics(types, dev, registry)
 
-    async def get(self):
+    @tornado.gen.coroutine
+    def get(self):
         self.set_header('Content-type', 'text/plain')
         hostname = None
         try:
@@ -181,7 +182,7 @@ class ExporterHandler(tornado.web.RequestHandler):
             self.application.used_workers.inc()
             CONNECTION_POOL[hostname]['locked'] = True
             try:
-                code, status, data = await self.get_device_information(hostname=hostname)
+                code, status, data = yield self.get_device_information(hostname=hostname)
             except Exception as e:
                 print(e)
                 raise e
@@ -194,8 +195,9 @@ class ExporterHandler(tornado.web.RequestHandler):
 
 class AllDeviceReloadHandler(tornado.web.RequestHandler):
 
-    async def get(self):
-        code, status = await self.reload_all()
+    @tornado.gen.coroutine
+    def get(self):
+        code, status = yield self.reload_all()
         self.set_status(code, reason=status)
         self.write(bytes(status, 'utf-8'))
 
@@ -237,17 +239,17 @@ class DeviceReloadHandler(tornado.web.RequestHandler):
         else:
             return 409, "FQDN is invalid!", "{} is not a valid FQDN!".format(
                 hostname)
-
-    async def get(self, hostname):
-        code, status, data = await self.reload_device(hostname=hostname)
+    @tornado.gen.coroutine
+    def get(self, hostname):
+        code, status, data = yield self.reload_device(hostname=hostname)
         self.set_status(code, reason=status)
         self.write(bytes(data, 'utf-8'))
 
 
 class DisconnectHandler(tornado.web.RequestHandler):
-
-    async def get(self, hostname):
-        code, status, data = await self.disconnect_all()
+    @tornado.gen.coroutine
+    def get(self, hostname):
+        code, status, data = yield self.disconnect_all()
         self.set_status(code, reason=status)
         self.write(bytes(data, 'utf-8'))
 

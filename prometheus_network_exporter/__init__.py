@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-__version__ = "0.7.0.13"
+__version__ = "0.7.0.14"
 
 from logging import getLogger
 
