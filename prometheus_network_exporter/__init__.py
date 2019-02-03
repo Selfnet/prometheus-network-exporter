@@ -4,9 +4,13 @@ __version__ = "0.7.0.11"
 
 from logging import getLogger
 
-from prometheus_client import Histogram, Gauge
+from prometheus_client import Histogram, Gauge, Counter
 from prometheus_client import REGISTRY as DEFAULT_REGISTRY
 from tornado.web import Application as _Application
+from prometheus_network_exporter.devices.junosdevice import JuniperMetrics
+from prometheus_network_exporter.devices.arubadevice import ArubaMetrics
+from prometheus_network_exporter.devices.ciscodevice import CiscoMetrics
+from prometheus_network_exporter.devices.ubntdevice import AirMaxMetrics
 
 log = getLogger('tornado_prometheus_exporter')
 
@@ -28,8 +32,15 @@ class Application(_Application):
         buckets = kwargs.pop('prometheus_buckets', None)
 
         histogram_kwargs = {
-            'labelnames': ['method', 'handler', 'status'],
+            'labelnames': ['method', 'path', 'status'],
             'registry': self.registry,
+        }
+        exception_counter = Counter('network_exporter_raised_exceptions', 'Count of raised Exceptions in the Exporter', ['exception', 'collector'])
+        self.collectors = {
+            'junos': JuniperMetrics(exception_counter=exception_counter),
+            'arubaos': ArubaMetrics(exception_counter=exception_counter),
+            'ios': CiscoMetrics(exception_counter=exception_counter),
+            'airmax': AirMaxMetrics(exception_counter=exception_counter)
         }
 
         # Counter initialization
@@ -54,6 +65,6 @@ class Application(_Application):
         self.request_time_histogram \
             .labels(
                 method=handler.request.method.lower(),
-                handler=type(handler).__name__.lower(),
+                path=handler.request.uri.lower(),
                 status=int(handler.get_status())) \
             .observe(handler.request.request_time())

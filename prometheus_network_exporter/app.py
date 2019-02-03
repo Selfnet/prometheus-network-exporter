@@ -9,7 +9,6 @@ import tornado.ioloop
 import tornado.web
 import copy
 from fqdn import FQDN
-from tornado import gen
 from prometheus_client import Counter, Gauge, Info, REGISTRY, exposition, Summary
 from tornado.concurrent import run_on_executor
 from concurrent.futures import ThreadPoolExecutor
@@ -29,27 +28,15 @@ config = None
 SERVER = None
 CONF_DIR = os.path.join('/etc', 'prometheus-network-exporter')
 
-collectors = {
-    'junos': JuniperMetrics(),
-    'arubaos': ArubaMetrics(),
-    'ios': CiscoMetrics(),
-    'airmax': AirMaxMetrics()
-}
-
 
 class MetricsHandler(tornado.web.RequestHandler):
     """
     Tornado ``Handler`` that serves prometheus metrics.
     """
-    executor = ThreadPoolExecutor(max_workers=1)
     def initialize(self, registry=REGISTRY):
         self.registry = registry
     
-    @run_on_executor
     def get_metrics(self):
-        encoder, content_type = exposition.choose_encoder(
-        self.request.headers.get('Accept'))
-        self.set_header('Content-Type', content_type)
 
         ssh = netstat.ssh(v4=True) + netstat.ssh(v6=True)
         http = netstat.http(v4=True) + netstat.http(v6=True)
@@ -67,12 +54,14 @@ class MetricsHandler(tornado.web.RequestHandler):
             states[conn['state']] += 1
         for state, count in states.items():
             self.application.CONNECTIONS.labels(state, 'http').set(count)
-        return encoder(self.registry)
 
-    @tornado.gen.coroutine
+    
     def get(self):
-        data = yield self.get_metrics()
-        self.write(data)
+        self.get_metrics()
+        encoder, content_type = exposition.choose_encoder(
+        self.request.headers.get('Accept'))
+        self.set_header('Content-Type', content_type)
+        self.write(encoder(self.registry))
 
 class ExporterHandler(tornado.web.RequestHandler):
     executor = ThreadPoolExecutor(max_workers=MAX_WORKERS)
@@ -168,10 +157,9 @@ class ExporterHandler(tornado.web.RequestHandler):
         # get metrics from file
         types = module['metrics']
 
-        return collectors[module['device']].metrics(types, dev, registry)
+        return self.application.collectors[module['device']].metrics(types, dev, registry)
 
-    @tornado.gen.coroutine
-    def get(self):
+    async def get(self):
         self.set_header('Content-type', 'text/plain')
         hostname = None
         try:
@@ -193,7 +181,7 @@ class ExporterHandler(tornado.web.RequestHandler):
             self.application.used_workers.inc()
             CONNECTION_POOL[hostname]['locked'] = True
             try:
-                code, status, data = yield self.get_device_information(hostname=hostname)
+                code, status, data = await self.get_device_information(hostname=hostname)
             except Exception as e:
                 print(e)
                 raise e
@@ -205,16 +193,12 @@ class ExporterHandler(tornado.web.RequestHandler):
 
 
 class AllDeviceReloadHandler(tornado.web.RequestHandler):
-    executor = ThreadPoolExecutor(max_workers=1)
 
-    @tornado.gen.coroutine
-    def get(self):
-        code, status = yield self.reload_all()
-
+    async def get(self):
+        code, status = await self.reload_all()
         self.set_status(code, reason=status)
         self.write(bytes(status, 'utf-8'))
 
-    @run_on_executor
     def reload_all(self):
         entries = list(CONNECTION_POOL.keys())
         for entry in entries:
@@ -232,9 +216,7 @@ class AllDeviceReloadHandler(tornado.web.RequestHandler):
 
 
 class DeviceReloadHandler(tornado.web.RequestHandler):
-    executor = ThreadPoolExecutor(max_workers=1)
 
-    @run_on_executor
     def reload_device(self, hostname):
         if FQDN(hostname).is_valid:
             if hostname in CONNECTION_POOL and not CONNECTION_POOL[hostname].get('locked', False):
@@ -256,23 +238,19 @@ class DeviceReloadHandler(tornado.web.RequestHandler):
             return 409, "FQDN is invalid!", "{} is not a valid FQDN!".format(
                 hostname)
 
-    @tornado.gen.coroutine
-    def get(self, hostname):
-        code, status, data = yield self.reload_device(hostname=hostname)
+    async def get(self, hostname):
+        code, status, data = await self.reload_device(hostname=hostname)
         self.set_status(code, reason=status)
         self.write(bytes(data, 'utf-8'))
 
 
 class DisconnectHandler(tornado.web.RequestHandler):
-    executor = ThreadPoolExecutor(max_workers=1)
 
-    @tornado.gen.coroutine
-    def get(self, hostname):
-        code, status, data = yield self.disconnect_all()
+    async def get(self, hostname):
+        code, status, data = await self.disconnect_all()
         self.set_status(code, reason=status)
         self.write(bytes(data, 'utf-8'))
 
-    @run_on_executor
     def disconnect_all(self):
         for hostname, data in CONNECTION_POOL.items():
             try:
@@ -307,7 +285,7 @@ def app():
         (r'^/reload$', AllDeviceReloadHandler),
         (r'^/reload/(.*?)', DeviceReloadHandler)
     ]
-    app = Application(urls, max_workers=args.worker)
+    app = Application(urls, max_workers=args.worker, prometheus_buckets=[0.5, 1, 3, 5, 8, 13, 21, 34, 55])
     MAX_WORKERS = app.max_workers
     signal.signal(signal.SIGTERM, sig_handler)
     signal.signal(signal.SIGINT, sig_handler)
