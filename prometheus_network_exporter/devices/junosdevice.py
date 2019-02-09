@@ -284,7 +284,7 @@ class JuniperMetrics(basedevice.Metrics):
                 exception='ConnectError', collector='JuniperMetrics', hostname=dev.hostname).inc()
             return 500, "Connection Error", "Cannot connect to device {}.".format(dev.hostname)
         try:
-            dev.device.timeout = 50
+            dev.device.timeout = 60
             if not 'ospf' in types:
                 ospf = False
             if not 'optics' in types:
