@@ -32,22 +32,6 @@ SERVER = None
 COUNTER_DIR = '.tmp'
 CONF_DIR = os.path.join('/etc', 'prometheus-network-exporter')
 
-def timeit(method):
-    def timed(*args, **kw):
-        ts = time.time()
-        result = method(*args, **kw)
-        te = time.time()
-
-        if 'log_time' in kw:
-            name = kw.get('log_name', method.__name__.upper())
-            kw['log_time'][name] = int((te - ts) * 1000)
-        else:
-            print('%r  %2.2f ms' % \
-                  (method.__name__, (te - ts) * 1000))
-        return result
-
-    return timed
-
 class MetricsHandler(tornado.web.RequestHandler):
     """
     Tornado ``Handler`` that serves prometheus metrics.
@@ -71,7 +55,6 @@ class MetricsHandler(tornado.web.RequestHandler):
         self.request.headers.get('Accept'))
         self.set_header('Content-Type', content_type)
         data = generate_latest(self.application.multiprocess_registry)
-        # self.write(encoder(self.application.registry))
         self.write(data)
 
 class ExporterHandler(tornado.web.RequestHandler):
@@ -84,13 +67,8 @@ class ExporterHandler(tornado.web.RequestHandler):
             'ios': CiscoMetrics(exception_counter=self.application.exception_counter),
             'airmax': AirMaxMetrics(exception_counter=self.application.exception_counter)
         }
-    # @timeit
     @run_on_executor
     def get_device_information(self, hostname):
-        # load config
-        # start_time = datetime.now()
-        # open device connection
-
         config = None
         with open(os.path.join(CONF_DIR, 'config.yml'), 'r') as f:
             config = yaml.load(f)
