@@ -1,5 +1,6 @@
-env
+env*/
 .vscode
 __pycache__
 *.pyc
-junos_exporter.yml
+junos_exporter.
+.tmp

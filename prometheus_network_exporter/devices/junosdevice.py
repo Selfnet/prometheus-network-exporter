@@ -3,9 +3,8 @@
     General Device 
 '''
 from jnpr.junos import Device
-from jnpr.junos.exception import RpcError, ConnectError, ConnectClosedError, RpcTimeoutError
+from jnpr.junos.exception import RpcError, ConnectError, ConnectClosedError, RpcTimeoutError, FactLoopError
 import ipaddress
-
 from prometheus_network_exporter.devices import basedevice
 from prometheus_network_exporter.config.definitions.junos import wrapping
 from prometheus_network_exporter.utitlities import create_metric_params, create_metric, FUNCTIONS, METRICS
@@ -303,16 +302,21 @@ class JuniperMetrics(basedevice.Metrics):
         except AttributeError as e:
             print(e)
             dev.disconnect()
-            # self.exception_counter.labels(exception='AttributeError', collector='JuniperMetrics').inc()
+            self.exception_counter.labels(exception='AttributeError', collector='JuniperMetrics', hostname=dev.hostname).inc()
             return 500, "Device unreachable", "Device {} unreachable".format(dev.hostname)
         except ConnectClosedError as e:
             print(e)
             dev.disconnect()
-            # self.exception_counter.labels(exception='ConnectClosedError', collector='JuniperMetrics').inc()
+            self.exception_counter.labels(exception='ConnectClosedError', collector='JuniperMetrics', hostname=dev.hostname).inc()
             return 500, "Connection closed unexpectedly!", "Device {} unreachable".format(dev.hostname)
         except RpcTimeoutError as e:
             print(e)
             dev.disconnect()
-            # self.exception_counter.labels(exception='RpcTimeoutError', collector='JuniperMetrics').inc()
+            self.exception_counter.labels(exception='RpcTimeoutError', collector='JuniperMetrics', hostname=dev.hostname).inc()
             return 500, "RPC command timed out!", "Device {} unreachable".format(dev.hostname)
+        except FactLoopError as e:
+            print(e)
+            dev.disconnect()
+            self.exception_counter.labels(exception='FactLoopError', collector='JuniperMetrics', hostname=dev.hostname).inc()
+            return 500, "FactLoopError!", "Device {} unreachable".format(dev.hostname)
         return 200, "OK", registry.collect()
