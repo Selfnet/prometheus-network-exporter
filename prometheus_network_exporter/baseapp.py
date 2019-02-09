@@ -19,7 +19,7 @@ class Application(_Application):
         :param prometheus_buckets: Gets passed to prometheus_client.Histogram.
         """
         super(Application, self).__init__(*args, **kwargs)
-        self.registry = kwargs.pop('registry', REGISTRY)
+        # self.registry = kwargs.pop('registry', REGISTRY)
         self.multiprocess_registry = CollectorRegistry(auto_describe=False)
         multiprocess.MultiProcessCollector(registry=self.multiprocess_registry, path='.tmp')
         self.max_workers = kwargs.pop('max_workers', 10)
@@ -27,19 +27,19 @@ class Application(_Application):
 
         histogram_kwargs = {
             'labelnames': ['method', 'path', 'status'],
-            'registry': self.registry,
+            'registry': self.multiprocess_registry,
         }
         self.exception_counter = Counter('network_exporter_raised_exceptions', 'Count of raised Exceptions in the Exporter', ['exception', 'collector', 'hostname'],registry=self.multiprocess_registry)
 
         # Counter initialization
         self.used_workers = Gauge('network_exporter_used_workers',
-                            'The amount of workers being busy scraping Devices.')
+                            'The amount of workers being busy scraping Devices.', registry=self.multiprocess_registry)
         self.total_workers = Gauge('network_exporter_workers',
-                            'The total amount of workers')
+                            'The total amount of workers', registry=self.multiprocess_registry)
         self.total_workers.set(self.max_workers)
 
         self.CONNECTIONS = Gauge('network_exporter_tcp_states',
-                            'The count per tcp state and protocol', ['state', 'protocol'])
+                            'The count per tcp state and protocol', ['state', 'protocol'], registry=self.multiprocess_registry)
         if buckets is not None:
             histogram_kwargs['buckets'] = buckets
         self.request_time_histogram = Histogram(

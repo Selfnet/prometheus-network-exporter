@@ -92,7 +92,7 @@ def netstat(v4=None, v6=None):
     as superuser
     '''
 
-    content = _load(v4=v4, v6=v6)
+    content =  _load(v4=v4, v6=v6)
     result = []
     for line in content:
         # Split lines and remove empty spaces.
@@ -105,23 +105,26 @@ def netstat(v4=None, v6=None):
         uid = pwd.getpwuid(int(line_array[7]))[0]       # Get user from UID.
         # Need the inode to get process pid.
         inode = line_array[9]
-        pid = _get_pid_of_inode(inode)                  # Get pid prom inode.
-        try:                                            # try read the process name.
-            exe = os.readlink('/proc/'+pid+'/exe')
-        except:
-            exe = None
+        # pid = _get_pid_of_inode(inode)                  # Get pid prom inode.
+        # try:                                            # try read the process name.
+        #     exe = os.readlink('/proc/'+pid+'/exe')
+        # except:
+        #     exe = None
         nline = {'id': tcp_id, 'uid': uid, 'local_host': l_host, 'local_port': int(
-            l_port), 'remote_host': r_host, 'remote_port': int(r_port), 'state': state, 'executable': exe}
-        result.append(nline)
-    return result
+            l_port), 'remote_host': r_host, 'remote_port': int(r_port), 'state': state, 'executable': None}
+        yield nline
 
 
 def ssh(v4=None, v6=None):
-    return [conn for conn in netstat(v4=v4, v6=v6) if conn['remote_port'] in [22]]
+    for conn in netstat(v4=v4, v6=v6):
+        if conn['remote_port'] in [22]:
+            yield conn
 
 
 def http(v4=None, v6=None):
-    return [conn for conn in netstat(v4=v4, v6=v6) if conn['remote_port'] in [80, 443, 8080, 8443, 4343]]
+    for conn in netstat(v4=v4, v6=v6):
+        if conn['remote_port'] in [80, 443, 8080, 8443, 4343]:
+            yield conn
 
 
 def _get_pid_of_inode(inode):

@@ -8,8 +8,10 @@ import argparse
 import tornado.ioloop
 import tornado.web
 import copy
+import time
+from collections import Counter
 from fqdn import FQDN
-from prometheus_client import Counter, Gauge, Info, REGISTRY, exposition, Summary
+from prometheus_client import Gauge, Info, REGISTRY, exposition, Summary
 from tornado.concurrent import run_on_executor
 from concurrent.futures import ThreadPoolExecutor
 from prometheus_client import generate_latest
@@ -30,38 +32,47 @@ SERVER = None
 COUNTER_DIR = '.tmp'
 CONF_DIR = os.path.join('/etc', 'prometheus-network-exporter')
 
+def timeit(method):
+    def timed(*args, **kw):
+        ts = time.time()
+        result = method(*args, **kw)
+        te = time.time()
+
+        if 'log_time' in kw:
+            name = kw.get('log_name', method.__name__.upper())
+            kw['log_time'][name] = int((te - ts) * 1000)
+        else:
+            print('%r  %2.2f ms' % \
+                  (method.__name__, (te - ts) * 1000))
+        return result
+
+    return timed
+
 class MetricsHandler(tornado.web.RequestHandler):
     """
     Tornado ``Handler`` that serves prometheus metrics.
     """
-    def get_metrics(self):
 
-        ssh = netstat.ssh(v4=True) + netstat.ssh(v6=True)
-        http = netstat.http(v4=True) + netstat.http(v6=True)
-        states = {}
-        for conn in ssh:
-            if not conn['state'] in states:
-                states[conn['state']] = 0
-            states[conn['state']] += 1
-        for state, count in states.items():
+    async def get_ssh_count(self):
+        counts = Counter(tok['state'] for tok in [*netstat.ssh(v4=True), *netstat.ssh(v6=True)])
+        for state, count in counts.items():
             self.application.CONNECTIONS.labels(state, 'ssh').set(count)
-        states = {}
-        for conn in http:
-            if not conn['state'] in states:
-                states[conn['state']] = 0
-            states[conn['state']] += 1
-        for state, count in states.items():
-            self.application.CONNECTIONS.labels(state, 'http').set(count)
 
-    
-    def get(self):
-        print("get_metrics")
-        self.get_metrics()
+    async def get_http_count(self):
+        counts = Counter(tok['state'] for tok in [*netstat.http(v4=True), *netstat.http(v6=True)])
+        for state, count in counts.items():
+            self.application.CONNECTIONS.labels(state, 'http').set(count)
+    async def get_metrics(self):
+        await self.get_ssh_count()
+        await self.get_http_count()
+    async def get(self):
+        await self.get_metrics()
         encoder, content_type = exposition.choose_encoder(
         self.request.headers.get('Accept'))
         self.set_header('Content-Type', content_type)
-        self.write(encoder(self.application.registry))
-        self.write(generate_latest(self.application.multiprocess_registry))
+        data = generate_latest(self.application.multiprocess_registry)
+        # self.write(encoder(self.application.registry))
+        self.write(data)
 
 class ExporterHandler(tornado.web.RequestHandler):
     executor = ThreadPoolExecutor(max_workers=MAX_WORKERS)
@@ -73,6 +84,7 @@ class ExporterHandler(tornado.web.RequestHandler):
             'ios': CiscoMetrics(exception_counter=self.application.exception_counter),
             'airmax': AirMaxMetrics(exception_counter=self.application.exception_counter)
         }
+    # @timeit
     @run_on_executor
     def get_device_information(self, hostname):
         # load config
