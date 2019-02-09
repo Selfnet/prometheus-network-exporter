@@ -25,7 +25,7 @@ class JuniperNetworkDevice(basedevice.Device):
                         ssh_config=ssh_config,
                         password=password,
                         port=port)
-                        # gather_facts=False)
+        # gather_facts=False)
         super().__init__(hostname, device)
 
     def get_bgp(self):
