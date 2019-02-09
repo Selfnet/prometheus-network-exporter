@@ -158,6 +158,9 @@ class ExporterHandler(tornado.web.RequestHandler):
                     return 500, 'Config Error', "You must specify a password."
             CONNECTION_POOL[hostname]['device'] = dev
         dev = CONNECTION_POOL[hostname]['device']
+        if not dev or not dev.device:
+            del CONNECTION_POOL[hostname]
+            return 500, 'No Connection for {}, have done cleanup!'.format(hostname)
         # create metrics registry
         registry = Metrics()
 

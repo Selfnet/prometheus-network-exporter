@@ -72,7 +72,6 @@ class JuniperNetworkDevice(basedevice.Device):
         return result
 
     def get_environment(self):
-        self.device.facts_refresh()
         facts = self.device.facts
         uptime = self.device.uptime
         rengine = RoutingEngineTable(self.device).get()
@@ -279,7 +278,11 @@ class JuniperMetrics(basedevice.Metrics):
 
     def metrics(self, types, dev, registry):
         optics = ospf = True
-        dev.connect()
+        success = dev.connect()
+        if not success:
+            self.exception_counter.labels(
+                exception='ConnectError', collector='JuniperMetrics', hostname=dev.hostname).inc()
+            return 500, "Connection Error", "Cannot connect to device {}.".format(dev.hostname)
         try:
             dev.device.timeout = 50
             if not 'ospf' in types:
@@ -302,21 +305,27 @@ class JuniperMetrics(basedevice.Metrics):
         except AttributeError as e:
             print(e)
             dev.disconnect()
-            self.exception_counter.labels(exception='AttributeError', collector='JuniperMetrics', hostname=dev.hostname).inc()
-            return 500, "Device unreachable", "Device {} unreachable".format(dev.hostname)
+            self.exception_counter.labels(
+                exception='AttributeError', collector='JuniperMetrics', hostname=dev.hostname).inc()
+            hostname = dev.hostname
+            del(dev)
+            return 500, "Device unreachable", "Device {} unreachable".format(hostname)
         except ConnectClosedError as e:
             print(e)
             dev.disconnect()
-            self.exception_counter.labels(exception='ConnectClosedError', collector='JuniperMetrics', hostname=dev.hostname).inc()
+            self.exception_counter.labels(
+                exception='ConnectClosedError', collector='JuniperMetrics', hostname=dev.hostname).inc()
             return 500, "Connection closed unexpectedly!", "Device {} unreachable".format(dev.hostname)
         except RpcTimeoutError as e:
             print(e)
             dev.disconnect()
-            self.exception_counter.labels(exception='RpcTimeoutError', collector='JuniperMetrics', hostname=dev.hostname).inc()
+            self.exception_counter.labels(
+                exception='RpcTimeoutError', collector='JuniperMetrics', hostname=dev.hostname).inc()
             return 500, "RPC command timed out!", "Device {} unreachable".format(dev.hostname)
         except FactLoopError as e:
             print(e)
             dev.disconnect()
-            self.exception_counter.labels(exception='FactLoopError', collector='JuniperMetrics', hostname=dev.hostname).inc()
+            self.exception_counter.labels(
+                exception='FactLoopError', collector='JuniperMetrics', hostname=dev.hostname).inc()
             return 500, "FactLoopError!", "Device {} unreachable".format(dev.hostname)
         return 200, "OK", registry.collect()
