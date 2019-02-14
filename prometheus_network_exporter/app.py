@@ -51,7 +51,7 @@ class MetricsHandler(tornado.web.RequestHandler):
         await self.get_http_count()
     async def get(self):
         await self.get_metrics()
-        encoder, content_type = exposition.choose_encoder(
+        _ , content_type = exposition.choose_encoder(
         self.request.headers.get('Accept'))
         self.set_header('Content-Type', content_type)
         data = generate_latest(self.application.multiprocess_registry)
@@ -246,7 +246,7 @@ class DeviceReloadHandler(tornado.web.RequestHandler):
 
 class DisconnectHandler(tornado.web.RequestHandler):
 
-    async def get(self, hostname):
+    async def get(self):
         code, status, data = await self.disconnect_all()
         self.set_status(code, reason=status)
         self.write(bytes(data, 'utf-8'))

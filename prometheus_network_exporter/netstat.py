@@ -92,8 +92,7 @@ def netstat(v4=None, v6=None):
     as superuser
     '''
 
-    content =  _load(v4=v4, v6=v6)
-    result = []
+    content = _load(v4=v4, v6=v6)
     for line in content:
         # Split lines and remove empty spaces.
         line_array = _remove_empty(line.split(' '))
@@ -104,7 +103,7 @@ def netstat(v4=None, v6=None):
         state = STATE[line_array[3]]
         uid = pwd.getpwuid(int(line_array[7]))[0]       # Get user from UID.
         # Need the inode to get process pid.
-        inode = line_array[9]
+        # inode = line_array[9]
         # pid = _get_pid_of_inode(inode)                  # Get pid prom inode.
         # try:                                            # try read the process name.
         #     exe = os.readlink('/proc/'+pid+'/exe')
