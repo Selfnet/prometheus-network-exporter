@@ -37,12 +37,7 @@ class Configuration(object):
         })
 
     def validate(self, config):
-        try:
-            self.schema(config)
-            return True
-        except Exception as e:
-            print(e)
-            return False
+        self.schema(config)
 
 
 if __name__ == '__main__':

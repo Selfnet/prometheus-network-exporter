@@ -19,6 +19,7 @@ METRICS = {
     'Gauge': 'gauge'
 }
 
+
 def create_metric_params(metric_def, call='interfaces'):
     metric_name = metric_def['metric']
     key = metric_def['key']
@@ -42,6 +43,7 @@ def create_metric(metric_name, registry, key, labels, metrics, function=None):
                     metric_name, metrics.get(key), labels=labels)
         except (ValueError, KeyError) as e:
             print("Error :: {}".format(e))
+
 
 def flatten(d, parent_key='', sep='_'):
     items = []

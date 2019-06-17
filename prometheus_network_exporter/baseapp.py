@@ -1,12 +1,13 @@
+import os
+import yaml
 from logging import getLogger
-from prometheus_client import Histogram, Gauge, Counter, multiprocess, REGISTRY, CollectorRegistry
+from prometheus_client import Histogram, Gauge, Counter, multiprocess, CollectorRegistry
 from tornado.web import Application as _Application
-from prometheus_network_exporter.devices.junosdevice import JuniperMetrics
-from prometheus_network_exporter.devices.arubadevice import ArubaMetrics
-from prometheus_network_exporter.devices.ciscodevice import CiscoMetrics
-from prometheus_network_exporter.devices.ubntdevice import AirMaxMetrics
+from prometheus_network_exporter.schema import Configuration
+
 
 log = getLogger('tornado_prometheus_exporter')
+CONF_DIR = os.path.join('/etc', 'prometheus-network-exporter')
 
 
 class Application(_Application):
@@ -23,6 +24,9 @@ class Application(_Application):
         super(Application, self).__init__(*args, **kwargs)
         # self.registry = kwargs.pop('registry', REGISTRY)
         self.multiprocess_registry = CollectorRegistry(auto_describe=False)
+        with open(os.path.join(CONF_DIR, 'config.yml'), 'r') as f:
+            self.CONFIG = yaml.safe_load(f)
+        Configuration().validate(self.CONFIG)
         multiprocess.MultiProcessCollector(registry=self.multiprocess_registry, path='.tmp')
         self.max_workers = kwargs.pop('max_workers', 10)
         buckets = kwargs.pop('prometheus_buckets', None)

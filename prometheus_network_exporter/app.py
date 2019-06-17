@@ -18,7 +18,6 @@ from prometheus_network_exporter.devices.junosdevice import JuniperNetworkDevice
 from prometheus_network_exporter.devices.arubadevice import ArubaNetworkDevice, ArubaMetrics
 from prometheus_network_exporter.devices.ubntdevice import AirMaxDevice, AirMaxMetrics
 from prometheus_network_exporter.devices.ciscodevice import CiscoMetrics
-from prometheus_network_exporter.schema import Configuration
 import prometheus_network_exporter.netstat as netstat
 CONNECTION_POOL = {}
 MAX_WAIT_SECONDS_BEFORE_SHUTDOWN = 60
@@ -26,7 +25,6 @@ MAX_WORKERS = 90
 config = None
 SERVER = None
 COUNTER_DIR = '.tmp'
-CONF_DIR = os.path.join('/etc', 'prometheus-network-exporter')
 
 
 class MetricsHandler(tornado.web.RequestHandler):
@@ -70,15 +68,8 @@ class ExporterHandler(tornado.web.RequestHandler):
 
     @run_on_executor
     def get_device_information(self, hostname):
-        config = None
-        with open(os.path.join(CONF_DIR, 'config.yml'), 'r') as f:
-            config = yaml.safe_load(f)
-        if not Configuration().validate(config):
-            print('{} :: Invalid Configuration for module!'.format(
-                hostname))
-            return 500, 'Config Error', "Please fix your config."
         try:
-            module = config[self.get_argument('module')]
+            module = self.application.CONFIG[self.get_argument('module')]
         except tornado.web.MissingArgumentError:
             return 404, "you're holding it wrong!", \
                 """you're holding it wrong!:
@@ -87,7 +78,7 @@ class ExporterHandler(tornado.web.RequestHandler):
                     self.request.uri)
         except KeyError:
             return 404, "Wrong module!", "you're holding it wrong!:\nAvailable modules are: {}".format(
-                list(config.keys()))
+                list(self.application.CONFIG.keys()))
 
         if not CONNECTION_POOL[hostname] or not CONNECTION_POOL[hostname].get('device'):
             CONNECTION_POOL[hostname] = {}
@@ -155,12 +146,10 @@ class ExporterHandler(tornado.web.RequestHandler):
         if not dev or not dev.device:
             del CONNECTION_POOL[hostname]
             return 500, 'No Connection for {}, have done cleanup!'.format(hostname)
-        # create metrics registry
-        registry = Metrics()
 
         # get metrics from file
         types = module['metrics']
-        return self.collectors[module['device']].metrics(types, dev, registry)
+        return self.collectors[module['device']].metrics(types, dev, Metrics())
 
     async def get(self):
         self.set_header('Content-type', 'text/plain')
