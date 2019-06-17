@@ -9,7 +9,7 @@ pylint = "*"
 "flake8" = "*"
 "PySocks" = "*"
 [packages]
-junos-eznc = "*"
+junos-eznc = "2.2.1"
 PyYAML= "*"
 tornado= "*"
 arubaos_client= "*"

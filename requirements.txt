@@ -1,4 +1,4 @@
-junos-eznc
+junos-eznc==2.2.1
 PyYAML
 tornado
 arubaos_client

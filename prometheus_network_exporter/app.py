@@ -1,5 +1,5 @@
 import os
-import yaml
+import sys
 import getpass
 import signal
 import argparse
@@ -19,6 +19,9 @@ from prometheus_network_exporter.devices.arubadevice import ArubaNetworkDevice, 
 from prometheus_network_exporter.devices.ubntdevice import AirMaxDevice, AirMaxMetrics
 from prometheus_network_exporter.devices.ciscodevice import CiscoMetrics
 import prometheus_network_exporter.netstat as netstat
+if not sys.warnoptions:
+    import warnings
+    warnings.simplefilter("ignore")
 CONNECTION_POOL = {}
 MAX_WAIT_SECONDS_BEFORE_SHUTDOWN = 60
 MAX_WORKERS = 90
