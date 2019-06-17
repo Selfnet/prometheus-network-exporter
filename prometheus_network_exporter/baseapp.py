@@ -30,7 +30,12 @@ class Application(_Application):
             'registry': self.multiprocess_registry,
         }
         self.exception_counter = Counter('network_exporter_raised_exceptions', 'Count of raised Exceptions in the Exporter', ['exception', 'collector', 'hostname'],registry=self.multiprocess_registry)
-
+        self.collectors = {
+            'junos': JuniperMetrics(exception_counter=self.exception_counter),
+            'arubaos': ArubaMetrics(exception_counter=self.exception_counter),
+            'ios': CiscoMetrics(exception_counter=self.exception_counter),
+            'airmax': AirMaxMetrics(exception_counter=self.exception_counter)
+        }
         # Counter initialization
         self.used_workers = Gauge('network_exporter_used_workers',
                             'The amount of workers being busy scraping Devices.', registry=self.multiprocess_registry)

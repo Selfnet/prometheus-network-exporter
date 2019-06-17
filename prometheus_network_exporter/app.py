@@ -60,19 +60,11 @@ class MetricsHandler(tornado.web.RequestHandler):
 class ExporterHandler(tornado.web.RequestHandler):
     executor = ThreadPoolExecutor(max_workers=MAX_WORKERS)
 
-    def initialize(self):
-        self.collectors = {
-            'junos': JuniperMetrics(exception_counter=self.application.exception_counter),
-            'arubaos': ArubaMetrics(exception_counter=self.application.exception_counter),
-            'ios': CiscoMetrics(exception_counter=self.application.exception_counter),
-            'airmax': AirMaxMetrics(exception_counter=self.application.exception_counter)
-        }
-
     @run_on_executor
     def get_device_information(self, hostname):
         config = None
         with open(os.path.join(CONF_DIR, 'config.yml'), 'r') as f:
-            config = yaml.load(f)
+            config = yaml.safe_load(f)
         if not Configuration().validate(config):
             print('{} :: Invalid Configuration for module!'.format(
                 hostname))
@@ -160,8 +152,7 @@ class ExporterHandler(tornado.web.RequestHandler):
 
         # get metrics from file
         types = module['metrics']
-
-        return self.collectors[module['device']].metrics(types, dev, registry)
+        return self.application.collectors[module['device']].metrics(types, dev, registry)
 
     async def get(self):
         self.set_header('Content-type', 'text/plain')
