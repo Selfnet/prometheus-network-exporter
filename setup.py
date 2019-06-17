@@ -79,7 +79,6 @@ setup(
     install_requires=[
         'PyYAML',
         'tornado',
-        'paramiko==1.18.5',
         'junos-eznc==2.2.1',
         'arubaos_client',
         'unifi_client',
