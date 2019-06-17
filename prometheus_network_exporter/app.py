@@ -179,12 +179,12 @@ class ExporterHandler(tornado.web.RequestHandler):
             CONNECTION_POOL[hostname]['locked'] = True
             try:
                 code, status, data = await self.get_device_information(hostname=hostname)
+                self.application.used_workers.dec()
             except Exception as e:
+                self.application.used_workers.dec()
                 print(e)
                 raise e
             CONNECTION_POOL[hostname]['locked'] = False
-            self.application.used_workers.dec()
-
         self.set_status(code, reason=status)
         self.write(bytes(data, 'utf-8'))
 
