@@ -166,7 +166,7 @@ class ExporterHandler(tornado.web.RequestHandler):
             code, status, data = 404, "Wrong module!",
             """you're holding it wrong!:
             Available modules are: {}""".format(
-                list(config.keys()))
+                list(self.application.CONFIG.keys()))
         if not FQDN(hostname).is_valid:
             self.set_status(409, reason="FQDN is invalid!")
             self.write(bytes("{} is not a valid FQDN!".format(hostname)))
@@ -286,7 +286,7 @@ def app():
         (r'^/reload$', AllDeviceReloadHandler),
         (r'^/reload/(.*?)', DeviceReloadHandler)
     ]
-    app = Application(urls, max_workers=args.worker, prometheus_buckets=[0.5, 1, 3, 5, 8, 13, 21, 34, 55])
+    app = Application(urls, max_workers=args.worker, prometheus_buckets=[0.5, 1, 3, 5, 8, 13, 17, 21, 27, 34, 40, 55])
     MAX_WORKERS = app.max_workers
     signal.signal(signal.SIGTERM, sig_handler)
     signal.signal(signal.SIGINT, sig_handler)
