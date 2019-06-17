@@ -48,5 +48,5 @@ class Configuration(object):
 if __name__ == '__main__':
     config = Configuration()
     with open('prometheus_network_exporter/config/config.yml', 'r') as file:
-        data = yaml.load(file.read())
+        data = yaml.safe_load(file)
     config.validate(data)

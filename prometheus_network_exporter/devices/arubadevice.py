@@ -123,7 +123,15 @@ STATS_JSON = """
 
 
 class ArubaNetworkDevice(basedevice.Device):
-    def __init__(self, hostname, username=None, password=None, port=4343, proxy=None, verify=False, protocol='https'):
+    def __init__(
+            self,
+            hostname,
+            username=None,
+            password=None,
+            port=4343,
+            proxy=None,
+            verify=False,
+            protocol='https'):
         device = MobilityControllerAPIClient(
             username=username, password=password, url='{protocol}://{hostname}:{port}'.format(
                 protocol=protocol, hostname=hostname, port=port), proxy=proxy, verify=verify)
@@ -330,8 +338,10 @@ class ArubaMetrics(basedevice.Metrics):
                         except IndexError:
                             group = 'Unknown'
                         if key in ["Uptime"]:
-                            registry.add_metric("{}_{}_uptime_seconds".format(BASE, metric_key), data['Active AP Table'][0]['Uptime'], labels={
-                                                'name': ap_name, 'group': group})
+                            registry.add_metric(
+                                "{}_{}_uptime_seconds".format(BASE, metric_key),
+                                data['Active AP Table'][0]['Uptime'],
+                                labels={'name': ap_name, 'group': group})
                         elif key in ["11a_info", "11g_info"]:
                             for eirp in data.get('Active AP Table', [{}])[0].get(key, {}).keys():
                                 registry.add_metric(
@@ -347,9 +357,8 @@ class ArubaMetrics(basedevice.Metrics):
                     pass
 
     def metrics(self, types, dev, registry):
-        dev.connect()
-
         try:
+            dev.connect()
             if 'clients' in types:
                 self.get_clients(registry, dev, dev.hostname)
             if 'cpu' in types:
@@ -362,15 +371,13 @@ class ArubaMetrics(basedevice.Metrics):
                 self.get_access_point_statistics(registry, dev, dev.hostname)
             if 'access point state' in types:
                 self.get_access_point_state(registry, dev, dev.hostname)
-        except (AttributeError) as e:
-            print(e)
             dev.disconnect()
-            self.exception_counter.labels(exception='AttributeError', collector='ArubaMetrics', hostname=dev.hostname).inc()
-            return 500, "Device unreachable", "Device {} unreachable".format(dev.hostname)
-        except (KeyError) as e:
-            print(e)
+        except Exception as exception:
+            print(exception)
             dev.disconnect()
-            self.exception_counter.labels(exception='KeyError', collector='ArubaMetrics', hostname=dev.hostname).inc()
-            return 500, 'Device unreachable', "Device {} unreachable".format(dev.hostname)
-        dev.disconnect()
+            exception_name = type(exception).__name__
+            self.exception_counter.labels(exception=exception_name,
+                                          collector='ArubaMetrics', hostname=dev.hostname).inc()
+            return 500, exception_name, "Device {} unreachable".format(dev.hostname)
+
         return 200, "OK", registry.collect()

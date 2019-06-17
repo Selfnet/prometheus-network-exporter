@@ -1,14 +1,13 @@
 
 '''
-    General Device 
+    General Device
 '''
-from jnpr.junos import Device
-from jnpr.junos.exception import RpcError, ConnectError, ConnectClosedError, RpcTimeoutError, FactLoopError
 import ipaddress
+from jnpr.junos import Device
+from jnpr.junos.exception import RpcError, ConnectError
 from prometheus_network_exporter.devices import basedevice
 from prometheus_network_exporter.config.definitions.junos import wrapping
 from prometheus_network_exporter.utitlities import create_metric_params, create_metric, FUNCTIONS, METRICS
-
 from prometheus_network_exporter.views.junos.optic import PhyPortDiagTable
 from prometheus_network_exporter.views.junos.interface_metrics import MetricsTable
 from prometheus_network_exporter.views.junos.bgp import BGPNeighborTable
@@ -18,14 +17,20 @@ from prometheus_network_exporter.views.junos.igmp import IGMPGroupTable
 
 
 class JuniperNetworkDevice(basedevice.Device):
-    def __init__(self, hostname, user=None, password=None, port=22, ssh_private_key_file=None, ssh_config=None):
+    def __init__(
+            self,
+            hostname,
+            user=None,
+            password=None,
+            port=22,
+            ssh_private_key_file=None,
+            ssh_config=None):
         device = Device(host=hostname,
                         user=user,
                         ssh_private_key_file=ssh_private_key_file,
                         ssh_config=ssh_config,
                         password=password,
-                        port=port,
-                        gather_facts=False)
+                        port=port)
         super().__init__(hostname, device)
 
     def get_bgp(self):
@@ -87,7 +92,7 @@ class JuniperNetworkDevice(basedevice.Device):
 
     def get_igmp(self):
         igmp = dict(IGMPGroupTable(self.device).get())
-        igmp = {k: dict(v) for k, v in igmp.items() if not 'local' in k}
+        igmp = {k: dict(v) for k, v in igmp.items() if 'local' not in k}
         for v in igmp.values():
             if isinstance(v['mgm_addresses'], str):
                 v['mgm_addresses'] = [v['mgm_addresses']]
@@ -285,9 +290,9 @@ class JuniperMetrics(basedevice.Metrics):
             return 500, "Connection Error", "Cannot connect to device {}.".format(dev.hostname)
         try:
             dev.device.timeout = 60
-            if not 'ospf' in types:
+            if 'ospf' not in types:
                 ospf = False
-            if not 'optics' in types:
+            if 'optics' not in types:
                 optics = False
             if 'interface' in types:
                 self.get_interface_metrics(registry, dev, dev.hostname,
@@ -302,30 +307,13 @@ class JuniperMetrics(basedevice.Metrics):
             if 'igmp' in types:
                 self.get_igmp_metrics(registry, dev, dev.hostname)
             dev.disconnect()
-        except AttributeError as e:
-            print(e)
+        except Exception as exception:
             dev.disconnect()
+            exception_name = type(exception).__name__
             self.exception_counter.labels(
-                exception='AttributeError', collector='JuniperMetrics', hostname=dev.hostname).inc()
+                exception=exception_name, collector='JuniperMetrics', hostname=dev.hostname).inc()
             hostname = dev.hostname
-            del(dev)
-            return 500, "Device unreachable", "Device {} unreachable".format(hostname)
-        except ConnectClosedError as e:
-            print(e)
-            dev.disconnect()
-            self.exception_counter.labels(
-                exception='ConnectClosedError', collector='JuniperMetrics', hostname=dev.hostname).inc()
-            return 500, "Connection closed unexpectedly!", "Device {} unreachable".format(dev.hostname)
-        except RpcTimeoutError as e:
-            print(e)
-            dev.disconnect()
-            self.exception_counter.labels(
-                exception='RpcTimeoutError', collector='JuniperMetrics', hostname=dev.hostname).inc()
-            return 500, "RPC command timed out!", "Device {} unreachable".format(dev.hostname)
-        except FactLoopError as e:
-            print(e)
-            dev.disconnect()
-            self.exception_counter.labels(
-                exception='FactLoopError', collector='JuniperMetrics', hostname=dev.hostname).inc()
-            return 500, "FactLoopError!", "Device {} unreachable".format(dev.hostname)
+            if exception_name == 'AttributeError':
+                del(dev)
+            return 500, exception_name, "Device {} unreachable".format(hostname)
         return 200, "OK", registry.collect()

@@ -1,17 +1,13 @@
-import re
 import os
 import yaml
 import getpass
 import signal
-import ipaddress
 import argparse
 import tornado.ioloop
 import tornado.web
-import copy
-import time
 from collections import Counter
 from fqdn import FQDN
-from prometheus_client import Gauge, Info, REGISTRY, exposition, Summary
+from prometheus_client import exposition
 from tornado.concurrent import run_on_executor
 from concurrent.futures import ThreadPoolExecutor
 from prometheus_client import generate_latest
@@ -21,7 +17,7 @@ from prometheus_network_exporter.registry import Metrics
 from prometheus_network_exporter.devices.junosdevice import JuniperNetworkDevice, JuniperMetrics
 from prometheus_network_exporter.devices.arubadevice import ArubaNetworkDevice, ArubaMetrics
 from prometheus_network_exporter.devices.ubntdevice import AirMaxDevice, AirMaxMetrics
-from prometheus_network_exporter.devices.ciscodevice import CiscoNetworkDevice, CiscoMetrics
+from prometheus_network_exporter.devices.ciscodevice import CiscoMetrics
 from prometheus_network_exporter.schema import Configuration
 import prometheus_network_exporter.netstat as netstat
 CONNECTION_POOL = {}
@@ -31,6 +27,7 @@ config = None
 SERVER = None
 COUNTER_DIR = '.tmp'
 CONF_DIR = os.path.join('/etc', 'prometheus-network-exporter')
+
 
 class MetricsHandler(tornado.web.RequestHandler):
     """
@@ -46,16 +43,19 @@ class MetricsHandler(tornado.web.RequestHandler):
         counts = Counter(tok['state'] for tok in [*netstat.http(v4=True), *netstat.http(v6=True)])
         for state, count in counts.items():
             self.application.CONNECTIONS.labels(state, 'http').set(count)
+
     async def get_metrics(self):
         await self.get_ssh_count()
         await self.get_http_count()
+
     async def get(self):
         await self.get_metrics()
-        _ , content_type = exposition.choose_encoder(
-        self.request.headers.get('Accept'))
+        _, content_type = exposition.choose_encoder(
+            self.request.headers.get('Accept'))
         self.set_header('Content-Type', content_type)
         data = generate_latest(self.application.multiprocess_registry)
         self.write(data)
+
 
 class ExporterHandler(tornado.web.RequestHandler):
     executor = ThreadPoolExecutor(max_workers=MAX_WORKERS)
@@ -67,6 +67,7 @@ class ExporterHandler(tornado.web.RequestHandler):
             'ios': CiscoMetrics(exception_counter=self.application.exception_counter),
             'airmax': AirMaxMetrics(exception_counter=self.application.exception_counter)
         }
+
     @run_on_executor
     def get_device_information(self, hostname):
         config = None
@@ -79,8 +80,11 @@ class ExporterHandler(tornado.web.RequestHandler):
         try:
             module = config[self.get_argument('module')]
         except tornado.web.MissingArgumentError:
-            return 404, "you're holding it wrong!", "you're holding it wrong!:\n{}\n/metrics?module=default&target=target.example.com".format(
-                self.request.uri)
+            return 404, "you're holding it wrong!", \
+                """you're holding it wrong!:
+                {}
+                /metrics?module=default&target=target.example.com""".format(
+                    self.request.uri)
         except KeyError:
             return 404, "Wrong module!", "you're holding it wrong!:\nAvailable modules are: {}".format(
                 list(config.keys()))
@@ -89,7 +93,7 @@ class ExporterHandler(tornado.web.RequestHandler):
             CONNECTION_POOL[hostname] = {}
             dev = None
             if module['auth']['method'] == 'ssh_key':
-                    # using ssh key
+                # using ssh key
                 if module['device'] == 'junos':
                     dev = JuniperNetworkDevice(hostname=hostname,
                                                user=module['auth'].get(
@@ -165,17 +169,22 @@ class ExporterHandler(tornado.web.RequestHandler):
         try:
             hostname = self.get_argument('target')
         except tornado.web.MissingArgumentError:
-            code, status, data = 404, "you're holding it wrong!", "you're holding it wrong!:\n{}\n/metrics?module=default&target=target.example.com".format(
+            code, status, data = 404, "you're holding it wrong!",
+            """you're holding it wrong!:
+            {}
+            /metrics?module=default&target=target.example.com""".format(
                 self.request.uri)
         except KeyError:
-            code, status, data = 404, "Wrong module!", "you're holding it wrong!:\nAvailable modules are: {}".format(
+            code, status, data = 404, "Wrong module!",
+            """you're holding it wrong!:
+            Available modules are: {}""".format(
                 list(config.keys()))
         if not FQDN(hostname).is_valid:
             self.set_status(409, reason="FQDN is invalid!")
             self.write(bytes("{} is not a valid FQDN!".format(hostname)))
             return
         if hostname:
-            if not hostname in CONNECTION_POOL.keys():
+            if hostname not in CONNECTION_POOL.keys():
                 CONNECTION_POOL[hostname] = {}
 
             self.application.used_workers.inc()
@@ -211,7 +220,7 @@ class AllDeviceReloadHandler(tornado.web.RequestHandler):
                     pass
                 del CONNECTION_POOL[entry]
                 print("{} :: Connection Object {}".format(
-                    entry, "deleted" if not entry in CONNECTION_POOL.keys() else "what the f***"))
+                    entry, "deleted" if entry not in CONNECTION_POOL.keys() else "what the f***"))
         return 200, "Reloaded all!"
 
 
@@ -228,7 +237,7 @@ class DeviceReloadHandler(tornado.web.RequestHandler):
                     pass
                 del CONNECTION_POOL[hostname]
                 print("{} :: Connection Object {}".format(
-                    hostname, "deleted" if not hostname in CONNECTION_POOL.keys() else "what the f***"))
+                    hostname, "deleted" if hostname not in CONNECTION_POOL.keys() else "what the f***"))
                 return 200, 'Deleted!', "{} got deleted!".format(
                     hostname)
             else:
@@ -237,7 +246,7 @@ class DeviceReloadHandler(tornado.web.RequestHandler):
         else:
             return 409, "FQDN is invalid!", "{} is not a valid FQDN!".format(
                 hostname)
-    
+
     async def get(self, hostname):
         code, status, data = await self.reload_device(hostname=hostname)
         self.set_status(code, reason=status)
@@ -266,16 +275,20 @@ class DisconnectHandler(tornado.web.RequestHandler):
 
 def app():
     global MAX_WORKERS
-    parser = argparse.ArgumentParser(prog='prometheus-network-exporter',
-                                     description="Prometheus exporter for JunOS switches and routers + Others")
+    parser = argparse.ArgumentParser(
+        prog='prometheus-network-exporter',
+        description="Prometheus exporter for JunOS switches and routers + Others")
     parser.add_argument('--version', action='version',
                         version='%(prog)s{}'.format(VERSION))
     parser.add_argument('--port', type=int, default=9332,
                         help="Specifys the port on which the exporter is running.(Default=9332)")
     parser.add_argument('--ip', type=str, default="::1",
                         help="Specifys the port on which the exporter is running.(Default=::1)")
-    parser.add_argument('--worker', type=int, default=10,
-                        help="Specifys the max concurrent threads running for the metrics collection. (Default=150)")
+    parser.add_argument(
+        '--worker',
+        type=int,
+        default=10,
+        help="Specifys the max concurrent threads running for the metrics collection. (Default=150)")
     os.makedirs(COUNTER_DIR, mode=0o755, exist_ok=True)
     args = parser.parse_args()
     urls = [
@@ -301,7 +314,7 @@ def app():
 
 def sig_handler(sig, frame):
     print('Caught signal: {}'.format(sig))
-    tornado.ioloop.IOLoop.current().add_callback(shutdown)
+    tornado.ioloop.IOLoop.current().add_callback_from_signal(shutdown)
 
 
 def shutdown():
@@ -315,7 +328,9 @@ def shutdown():
         except:
             pass
         print("{} :: Connection State {}".format(
-            hostname, "Disconnected" if not data.get('device') or not data['device'].is_connected() else "Connected"))
+            hostname, "Disconnected" if (
+                not data.get('device') or
+                not data['device'].is_connected()) else "Connected"))
     exit(0)
 
 

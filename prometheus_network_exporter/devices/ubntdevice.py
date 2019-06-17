@@ -114,12 +114,12 @@ class AirMaxMetrics(basedevice.Metrics):
                 self.get_wireless_metrics(registry, dev)
             if 'environment' in types:
                 self.get_host_information(registry, dev)
+            dev.disconnect()
         except Exception as e:
             print(e)
             dev.disconnect()
             self.exception_counter.labels(exception='Exception', collector='AirMaxMetrics', hostname=dev.hostname).inc()
             return 500, "Device unreachable", "Device {} unreachable".format(dev.hostname)
-        dev.disconnect()
         return 200, "OK", registry.collect()
 
 

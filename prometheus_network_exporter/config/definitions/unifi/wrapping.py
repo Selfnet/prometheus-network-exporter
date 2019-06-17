@@ -1,13 +1,9 @@
-import sys
 import os
-import time
-import datetime
-from getpass import getpass, getuser
 import yaml
 
-
-with open(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'metrics_definition.yml'), 'r') as metrics_definitions:
-    DEFINITIONS = yaml.load(metrics_definitions).get('DEFINITIONS', {})
+file_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'metrics_definition.yml')
+with open(file_dir, 'r') as metrics_definitions:
+    DEFINITIONS = yaml.safe_load(metrics_definitions).get('DEFINITIONS', {})
 
 METRICS_BASE = DEFINITIONS.get('METRICS_BASE', {})
 NETWORK_METRICS = DEFINITIONS.get('NETWORK_METRICS', {})

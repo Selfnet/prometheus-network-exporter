@@ -1,6 +1,6 @@
 
 '''
-    General Device 
+    General Device
 '''
 import socket
 
