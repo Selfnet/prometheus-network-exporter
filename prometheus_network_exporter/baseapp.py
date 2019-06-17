@@ -8,8 +8,10 @@ from prometheus_network_exporter.devices.ubntdevice import AirMaxMetrics
 
 log = getLogger('tornado_prometheus_exporter')
 
+
 class Application(_Application):
     """ Adds Prometheus integration to Tornado """
+
     def __init__(self, *args, **kwargs):
         """
         :param prometheus_registry: Prometheus registry that metrics are
@@ -29,22 +31,27 @@ class Application(_Application):
             'labelnames': ['method', 'path', 'status'],
             'registry': self.multiprocess_registry,
         }
-        self.exception_counter = Counter('network_exporter_raised_exceptions', 'Count of raised Exceptions in the Exporter', ['exception', 'collector', 'hostname'],registry=self.multiprocess_registry)
-        self.collectors = {
-            'junos': JuniperMetrics(exception_counter=self.exception_counter),
-            'arubaos': ArubaMetrics(exception_counter=self.exception_counter),
-            'ios': CiscoMetrics(exception_counter=self.exception_counter),
-            'airmax': AirMaxMetrics(exception_counter=self.exception_counter)
-        }
+        self.exception_counter = Counter(
+            'network_exporter_raised_exceptions',
+            'Count of raised Exceptions in the Exporter', [
+                'exception', 'collector', 'hostname'],
+            registry=self.multiprocess_registry)
         # Counter initialization
-        self.used_workers = Gauge('network_exporter_used_workers',
-                            'The amount of workers being busy scraping Devices.', registry=self.multiprocess_registry)
-        self.total_workers = Gauge('network_exporter_workers',
-                            'The total amount of workers', registry=self.multiprocess_registry)
+        self.used_workers = Gauge(
+            'network_exporter_used_workers',
+            'The amount of workers being busy scraping Devices.',
+            registry=self.multiprocess_registry)
+        self.total_workers = Gauge(
+            'network_exporter_workers',
+            'The total amount of workers',
+            registry=self.multiprocess_registry)
         self.total_workers.set(self.max_workers)
 
-        self.CONNECTIONS = Gauge('network_exporter_tcp_states',
-                            'The count per tcp state and protocol', ['state', 'protocol'], registry=self.multiprocess_registry)
+        self.CONNECTIONS = Gauge(
+            'network_exporter_tcp_states',
+            'The count per tcp state and protocol',
+            ['state', 'protocol'],
+            registry=self.multiprocess_registry)
         if buckets is not None:
             histogram_kwargs['buckets'] = buckets
         self.request_time_histogram = Histogram(
