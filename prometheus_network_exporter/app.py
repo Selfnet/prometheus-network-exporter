@@ -24,11 +24,9 @@ if not sys.warnoptions:
     warnings.simplefilter("ignore")
 
 CONNECTION_POOL = {}
-
 MAX_WAIT_SECONDS_BEFORE_SHUTDOWN = 60
 MAX_WORKERS = 90
 SERVER = None
-APPLICATION = None
 COUNTER_DIR = '.tmp'
 
 
@@ -285,14 +283,13 @@ def app():
         (r'^/reload$', AllDeviceReloadHandler),
         (r'^/reload/(.*?)', DeviceReloadHandler)
     ]
-    global APPLICATION
-    APPLICATION = Application(urls, max_workers=args.worker, prometheus_buckets=[0.5, 1, 3, 5, 8, 13, 17, 21, 27, 34, 40, 55])
-    MAX_WORKERS = APPLICATION.max_workers
+    app = Application(urls, max_workers=args.worker, prometheus_buckets=[0.5, 1, 3, 5, 8, 13, 17, 21, 27, 34, 40, 55])
+    MAX_WORKERS = app.max_workers
     signal.signal(signal.SIGTERM, sig_handler)
     signal.signal(signal.SIGINT, sig_handler)
 
     global SERVER
-    SERVER = tornado.httpserver.HTTPServer(APPLICATION)
+    SERVER = tornado.httpserver.HTTPServer(app)
     print("Listening on http://{}:{}".format(args.ip, args.port))
     SERVER.listen(args.port, address=args.ip)
 
@@ -307,7 +304,7 @@ def sig_handler(sig, frame):
 
 def shutdown():
     print('Stopping http server')
-    for hostname, data in APPLICATION.CONNECTION_POOL.items():
+    for hostname, data in CONNECTION_POOL.items():
         try:
             data['device'].disconnect()
         except (AttributeError, Exception):
