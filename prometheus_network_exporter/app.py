@@ -3,6 +3,7 @@ import sys
 import getpass
 import signal
 import argparse
+import threading
 import tornado.ioloop
 import tornado.web
 from collections import Counter
@@ -167,18 +168,20 @@ class ExporterHandler(tornado.web.RequestHandler):
         if hostname:
             if hostname not in CONNECTION_POOL.keys():
                 CONNECTION_POOL[hostname] = {}
+                CONNECTION_POOL[hostname]['lock'] = threading.RLock()
 
             self.application.used_workers.inc()
-            CONNECTION_POOL[hostname]['locked'] = True
+            lock = CONNECTION_POOL[hostname]['lock']
+            lock.acquire(blocking=False)
             try:
                 code, status, data = await self.get_device_information(hostname=hostname)
-                self.application.used_workers.dec()
-                CONNECTION_POOL[hostname]['locked'] = False
             except Exception as e:
+                raise(e)
+            finally:
                 self.application.used_workers.dec()
-                CONNECTION_POOL[hostname]['locked'] = False
-                print(e)
-                raise e
+                lock.release()
+                CONNECTION_POOL[hostname]['lock'] = lock
+
         self.set_status(code, reason=status)
         self.write(bytes(data, 'utf-8'))
 
@@ -190,19 +193,19 @@ class AllDeviceReloadHandler(tornado.web.RequestHandler):
         self.set_status(code, reason=status)
         self.write(bytes(status, 'utf-8'))
 
-    def reload_all(self):
+    async def reload_all(self):
         entries = list(CONNECTION_POOL.keys())
         for entry in entries:
-            if (
-                entry in CONNECTION_POOL and
-                not CONNECTION_POOL[entry].get('locked', False)
-            ):
+            if entry in CONNECTION_POOL.keys():
+                lock = CONNECTION_POOL[entry]['lock']
+                lock.acquire(blocking=False)
                 try:
                     CONNECTION_POOL[entry]['device'].disconnect()
-                except (AttributeError, Exception, KeyError):
-                    pass
                 except:
                     pass
+                finally:
+                    lock.release()
+                    CONNECTION_POOL[entry]['lock'] = lock
                 del CONNECTION_POOL[entry]
                 print("{} :: Connection Object {}".format(
                     entry, "deleted" if entry not in CONNECTION_POOL.keys() else "what the f***"))
@@ -211,15 +214,18 @@ class AllDeviceReloadHandler(tornado.web.RequestHandler):
 
 class DeviceReloadHandler(tornado.web.RequestHandler):
 
-    def reload_device(self, hostname):
+    async def reload_device(self, hostname):
         if FQDN(hostname).is_valid:
-            if hostname in CONNECTION_POOL and not CONNECTION_POOL[hostname].get('locked', False):
+            if hostname in CONNECTION_POOL.keys:
+                lock = CONNECTION_POOL[hostname]['lock']
+                lock.acquire(blocking=False)
                 try:
                     CONNECTION_POOL[hostname]['device'].disconnect()
-                except (AttributeError, Exception, KeyError):
-                    pass
                 except:
                     pass
+                finally:
+                    lock.release()
+                    CONNECTION_POOL[hostname]['lock'] = lock
                 del CONNECTION_POOL[hostname]
                 print("{} :: Connection Object {}".format(
                     hostname, "deleted" if hostname not in CONNECTION_POOL.keys() else "what the f***"))
@@ -236,26 +242,6 @@ class DeviceReloadHandler(tornado.web.RequestHandler):
         code, status, data = await self.reload_device(hostname=hostname)
         self.set_status(code, reason=status)
         self.write(bytes(data, 'utf-8'))
-
-
-class DisconnectHandler(tornado.web.RequestHandler):
-
-    async def get(self):
-        code, status, data = await self.disconnect_all()
-        self.set_status(code, reason=status)
-        self.write(bytes(data, 'utf-8'))
-
-    def disconnect_all(self):
-        for hostname, data in CONNECTION_POOL.items():
-            try:
-                data['device'].disconnect()
-            except (AttributeError, Exception):
-                pass
-            except:
-                pass
-            print("{} :: Conection State {}".format(
-                hostname, "Disconnected" if not data['device'].is_connected() else "Connected"))
-        return 200, "OK", 'Shutdown Completed'
 
 
 def app():
@@ -277,7 +263,6 @@ def app():
     os.makedirs(COUNTER_DIR, mode=0o755, exist_ok=True)
     args = parser.parse_args()
     urls = [
-        (r'^/disconnect$', DisconnectHandler),
         (r'^/metrics$', MetricsHandler),
         (r'^/device$', ExporterHandler),
         (r'^/reload$', AllDeviceReloadHandler),

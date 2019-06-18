@@ -4,7 +4,7 @@
 '''
 import ipaddress
 from jnpr.junos import Device
-from jnpr.junos.exception import RpcError, ConnectError
+from jnpr.junos.exception import RpcError
 from prometheus_network_exporter.devices import basedevice
 from prometheus_network_exporter.config.definitions.junos import wrapping
 from prometheus_network_exporter.utitlities import create_metric_params, create_metric, FUNCTIONS, METRICS
@@ -31,6 +31,8 @@ class JuniperNetworkDevice(basedevice.Device):
                         ssh_config=ssh_config,
                         password=password,
                         port=port)
+        # fact_style='old',
+        # gather_facts=False)
         super().__init__(hostname, device)
 
     def get_bgp(self):
@@ -77,6 +79,7 @@ class JuniperNetworkDevice(basedevice.Device):
         return result
 
     def get_environment(self):
+        # self.device.facts_refresh(exception_on_failure=True)
         facts = self.device.facts
         uptime = self.device.uptime
         rengine = RoutingEngineTable(self.device).get()
@@ -133,14 +136,7 @@ class JuniperNetworkDevice(basedevice.Device):
         return self.device.connected
 
     def connect(self):
-        if self.is_connected():
-            return True
-        try:
-            self.device.open()
-            return True
-        except ConnectError as err:
-            print(err)
-        return False
+        self.device.open()
 
     def disconnect(self):
         if self.is_connected():
@@ -283,13 +279,9 @@ class JuniperMetrics(basedevice.Metrics):
 
     def metrics(self, types, dev, registry):
         optics = ospf = True
-        success = dev.connect()
-        if not success:
-            self.exception_counter.labels(
-                exception='ConnectError', collector='JuniperMetrics', hostname=dev.hostname).inc()
-            return 500, "Connection Error", "Cannot connect to device {}.".format(dev.hostname)
         try:
-            dev.device.timeout = 60
+            dev.connect()
+            dev.device.timeout = 50
             if 'ospf' not in types:
                 ospf = False
             if 'optics' not in types:
@@ -297,7 +289,7 @@ class JuniperMetrics(basedevice.Metrics):
             if 'interface' in types:
                 self.get_interface_metrics(registry, dev, dev.hostname,
                                            access=False, optics=optics, ospf=ospf)
-            if 'interface_specifics' in types:
+            elif 'interface_specifics' in types:
                 self.get_interface_metrics(registry, dev, dev.hostname,
                                            access=True, optics=optics, ospf=ospf)
             if 'environment' in types:
