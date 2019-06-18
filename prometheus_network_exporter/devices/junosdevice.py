@@ -30,9 +30,9 @@ class JuniperNetworkDevice(basedevice.Device):
                         ssh_private_key_file=ssh_private_key_file,
                         ssh_config=ssh_config,
                         password=password,
-                        port=port,
-                        fact_style='old',
-                        gather_facts=False)
+                        port=port)
+        # fact_style='old',
+        # gather_facts=False)
         super().__init__(hostname, device)
 
     def get_bgp(self):
@@ -79,7 +79,7 @@ class JuniperNetworkDevice(basedevice.Device):
         return result
 
     def get_environment(self):
-        self.device.facts_refresh()
+        # self.device.facts_refresh()
         facts = self.device.facts
         uptime = self.device.uptime
         rengine = RoutingEngineTable(self.device).get()
