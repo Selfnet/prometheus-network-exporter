@@ -290,12 +290,15 @@ def sig_handler(sig, frame):
 def shutdown():
     print('Stopping http server')
     for hostname, data in CONNECTION_POOL.items():
+        lock = data['lock']
+        lock.acquire(blocking=False)
         try:
             data['device'].disconnect()
-        except (AttributeError, Exception):
-            pass
         except:
             pass
+        finally:
+            lock.release()
+            data['lock'] = lock
         print("{} :: Connection State {}".format(
             hostname, "Disconnected" if (
                 not data.get('device') or
