@@ -172,7 +172,7 @@ class ExporterHandler(tornado.web.RequestHandler):
 
             self.application.used_workers.inc()
             lock = CONNECTION_POOL[hostname]['lock']
-            lock.acquire(blocking=False)
+            lock.acquire()
             try:
                 code, status, data = await self.get_device_information(hostname=hostname)
             except Exception as e:
@@ -198,7 +198,7 @@ class AllDeviceReloadHandler(tornado.web.RequestHandler):
         for entry in entries:
             if entry in CONNECTION_POOL.keys():
                 lock = CONNECTION_POOL[entry]['lock']
-                lock.acquire(blocking=False)
+                lock.acquire()
                 try:
                     CONNECTION_POOL[entry]['device'].disconnect()
                 except:
@@ -218,7 +218,7 @@ class DeviceReloadHandler(tornado.web.RequestHandler):
         if FQDN(hostname).is_valid:
             if hostname in CONNECTION_POOL.keys:
                 lock = CONNECTION_POOL[hostname]['lock']
-                lock.acquire(blocking=False)
+                lock.acquire()
                 try:
                     CONNECTION_POOL[hostname]['device'].disconnect()
                 except:
@@ -291,7 +291,7 @@ def shutdown():
     print('Stopping http server')
     for hostname, data in CONNECTION_POOL.items():
         lock = data['lock']
-        lock.acquire(blocking=False)
+        lock.acquire()
         try:
             data['device'].disconnect()
         except:
