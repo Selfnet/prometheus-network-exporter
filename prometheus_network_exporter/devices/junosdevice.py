@@ -136,7 +136,8 @@ class JuniperNetworkDevice(basedevice.Device):
         return self.device.connected
 
     def connect(self):
-        self.device.open()
+        if not self.is_connected():
+            self.device.open()
 
     def disconnect(self):
         if self.is_connected():
@@ -298,7 +299,7 @@ class JuniperMetrics(basedevice.Metrics):
                 self.get_bgp_metrics(registry, dev, dev.hostname)
             if 'igmp' in types:
                 self.get_igmp_metrics(registry, dev, dev.hostname)
-            dev.disconnect()
+            # dev.disconnect()
         except Exception as exception:
             dev.disconnect()
             exception_name = type(exception).__name__
