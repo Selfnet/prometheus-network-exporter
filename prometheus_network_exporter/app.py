@@ -23,6 +23,8 @@ if not sys.warnoptions:
     import warnings
     warnings.simplefilter("ignore")
 
+CONNECTION_POOL = {}
+
 MAX_WAIT_SECONDS_BEFORE_SHUTDOWN = 60
 MAX_WORKERS = 90
 SERVER = None
@@ -84,10 +86,10 @@ class ExporterHandler(tornado.web.RequestHandler):
                 list(self.application.CONFIG.keys()))
 
         if (
-            not self.application.CONNECTION_POOL[hostname] or
-            not self.application.CONNECTION_POOL[hostname].get('device')
+            not CONNECTION_POOL[hostname] or
+            not CONNECTION_POOL[hostname].get('device')
         ):
-            self.application.CONNECTION_POOL[hostname] = {}
+            CONNECTION_POOL[hostname] = {}
             dev = None
             if module['auth']['method'] == 'ssh_key':
                 # using ssh key
@@ -147,10 +149,10 @@ class ExporterHandler(tornado.web.RequestHandler):
                         )
                 except KeyError:
                     return 500, 'Config Error', "You must specify a password."
-            self.application.CONNECTION_POOL[hostname]['device'] = dev
-        dev = self.application.CONNECTION_POOL[hostname]['device']
+            CONNECTION_POOL[hostname]['device'] = dev
+        dev = CONNECTION_POOL[hostname]['device']
         if not dev or not dev.device:
-            del self.application.CONNECTION_POOL[hostname]
+            del CONNECTION_POOL[hostname]
             return 500, 'No Connection for {}, have done cleanup!'.format(hostname)
 
         # get metrics from file
@@ -165,18 +167,18 @@ class ExporterHandler(tornado.web.RequestHandler):
             self.write(bytes("{} is not a valid FQDN!".format(hostname)))
             return
         if hostname:
-            if hostname not in self.application.CONNECTION_POOL.keys():
-                self.application.CONNECTION_POOL[hostname] = {}
+            if hostname not in CONNECTION_POOL.keys():
+                CONNECTION_POOL[hostname] = {}
 
             self.application.used_workers.inc()
-            self.application.CONNECTION_POOL[hostname]['locked'] = True
+            CONNECTION_POOL[hostname]['locked'] = True
             try:
                 code, status, data = await self.get_device_information(hostname=hostname)
                 self.application.used_workers.dec()
-                self.application.CONNECTION_POOL[hostname]['locked'] = False
+                CONNECTION_POOL[hostname]['locked'] = False
             except Exception as e:
                 self.application.used_workers.dec()
-                self.application.CONNECTION_POOL[hostname]['locked'] = False
+                CONNECTION_POOL[hostname]['locked'] = False
                 print(e)
                 raise e
         self.set_status(code, reason=status)
@@ -191,21 +193,21 @@ class AllDeviceReloadHandler(tornado.web.RequestHandler):
         self.write(bytes(status, 'utf-8'))
 
     def reload_all(self):
-        entries = list(self.application.CONNECTION_POOL.keys())
+        entries = list(CONNECTION_POOL.keys())
         for entry in entries:
             if (
-                entry in self.application.CONNECTION_POOL and
-                not self.application.CONNECTION_POOL[entry].get('locked', False)
+                entry in CONNECTION_POOL and
+                not CONNECTION_POOL[entry].get('locked', False)
             ):
                 try:
-                    self.application.CONNECTION_POOL[entry]['device'].disconnect()
+                    CONNECTION_POOL[entry]['device'].disconnect()
                 except (AttributeError, Exception, KeyError):
                     pass
                 except:
                     pass
-                del self.application.CONNECTION_POOL[entry]
+                del CONNECTION_POOL[entry]
                 print("{} :: Connection Object {}".format(
-                    entry, "deleted" if entry not in self.application.CONNECTION_POOL.keys() else "what the f***"))
+                    entry, "deleted" if entry not in CONNECTION_POOL.keys() else "what the f***"))
         return 200, "Reloaded all!"
 
 
@@ -213,16 +215,16 @@ class DeviceReloadHandler(tornado.web.RequestHandler):
 
     def reload_device(self, hostname):
         if FQDN(hostname).is_valid:
-            if hostname in self.application.CONNECTION_POOL and not self.application.CONNECTION_POOL[hostname].get('locked', False):
+            if hostname in CONNECTION_POOL and not CONNECTION_POOL[hostname].get('locked', False):
                 try:
-                    self.application.CONNECTION_POOL[hostname]['device'].disconnect()
+                    CONNECTION_POOL[hostname]['device'].disconnect()
                 except (AttributeError, Exception, KeyError):
                     pass
                 except:
                     pass
-                del self.application.CONNECTION_POOL[hostname]
+                del CONNECTION_POOL[hostname]
                 print("{} :: Connection Object {}".format(
-                    hostname, "deleted" if hostname not in self.application.CONNECTION_POOL.keys() else "what the f***"))
+                    hostname, "deleted" if hostname not in CONNECTION_POOL.keys() else "what the f***"))
                 return 200, 'Deleted!', "{} got deleted!".format(
                     hostname)
             else:
@@ -246,7 +248,7 @@ class DisconnectHandler(tornado.web.RequestHandler):
         self.write(bytes(data, 'utf-8'))
 
     def disconnect_all(self):
-        for hostname, data in self.application.CONNECTION_POOL.items():
+        for hostname, data in CONNECTION_POOL.items():
             try:
                 data['device'].disconnect()
             except (AttributeError, Exception):

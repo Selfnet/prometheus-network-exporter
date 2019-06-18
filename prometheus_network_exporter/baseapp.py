@@ -22,7 +22,6 @@ class Application(_Application):
         :param prometheus_buckets: Gets passed to prometheus_client.Histogram.
         """
         super(Application, self).__init__(*args, **kwargs)
-        self.CONNECTION_POOL = {}
         # self.registry = kwargs.pop('registry', REGISTRY)
         self.multiprocess_registry = CollectorRegistry(auto_describe=False)
         with open(os.path.join(CONF_DIR, 'config.yml'), 'r') as f:
