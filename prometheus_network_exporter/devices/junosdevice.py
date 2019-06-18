@@ -30,9 +30,9 @@ class JuniperNetworkDevice(basedevice.Device):
                         ssh_private_key_file=ssh_private_key_file,
                         ssh_config=ssh_config,
                         password=password,
-                        port=port)
-        # fact_style='old',
-        # gather_facts=False)
+                        port=port,
+                        fact_style='old',
+                        gather_facts=False)
         super().__init__(hostname, device)
 
     def get_bgp(self):
@@ -79,7 +79,7 @@ class JuniperNetworkDevice(basedevice.Device):
         return result
 
     def get_environment(self):
-        # self.device.facts_refresh(exception_on_failure=True)
+        self.device.facts_refresh(exception_on_failure=True)
         facts = self.device.facts
         uptime = self.device.uptime
         rengine = RoutingEngineTable(self.device).get()
@@ -282,7 +282,7 @@ class JuniperMetrics(basedevice.Metrics):
         optics = ospf = True
         try:
             dev.connect()
-            dev.device.timeout = 50
+            dev.device.timeout = 60
             if 'ospf' not in types:
                 ospf = False
             if 'optics' not in types:
