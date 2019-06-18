@@ -136,8 +136,7 @@ class JuniperNetworkDevice(basedevice.Device):
         return self.device.connected
 
     def connect(self):
-        if not self.is_connected():
-            self.device.open()
+        self.device.open()
 
     def disconnect(self):
         if self.is_connected():
@@ -290,7 +289,7 @@ class JuniperMetrics(basedevice.Metrics):
             if 'interface' in types:
                 self.get_interface_metrics(registry, dev, dev.hostname,
                                            access=False, optics=optics, ospf=ospf)
-            elif 'interface_specifics' in types:
+            if 'interface_specifics' in types:
                 self.get_interface_metrics(registry, dev, dev.hostname,
                                            access=True, optics=optics, ospf=ospf)
             if 'environment' in types:
@@ -299,9 +298,9 @@ class JuniperMetrics(basedevice.Metrics):
                 self.get_bgp_metrics(registry, dev, dev.hostname)
             if 'igmp' in types:
                 self.get_igmp_metrics(registry, dev, dev.hostname)
-            # dev.disconnect()
         except Exception as exception:
             dev.disconnect()
+            print(exception)
             exception_name = type(exception).__name__
             self.exception_counter.labels(
                 exception=exception_name, collector='JuniperMetrics', hostname=dev.hostname).inc()
@@ -309,4 +308,6 @@ class JuniperMetrics(basedevice.Metrics):
             if exception_name == 'AttributeError':
                 del(dev)
             return 500, exception_name, "Device {} unreachable".format(hostname)
+        finally:
+            dev.disconnect()
         return 200, "OK", registry.collect()
