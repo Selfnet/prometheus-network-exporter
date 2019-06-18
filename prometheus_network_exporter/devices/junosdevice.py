@@ -77,7 +77,7 @@ class JuniperNetworkDevice(basedevice.Device):
         return result
 
     def get_environment(self):
-        facts = dict(self.device.facts)
+        facts = self.device.facts
         uptime = self.device.uptime
         rengine = RoutingEngineTable(self.device).get()
         temperatures = EnvironmentTable(self.device).get()
