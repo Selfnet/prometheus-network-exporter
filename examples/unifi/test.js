@@ -1,17 +1,17 @@
 (window.webpackJsonp = window.webpackJsonp || []).push([
     [1], {
-        1058: function(module, exports, __webpack_require__) {
+        1058: function (module, exports, __webpack_require__) {
             var _ = __webpack_require__(3);
-            module.exports = function(obj) {
+            module.exports = function (obj) {
                 obj || (obj = {});
                 var __t, __p = "";
-                with(obj) __p += '<a href="#" class="appSwitcher__link ' + (null == (__t = className) ? "" : __t) + '" title="' + (null == (__t = tooltip) ? "" : __t) + '">\n    <div class="appSwitcher__linkContent">\n        <div class="appSwitcher__iconShadow appSwitcher__iconShadow--control"></div>\n        <span class="icon ubnt-icon--' + (null == (__t = icon) ? "" : __t) + '"></span>\n    </div>\n    <div class="appSwitcher__itemText">' + (null == (__t = title) ? "" : __t) + "</div>\n</a>\n";
+                with (obj) __p += '<a href="#" class="appSwitcher__link ' + (null == (__t = className) ? "" : __t) + '" title="' + (null == (__t = tooltip) ? "" : __t) + '">\n    <div class="appSwitcher__linkContent">\n        <div class="appSwitcher__iconShadow appSwitcher__iconShadow--control"></div>\n        <span class="icon ubnt-icon--' + (null == (__t = icon) ? "" : __t) + '"></span>\n    </div>\n    <div class="appSwitcher__itemText">' + (null == (__t = title) ? "" : __t) + "</div>\n</a>\n";
                 return __p
             }
         },
-        1059: function(t, e, a) {
+        1059: function (t, e, a) {
             "use strict";
-            (function(t) {
+            (function (t) {
                 Object.defineProperty(e, "__esModule", {
                     value: !0
                 });
@@ -33,25 +33,25 @@
                     modelEvents: {
                         change: "render"
                     },
-                    onClick: function(e) {
+                    onClick: function (e) {
                         t(e.target).closest(".appSwitcher").hide(), e.preventDefault(), this.trigger("click")
                     }
                 });
                 e.default = n
             }).call(this, a(8))
         },
-        1060: function(module, exports, __webpack_require__) {
+        1060: function (module, exports, __webpack_require__) {
             var _ = __webpack_require__(3);
-            module.exports = function(obj) {
+            module.exports = function (obj) {
                 obj || (obj = {});
                 var __t, __p = "";
-                with(obj) __p += '<div class="appSwitcherButton">\n    <a id="appSwitcherTrigger" href="#" class="appSwitcherButton__trigger"><span class="icon ubnt-icon--tools"></span></a>\n    <div style="display: none" class="appSwitcher appSwitcher--arrow">\n        <ul></ul>\n    </div>\n</div>\n\n';
+                with (obj) __p += '<div class="appSwitcherButton">\n    <a id="appSwitcherTrigger" href="#" class="appSwitcherButton__trigger"><span class="icon ubnt-icon--tools"></span></a>\n    <div style="display: none" class="appSwitcher appSwitcher--arrow">\n        <ul></ul>\n    </div>\n</div>\n\n';
                 return __p
             }
         },
-        1061: function(t, e, a) {
+        1061: function (t, e, a) {
             "use strict";
-            (function(t) {
+            (function (t) {
                 Object.defineProperty(e, "__esModule", {
                     value: !0
                 });
@@ -68,7 +68,7 @@
                     __name__: "ToolListView",
                     template: i.default,
                     tagName: "div",
-                    childViewContainer: function() {
+                    childViewContainer: function () {
                         return this.ui.toolsContainer = this.ui.toolsContainer.appendTo(document.body), "@ui.toolsList"
                     },
                     childView: n.default,
@@ -77,28 +77,28 @@
                         toolsContainer: ".appSwitcher",
                         toolsList: "ul"
                     },
-                    getChildView: function() {
+                    getChildView: function () {
                         return n.default
                     },
-                    hideList: function() {
+                    hideList: function () {
                         this.ui.toolsContainer.slideUp(200)
                     },
-                    toggleList: function() {
+                    toggleList: function () {
                         this.ui.toolsContainer.slideToggle(200)
                     },
-                    setContainerPosition: function() {
+                    setContainerPosition: function () {
                         this.ui.toolsContainer.css("left", this.ui.toolsToggle.offset().left - this.ui.toolsContainer[0].getBoundingClientRect().width + 45)
                     },
-                    onRender: function() {
+                    onRender: function () {
                         var e = this;
-                        this.ui.toolsToggle.on("click", function(t) {
+                        this.ui.toolsToggle.on("click", function (t) {
                             t.preventDefault(), e.toggleList(), e.setContainerPosition()
                         });
-                        t(window).resize(function() {
-                            clearTimeout(void 0), setTimeout(function() {
+                        t(window).resize(function () {
+                            clearTimeout(void 0), setTimeout(function () {
                                 return e.setContainerPosition()
                             }, 10)
-                        }), t(document).on("click", function(a) {
+                        }), t(document).on("click", function (a) {
                             var i = t(a.target);
                             0 === i.closest(e.ui.toolsToggle).length && 0 === i.closest(e.ui.toolsContainer).length && e.hideList()
                         })
@@ -107,7 +107,7 @@
                 e.default = u
             }).call(this, a(8))
         },
-        1062: function(t, e, a) {
+        1062: function (t, e, a) {
             "use strict";
             Object.defineProperty(e, "__esModule", {
                 value: !0
@@ -126,16 +126,16 @@
             });
             e.default = l
         },
-        1063: function(module, exports, __webpack_require__) {
+        1063: function (module, exports, __webpack_require__) {
             var _ = __webpack_require__(3);
-            module.exports = function(obj) {
+            module.exports = function (obj) {
                 obj || (obj = {});
                 var __t, __p = "";
-                with(obj) __p += " " + (null == (__t = title) ? "" : __t) + "\n\n\n";
+                with (obj) __p += " " + (null == (__t = title) ? "" : __t) + "\n\n\n";
                 return __p
             }
         },
-        1064: function(t, e, a) {
+        1064: function (t, e, a) {
             "use strict";
             Object.defineProperty(e, "__esModule", {
                 value: !0
@@ -158,26 +158,26 @@
                 modelEvents: {
                     change: "render"
                 },
-                onClick: function(t) {
+                onClick: function (t) {
                     this.trigger("click")
                 },
-                onRender: function() {
+                onRender: function () {
                     this.$el.toggleClass("is-tab-selected", this.model.get("isActive"))
                 },
-                onShow: function() {}
+                onShow: function () { }
             });
             e.default = n
         },
-        1065: function(module, exports, __webpack_require__) {
+        1065: function (module, exports, __webpack_require__) {
             var _ = __webpack_require__(3);
-            module.exports = function(obj) {
+            module.exports = function (obj) {
                 obj || (obj = {});
                 var __t, __p = "";
-                with(obj) __p += "";
+                with (obj) __p += "";
                 return __p
             }
         },
-        1066: function(t, e, a) {
+        1066: function (t, e, a) {
             "use strict";
             Object.defineProperty(e, "__esModule", {
                 value: !0
@@ -198,13 +198,13 @@
                 className: "appTabs",
                 childViewContainer: null,
                 childView: n.default,
-                getChildView: function() {
+                getChildView: function () {
                     return n.default
                 }
             });
             e.default = u
         },
-        1067: function(t, e, a) {
+        1067: function (t, e, a) {
             "use strict";
             Object.defineProperty(e, "__esModule", {
                 value: !0
@@ -223,16 +223,16 @@
             });
             e.default = l
         },
-        1068: function(module, exports, __webpack_require__) {
+        1068: function (module, exports, __webpack_require__) {
             var _ = __webpack_require__(3);
-            module.exports = function(obj) {
+            module.exports = function (obj) {
                 obj || (obj = {});
                 var __t, __p = "";
-                with(obj) __p += '<a href="#' + (null == (__t = url) ? "" : __t) + '">\n    <div class="iconText appIconText">\n        <span class="iconText__icon icon ubnt-icon--' + (null == (__t = icon) ? "" : __t) + '"></span><span class="iconText__text">' + (null == (__t = title) ? "" : __t) + "</span>\n    </div>\n</a>\n";
+                with (obj) __p += '<a href="#' + (null == (__t = url) ? "" : __t) + '">\n    <div class="iconText appIconText">\n        <span class="iconText__icon icon ubnt-icon--' + (null == (__t = icon) ? "" : __t) + '"></span><span class="iconText__text">' + (null == (__t = title) ? "" : __t) + "</span>\n    </div>\n</a>\n";
                 return __p
             }
         },
-        1069: function(t, e, a) {
+        1069: function (t, e, a) {
             "use strict";
             Object.defineProperty(e, "__esModule", {
                 value: !0
@@ -251,25 +251,25 @@
             });
             e.default = n
         },
-        1070: function(module, exports, __webpack_require__) {
+        1070: function (module, exports, __webpack_require__) {
             var _ = __webpack_require__(3);
-            module.exports = function(obj) {
+            module.exports = function (obj) {
                 obj || (obj = {});
                 var __t, __p = "";
-                with(obj) __p += '<a class="appGlobalSideNav__item" href="#' + (null == (__t = url) ? "" : __t) + '">\n    <div class="appGlobalSideNav__itemIcon icon ubnt-icon--' + (null == (__t = icon) ? "" : __t) + '"></div>\n    <div class="appGlobalSideNavTooltip">' + (null == (__t = title) ? "" : __t) + "</div>\n</a>\n\n\n";
+                with (obj) __p += '<a class="appGlobalSideNav__item" href="#' + (null == (__t = url) ? "" : __t) + '">\n    <div class="appGlobalSideNav__itemIcon icon ubnt-icon--' + (null == (__t = icon) ? "" : __t) + '"></div>\n    <div class="appGlobalSideNavTooltip">' + (null == (__t = title) ? "" : __t) + "</div>\n</a>\n\n\n";
                 return __p
             }
         },
-        1071: function(module, exports, __webpack_require__) {
+        1071: function (module, exports, __webpack_require__) {
             var _ = __webpack_require__(3);
-            module.exports = function(obj) {
+            module.exports = function (obj) {
                 obj || (obj = {});
                 var __t, __p = "";
-                with(obj) __p += '<div class="iconText appIconText">\n    <span class="iconText__icon icon ubnt-icon--' + (null == (__t = icon) ? "" : __t) + '"></span><span class="iconText__text">' + (null == (__t = title) ? "" : __t) + "</span>\n</div>\n";
+                with (obj) __p += '<div class="iconText appIconText">\n    <span class="iconText__icon icon ubnt-icon--' + (null == (__t = icon) ? "" : __t) + '"></span><span class="iconText__text">' + (null == (__t = title) ? "" : __t) + "</span>\n</div>\n";
                 return __p
             }
         },
-        1072: function(t, e, a) {
+        1072: function (t, e, a) {
             "use strict";
             Object.defineProperty(e, "__esModule", {
                 value: !0
@@ -288,27 +288,27 @@
             });
             e.default = n
         },
-        1073: function(module, exports, __webpack_require__) {
+        1073: function (module, exports, __webpack_require__) {
             var _ = __webpack_require__(3);
-            module.exports = function(obj) {
+            module.exports = function (obj) {
                 obj || (obj = {});
                 var __t, __p = "";
-                with(obj) __p += '<div class="appGlobalSideNav__item">\n    <div class="appGlobalSideNav__itemIcon icon ubnt-icon--' + (null == (__t = icon) ? "" : __t) + '"></div>\n    <div class="appGlobalSideNavTooltip">' + (null == (__t = title) ? "" : __t) + "</div>\n</div>\n\n\n";
+                with (obj) __p += '<div class="appGlobalSideNav__item">\n    <div class="appGlobalSideNav__itemIcon icon ubnt-icon--' + (null == (__t = icon) ? "" : __t) + '"></div>\n    <div class="appGlobalSideNavTooltip">' + (null == (__t = title) ? "" : __t) + "</div>\n</div>\n\n\n";
                 return __p
             }
         },
-        1074: function(module, exports, __webpack_require__) {
+        1074: function (module, exports, __webpack_require__) {
             var _ = __webpack_require__(3);
-            module.exports = function(obj) {
+            module.exports = function (obj) {
                 obj || (obj = {});
                 var __t, __p = "";
-                with(obj) __p += '<ul class="navigation_list"></ul>\n';
+                with (obj) __p += '<ul class="navigation_list"></ul>\n';
                 return __p
             }
         },
-        1075: function(t, e, a) {
+        1075: function (t, e, a) {
             "use strict";
-            (function(t) {
+            (function (t) {
                 Object.defineProperty(e, "__esModule", {
                     value: !0
                 });
@@ -323,17 +323,17 @@
                     __name__: "NavigationList",
                     model: i.default,
                     comparator: "position",
-                    getActive: function() {
+                    getActive: function () {
                         return this.findWhere({
                             isActive: !0
                         })
                     },
-                    toggleActive: function(e, a) {
-                        t.each(this.models, function(t) {
+                    toggleActive: function (e, a) {
+                        t.each(this.models, function (t) {
                             t.set("isActive", !1)
                         }, this), e.isStateful() && e.set("isActive", a)
                     },
-                    getByUrl: function(t) {
+                    getByUrl: function (t) {
                         return this.findWhere({
                             url: t
                         })
@@ -342,7 +342,7 @@
                 e.default = n
             }).call(this, a(3))
         },
-        1076: function(t, e, a) {
+        1076: function (t, e, a) {
             "use strict";
             Object.defineProperty(e, "__esModule", {
                 value: !0
@@ -360,7 +360,7 @@
                 __name__: "RootView",
                 el: "body",
                 events: {
-                    "click a.airosLogout": function() {
+                    "click a.airosLogout": function () {
                         i.default.commands.execute("session:logout")
                     }
                 },
@@ -373,14 +373,14 @@
             });
             e.default = u
         },
-        1077: function(t, e, a) {
+        1077: function (t, e, a) {
             "use strict";
-            var i, s, n, l = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function(t) {
+            var i, s, n, l = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (t) {
                 return typeof t
-            } : function(t) {
+            } : function (t) {
                 return t && "function" == typeof Symbol && t.constructor === Symbol && t !== Symbol.prototype ? "symbol" : typeof t
             };
-            s = [a(8)], void 0 === (n = "function" == typeof(i = function(t) {
+            s = [a(8)], void 0 === (n = "function" == typeof (i = function (t) {
                 var e = "pushy",
                     a = {};
 
@@ -388,13 +388,13 @@
                     this.element = i, this.options = t.extend({}, a, s), this._defaults = a, this._name = e, this.pushy = t(".pushy"), this.body = t("body"), this.container = t(".pushy_container"), this.push = t(".push"), this.siteOverlay = t(".pushy_overlay"), this.pushyClass = "pushy-left pushy-open", this.pushyActiveClass = "pushy-active", this.containerClass = "container-push", this.pushClass = "push-push", this.menuBtn = t(".menu_button"), this.menuSpeed = 200, this.menuWidth = this.pushy.width() + "px", this.state = !0, this._init()
                 }
                 i.prototype = {
-                    _togglePushy: function() {
+                    _togglePushy: function () {
                         this.body.toggleClass(this.pushyActiveClass), this.pushy.toggleClass(this.pushyClass), this.container.toggleClass(this.containerClass), this.push.toggleClass(this.pushClass)
                     },
-                    _closePushy: function() {
+                    _closePushy: function () {
                         this.body.removeClass(this.pushyActiveClass), this.pushy.removeClass(this.pushyClass), this.container.removeClass(this.containerClass), this.push.removeClass(this.pushClass)
                     },
-                    _openPushyFallback: function() {
+                    _openPushyFallback: function () {
                         this.body.addClass(this.pushyActiveClass), this.pushy.animate({
                             left: "0px"
                         }, this.menuSpeed), this.container.animate({
@@ -403,7 +403,7 @@
                             left: this.menuWidth
                         }, this.menuSpeed)
                     },
-                    _closePushyFallback: function() {
+                    _closePushyFallback: function () {
                         this.body.removeClass(this.pushyActiveClass), this.pushy.animate({
                             left: "-" + this.menuWidth
                         }, this.menuSpeed), this.container.animate({
@@ -412,18 +412,18 @@
                             left: "0px"
                         }, this.menuSpeed)
                     },
-                    _init: function() {
+                    _init: function () {
                         var t = this;
-                        this.menuBtn.click(function() {
+                        this.menuBtn.click(function () {
                             t._togglePushy()
-                        }), this.siteOverlay.click(function() {
+                        }), this.siteOverlay.click(function () {
                             t._togglePushy()
                         })
                     },
-                    close: function() {
+                    close: function () {
                         this._togglePushy()
                     }
-                }, t.fn[e] = function(a) {
+                }, t.fn[e] = function (a) {
                     var s, n;
                     if (this.data("plugin_" + e) instanceof i || this.data("plugin_" + e, new i(this, a)), (n = this.data("plugin_" + e)).element = this, void 0 === a || "object" === (void 0 === a ? "undefined" : l(a))) "function" == typeof n.init && n.init(a);
                     else {
@@ -433,18 +433,18 @@
                 }
             }) ? i.apply(e, s) : i) || (t.exports = n)
         },
-        1078: function(module, exports, __webpack_require__) {
+        1078: function (module, exports, __webpack_require__) {
             var _ = __webpack_require__(3);
-            module.exports = function(obj) {
+            module.exports = function (obj) {
                 obj || (obj = {});
                 var __t, __p = "";
-                with(obj) __p += '<div class="pushy pushy-left">\n    <div class="logo_wrapper">\n        <span class="icon ubnt-icon--airOS8 logo-airos"></span>\n    </div>\n    <div id="mob_navigation_main"></div>\n</div>\n\n<div class="pushy_overlay"></div>\n\n<div class="pushy_container">\n    <div class="header">\n        <span class="menu_button icon ubnt-icon--menu"></span>\n    </div>\n    <div id="alert_container" class="noty-container"></div>\n    <div id="mob_content"></div>\n</div>\n';
+                with (obj) __p += '<div class="pushy pushy-left">\n    <div class="logo_wrapper">\n        <span class="icon ubnt-icon--airOS8 logo-airos"></span>\n    </div>\n    <div id="mob_navigation_main"></div>\n</div>\n\n<div class="pushy_overlay"></div>\n\n<div class="pushy_container">\n    <div class="header">\n        <span class="menu_button icon ubnt-icon--menu"></span>\n    </div>\n    <div id="alert_container" class="noty-container"></div>\n    <div id="mob_content"></div>\n</div>\n';
                 return __p
             }
         },
-        1079: function(t, e, a) {
+        1079: function (t, e, a) {
             "use strict";
-            (function(t) {
+            (function (t) {
                 Object.defineProperty(e, "__esModule", {
                     value: !0
                 });
@@ -466,31 +466,31 @@
                     ui: {
                         content: "#mob_content"
                     },
-                    closeMenu: function() {
+                    closeMenu: function () {
                         this.$el.pushy("close")
                     },
-                    onShow: function() {
+                    onShow: function () {
                         t("html").addClass("mobile_layout"), t("body").addClass("mobile_layout"), this.$el.pushy()
                     },
-                    onDestroy: function() {
+                    onDestroy: function () {
                         t("html").removeClass("mobile_layout"), t("body").removeClass("mobile_layout")
                     }
                 });
                 e.default = l
             }).call(this, a(8))
         },
-        1080: function(module, exports, __webpack_require__) {
+        1080: function (module, exports, __webpack_require__) {
             var _ = __webpack_require__(3);
-            module.exports = function(obj) {
+            module.exports = function (obj) {
                 obj || (obj = {});
                 var __t, __p = "";
-                with(obj) __p += '<div class="appGlobalHeader">\n    <div class="appGlobalHeader__content appGlobalHeader__content--left">\n        <a href="//ubnt.com" title="' + (null == (__t = __("Visit ubnt.com")) ? "" : __t) + '" target="_blank" class="appGlobalHeader__ubntLogo">\n            <div class="appGlobalHeader__ubntLogoInner">\n                <div class="icon ubnt-icon--ubnt-logo-u"></div>\n            </div>\n        </a>\n        <div class="appGlobalHeader__logo">\n            <div class="icon ubnt-icon--airOS8 logo-airos"></div>\n        </div>\n        <div class="appGlobalHeader__version">\n            <div class="appGlobalHeader__versionItem"></div>\n        </div>\n    </div>\n\n    <div class="appGlobalHeader__content appGlobalHeader__content--right">\n        <span style="display: none" class="ubnt-icon ubnt-icon--book-2 walkme-icon" title="' + (null == (__t = __("Training")) ? "" : __t) + '"></span>\n\n        <div id="devIndicator"><span>DEV MODE</span></div>\n\n        <div class="unmsIndicator">\n            <a id="unmsLink" target="_blank" href="' + (null == (__t = unmsLink) ? "" : __t) + '">\n                <img id="unmsState" src="' + (null == (__t = unmsState) ? "" : __t) + '">\n            </a>\n        </div>\n\n        <div id="tools_menu" title="' + (null == (__t = __("Tools")) ? "" : __t) + '"></div>\n    </div>\n\n    <div class="appAccountLinks">\n        <a href="#" title="' + (null == (__t = __("Logout")) ? "" : __t) + '" class="airosLogout"><span class="icon ubnt-icon--logout"></span></a>\n    </div>\n</div>\n\n<div class="appGlobalSideNav">\n    <div id="main_menu" class="appGlobalSideNav__primaryMenu"></div>\n    <div id="secondary_menu" class="appGlobalSideNav__secondaryMenu"></div>\n</div>\n\n<div id="alert_container" class="noty-container appToastContainer"></div>\n<div id="content_wrapper" class="desktopLayout"></div>\n\n';
+                with (obj) __p += '<div class="appGlobalHeader">\n    <div class="appGlobalHeader__content appGlobalHeader__content--left">\n        <a href="//ubnt.com" title="' + (null == (__t = __("Visit ubnt.com")) ? "" : __t) + '" target="_blank" class="appGlobalHeader__ubntLogo">\n            <div class="appGlobalHeader__ubntLogoInner">\n                <div class="icon ubnt-icon--ubnt-logo-u"></div>\n            </div>\n        </a>\n        <div class="appGlobalHeader__logo">\n            <div class="icon ubnt-icon--airOS8 logo-airos"></div>\n        </div>\n        <div class="appGlobalHeader__version">\n            <div class="appGlobalHeader__versionItem"></div>\n        </div>\n    </div>\n\n    <div class="appGlobalHeader__content appGlobalHeader__content--right">\n        <span style="display: none" class="ubnt-icon ubnt-icon--book-2 walkme-icon" title="' + (null == (__t = __("Training")) ? "" : __t) + '"></span>\n\n        <div id="devIndicator"><span>DEV MODE</span></div>\n\n        <div class="unmsIndicator">\n            <a id="unmsLink" target="_blank" href="' + (null == (__t = unmsLink) ? "" : __t) + '">\n                <img id="unmsState" src="' + (null == (__t = unmsState) ? "" : __t) + '">\n            </a>\n        </div>\n\n        <div id="tools_menu" title="' + (null == (__t = __("Tools")) ? "" : __t) + '"></div>\n    </div>\n\n    <div class="appAccountLinks">\n        <a href="#" title="' + (null == (__t = __("Logout")) ? "" : __t) + '" class="airosLogout"><span class="icon ubnt-icon--logout"></span></a>\n    </div>\n</div>\n\n<div class="appGlobalSideNav">\n    <div id="main_menu" class="appGlobalSideNav__primaryMenu"></div>\n    <div id="secondary_menu" class="appGlobalSideNav__secondaryMenu"></div>\n</div>\n\n<div id="alert_container" class="noty-container appToastContainer"></div>\n<div id="content_wrapper" class="desktopLayout"></div>\n\n';
                 return __p
             }
         },
-        1081: function(t, e, a) {
+        1081: function (t, e, a) {
             "use strict";
-            (function(t) {
+            (function (t) {
                 Object.defineProperty(e, "__esModule", {
                     value: !0
                 });
@@ -534,30 +534,30 @@
                     events: {
                         "click @ui.walkmeIcon": "redirectToSSO"
                     },
-                    onRender: function() {
-                        this.listenTo(i.default.vent, "app:started", function() {
+                    onRender: function () {
+                        this.listenTo(i.default.vent, "app:started", function () {
                             this.fillDeviceModelAndVersion()
-                        }), this.listenTo(i.default.vent, "status:updated", function() {
+                        }), this.listenTo(i.default.vent, "status:updated", function () {
                             this.updateUnmsInfo()
-                        }), this.listenTo(i.default.vent, "navigate:on_action", function(t) {
+                        }), this.listenTo(i.default.vent, "navigate:on_action", function (t) {
                             this.pageTitle = t.get("title"), this.ui.devIndicator.toggle(i.default.settings.isDevMode())
-                        }), this.listenTo(i.default.vent, "navigate:route_action navigate:on_select", function() {
+                        }), this.listenTo(i.default.vent, "navigate:route_action navigate:on_select", function () {
                             l.default.disableAutocomplete(), l.default.disableLastPass()
                         }), window.SA && this.initWalkme()
                     },
-                    initialize: function() {
+                    initialize: function () {
                         this.model = new Backbone.Model({
                             unmsLink: "https://unms.com",
                             unmsState: "images/unms-grey.svg"
                         })
                     },
-                    redirectToSSO: function() {
+                    redirectToSSO: function () {
                         var e = -1 != window.location.href.indexOf("dev-") || -1 != window.location.href.indexOf("stg-");
                         i.default.execute("show_confirmation_dialog", {
                             headerTitle: __("Training"),
                             contentHtml: __("Please sign in to use the AirOS Training Center. This will allow you to save your progress."),
                             yesButtonText: __("Sign In"),
-                            action: function() {
+                            action: function () {
                                 return t.ajax({
                                     url: e ? "https://sso-stage.ubnt.com/api/sso/v1/user/self" : "https://sso.ubnt.com/api/sso/v1/user/self",
                                     type: "GET",
@@ -567,14 +567,14 @@
                                     xhrFields: {
                                         withCredentials: !0
                                     },
-                                    complete: function(t) {
+                                    complete: function (t) {
                                         200 != t.status ? window.location.href = (e ? "//staging-account.ubnt.com/login?redirect=" : "//account.ubnt.com/login?redirect=") + encodeURI(window.location.href) : o(e)
                                     }
                                 }), !0
                             }
                         })
                     },
-                    initWalkme: function() {
+                    initWalkme: function () {
                         var e = -1 != window.location.href.indexOf("dev-") || -1 != window.location.href.indexOf("stg-"),
                             a = this;
                         t.ajax({
@@ -586,15 +586,15 @@
                             xhrFields: {
                                 withCredentials: !0
                             },
-                            complete: function(t) {
+                            complete: function (t) {
                                 200 != t.status ? a.ui.walkmeIcon.show() : o(e)
                             }
                         })
                     },
-                    fillDeviceModelAndVersion: function() {
+                    fillDeviceModelAndVersion: function () {
                         this.ui.deviceNameAndVersion.text(_uesc(i.default.status.getDeviceModel()) + " | " + i.default.status.getFirmwareVersion())
                     },
-                    updateUnmsInfo: function() {
+                    updateUnmsInfo: function () {
                         var t = i.default.status.getProperty(i.default.status.UNMS),
                             e = "images/unms-";
                         switch (t.get("status")) {
@@ -613,12 +613,12 @@
                 e.default = r
             }).call(this, a(8))
         },
-        1082: function(t, e, a) {
+        1082: function (t, e, a) {
             "use strict";
             Object.defineProperty(e, "__esModule", {
                 value: !0
             });
-            var i = function(t) {
+            var i = function (t) {
                 return t && t.__esModule ? t : {
                     default: t
                 }
@@ -627,7 +627,7 @@
             });
             e.default = i
         },
-        1083: function(t, e, a) {
+        1083: function (t, e, a) {
             "use strict";
             Object.defineProperty(e, "__esModule", {
                 value: !0
@@ -646,12 +646,12 @@
             });
             e.default = l
         },
-        1084: function(t, e, a) {
+        1084: function (t, e, a) {
             "use strict";
             Object.defineProperty(e, "__esModule", {
                 value: !0
             });
-            var i = function(t) {
+            var i = function (t) {
                 return t && t.__esModule ? t : {
                     default: t
                 }
@@ -671,7 +671,7 @@
                 }
             })
         },
-        1085: function(t, e, a) {
+        1085: function (t, e, a) {
             "use strict";
             Object.defineProperty(e, "__esModule", {
                 value: !0
@@ -689,12 +689,12 @@
                 model: s.default
             })
         },
-        1086: function(t, e, a) {
+        1086: function (t, e, a) {
             "use strict";
             Object.defineProperty(e, "__esModule", {
                 value: !0
             });
-            var i = function(t) {
+            var i = function (t) {
                 return t && t.__esModule ? t : {
                     default: t
                 }
@@ -708,7 +708,7 @@
             });
             e.default = i
         },
-        1087: function(t, e, a) {
+        1087: function (t, e, a) {
             "use strict";
             Object.defineProperty(e, "__esModule", {
                 value: !0
@@ -723,7 +723,7 @@
             var n = s(a(9)).default.Collection.extend({
                 __name__: "StationCollection",
                 model: i.default,
-                findByMac: function(t) {
+                findByMac: function (t) {
                     return this.findWhere({
                         mac: t
                     })
@@ -731,7 +731,7 @@
             });
             e.default = n
         },
-        1088: function(t, e, a) {
+        1088: function (t, e, a) {
             "use strict";
             Object.defineProperty(e, "__esModule", {
                 value: !0
@@ -749,9 +749,9 @@
             });
             e.default = n
         },
-        418: function(t, e, a) {
+        418: function (t, e, a) {
             "use strict";
-            (function(t) {
+            (function (t) {
                 Object.defineProperty(e, "__esModule", {
                     value: !0
                 });
@@ -763,41 +763,41 @@
                         default: t
                     }
                 }
-                var l = function(t) {
+                var l = function (t) {
                     this.options = s.default.extend({}, t), s.default.defaults(this.options, {
                         duration: 1e3
                     })
                 };
-                l.prototype.start = function(e, a) {
+                l.prototype.start = function (e, a) {
                     var n = this,
                         l = {
                             discover: "y",
                             duration: e || this.options.duration,
                             filter_aircube: a
                         };
-                    return s.default.isUndefined(this.options.targetIp) || (l.host = this.options.targetIp), new t.Deferred(function(e) {
+                    return s.default.isUndefined(this.options.targetIp) || (l.host = this.options.targetIp), new t.Deferred(function (e) {
                         t.ajax({
                             type: "POST",
                             url: i.default.getDiscoveryUrl(),
                             dataType: "json",
                             timeout: n.options.duration + 5e3,
                             data: l
-                        }).done(function(t, a, i) {
+                        }).done(function (t, a, i) {
                             _escObj(t), e.resolve(t.devices)
-                        }).fail(function(t, a, i) {
+                        }).fail(function (t, a, i) {
                             e.reject()
                         })
                     }).promise()
-                }, l.prototype.startAirCubeLookup = function(t, e) {
-                    var a = setTimeout(function() {
-                        return this.start(1e3, 1).then(function(e) {
+                }, l.prototype.startAirCubeLookup = function (t, e) {
+                    var a = setTimeout(function () {
+                        return this.start(1e3, 1).then(function (e) {
                             t(e), clearTimeout(a), this.startAirCubeLookup(t)
                         }.bind(this))
                     }.bind(this), e || 6e4)
                 }, e.default = l
             }).call(this, a(8))
         },
-        556: function(t, e, a) {
+        556: function (t, e, a) {
             "use strict";
             var i = r(a(38)),
                 s = r(a(31)),
@@ -810,37 +810,37 @@
                 return t && t.__esModule ? t : {
                     default: t
                 }
-            }(function() {
+            } (function () {
                 var t = {};
                 t[s.default.NavigationGroups.PRIMARY] = new n.default, t[s.default.NavigationGroups.SECONDARY] = new n.default, t[s.default.NavigationGroups.SETTINGS] = new l.default, t[s.default.NavigationGroups.TOOLS] = new u.default, i.default.navigation = {
-                    back: function() {
+                    back: function () {
                         o.default.history.history.back()
                     },
-                    openPage: function(t) {
+                    openPage: function (t) {
                         o.default.history.navigate(t, {
                             trigger: !0
                         })
                     },
-                    replacePage: function(t) {
+                    replacePage: function (t) {
                         o.default.history.navigate(t, {
                             trigger: !0,
                             replace: !0
                         })
                     },
-                    getSettingsNavigationView: function() {
+                    getSettingsNavigationView: function () {
                         var e = t[s.default.NavigationGroups.SETTINGS].getView();
                         return e && e.isDestroyed && (e = t[s.default.NavigationGroups.SETTINGS].initializeView()), e
                     },
-                    setDocumentTitle: function(t) {
+                    setDocumentTitle: function (t) {
                         document.title = _uesc(i.default.status.getValue(i.default.status.DEVICE_NAME)) + " - " + t + " - airOS"
                     }
-                }, i.default.navigation.addItem = function(e, a) {
+                }, i.default.navigation.addItem = function (e, a) {
                     t[e].addItem(a)
-                }, i.default.navigation.removeItem = function(e, a) {
+                }, i.default.navigation.removeItem = function (e, a) {
                     t[e].removeItem(a)
-                }, i.default.navigation.updateItem = function(e, a) {
+                }, i.default.navigation.updateItem = function (e, a) {
                     t[e].updateItem(a)
-                }, i.default.layout.regionMainMenu.show(t[s.default.NavigationGroups.PRIMARY].getView()), i.default.settings.isDesktopLayout() && (i.default.layout.regionSecondaryMenu.show(t[s.default.NavigationGroups.SECONDARY].getView()), i.default.layout.regionTools.show(t[s.default.NavigationGroups.TOOLS].getView())), i.default.navigation.groups = t, i.default.vent.trigger("navigation:initialized"), i.default.vent.on("app:started", function() {
+                }, i.default.layout.regionMainMenu.show(t[s.default.NavigationGroups.PRIMARY].getView()), i.default.settings.isDesktopLayout() && (i.default.layout.regionSecondaryMenu.show(t[s.default.NavigationGroups.SECONDARY].getView()), i.default.layout.regionTools.show(t[s.default.NavigationGroups.TOOLS].getView())), i.default.navigation.groups = t, i.default.vent.trigger("navigation:initialized"), i.default.vent.on("app:started", function () {
                     if (t[s.default.NavigationGroups.SETTINGS].list.getActive()) {
                         var e = t[s.default.NavigationGroups.PRIMARY].list.getByUrl("settings");
                         t[s.default.NavigationGroups.PRIMARY].list.toggleActive(e, !0)
@@ -848,9 +848,9 @@
                 })
             })()
         },
-        557: function(t, e, a) {
+        557: function (t, e, a) {
             "use strict";
-            (function(t, e) {
+            (function (t, e) {
                 var i = r(a(38)),
                     s = r(a(1081)),
                     n = r(a(1079)),
@@ -865,13 +865,13 @@
                 }
                 a(56);
                 var _ = {
-                    switchToMobileLayout: function() {
+                    switchToMobileLayout: function () {
                         i.default.settings.isMobileLayout() ? i.default.navigation.openPage("dashboard") : (UBNT.Utils.Storage.set("ui_layout", i.default.settings.LayoutTypes.MOBILE), i.default.reload())
                     },
-                    switchToDesktopLayout: function() {
+                    switchToDesktopLayout: function () {
                         i.default.settings.isDesktopLayout() ? i.default.navigation.openPage("dashboard") : (UBNT.Utils.Storage.set("ui_layout", i.default.settings.LayoutTypes.DESKTOP), i.default.reload())
                     },
-                    init: function() {
+                    init: function () {
                         switch (this.listenVisibilityChanges(), i.default.rootView = new l.default, i.default.dialogRegion = i.default.rootView.dialogRegion, parseInt(UBNT.Utils.Storage.get("ui_layout"))) {
                             case i.default.settings.LayoutTypes.MOBILE:
                                 i.default.settings.setLayout(i.default.settings.LayoutTypes.MOBILE);
@@ -884,12 +884,12 @@
                         }
                         if (i.default.settings.isMobileLayout()) {
                             var a = new n.default;
-                            a.listenTo(i.default.vent, "navigate:on_select", function() {
+                            a.listenTo(i.default.vent, "navigate:on_select", function () {
                                 a.closeMenu()
                             }), i.default.layout = a
                         } else i.default.layout = new s.default;
-                        i.default.rootView.regionMain.show(i.default.layout), i.default.vent.on("navigation:initialized", function() {
-                            new(u.default.AppRouter.extend({
+                        i.default.rootView.regionMain.show(i.default.layout), i.default.vent.on("navigation:initialized", function () {
+                            new (u.default.AppRouter.extend({
                                 appRoutes: {
                                     mobile: "switchToMobileLayout",
                                     desktop: "switchToDesktopLayout"
@@ -902,7 +902,7 @@
                                 icon: "layout",
                                 url: "desktop",
                                 position: 7,
-                                openAction: function() {
+                                openAction: function () {
                                     _.switchToDesktopLayout()
                                 }
                             })) : i.default.navigation.addItem(i.default.settings.NavigationGroups.SECONDARY, {
@@ -911,28 +911,28 @@
                                 icon: "layout",
                                 url: "mobile",
                                 position: 7,
-                                openAction: function() {
+                                openAction: function () {
                                     _.switchToMobileLayout()
                                 }
                             }))
-                        }), i.default.commands.setHandler("show_dynamic_dialog", function(a, s, n) {
+                        }), i.default.commands.setHandler("show_dynamic_dialog", function (a, s, n) {
                             if (n && s && i.default.openDialogs && i.default.openDialogs[s]) t("#" + i.default.openDialogs[s]).dialog("moveToTop");
                             else {
                                 var l = e.uniqueId("dlg");
                                 t("<div/>", {
                                     id: l
-                                }).appendTo(t("#dynamic_dialogs")), (new(o.default.extend({
+                                }).appendTo(t("#dynamic_dialogs")), (new (o.default.extend({
                                     el: "#" + l,
-                                    onDestroy: function() {
+                                    onDestroy: function () {
                                         t("#" + l).remove()
                                     }
                                 }))).show(a), s && (i.default.openDialogs || (i.default.openDialogs = {}), i.default.openDialogs[s] = l)
                             }
-                        }), i.default.commands.setHandler("close_dynamic_dialog", function(e) {
+                        }), i.default.commands.setHandler("close_dynamic_dialog", function (e) {
                             i.default.openDialogs && i.default.openDialogs[e] && t("#" + i.default.openDialogs[e]).dialog("close")
-                        }), i.default.commands.setHandler("show_confirmation_dialog", function(t) {
+                        }), i.default.commands.setHandler("show_confirmation_dialog", function (t) {
                             var a = new u.default.ItemView;
-                            a.template = e.template(t.contentHtml), a.dialogOptions = function() {
+                            a.template = e.template(t.contentHtml), a.dialogOptions = function () {
                                 return {
                                     title: t.headerTitle,
                                     dialogClass: "ui-dialog-white",
@@ -943,14 +943,14 @@
                                         text: t.noButtonText,
                                         class: "appMainButton appMainButton--transparent",
                                         danger: !0,
-                                        click: function() {
+                                        click: function () {
                                             a.trigger("dialog:close")
                                         }
                                     }, {
                                         text: t.yesButtonText,
                                         primary: !0,
                                         class: "appMainButton appMainButton--cozy appMainButton--primary",
-                                        click: function() {
+                                        click: function () {
                                             t.action() && a.trigger("dialog:close")
                                         }
                                     }]
@@ -958,7 +958,7 @@
                             }, i.default.execute("show_dynamic_dialog", a)
                         })
                     },
-                    listenVisibilityChanges: function() {
+                    listenVisibilityChanges: function () {
                         var t = "hidden";
 
                         function e(e) {
@@ -982,7 +982,7 @@
                 _.init()
             }).call(this, a(8), a(3))
         },
-        558: function(t, e, a) {
+        558: function (t, e, a) {
             var i = {
                 "./af": 541,
                 "./af.js": 541,
@@ -1245,13 +1245,13 @@
                 }
                 return e
             }
-            s.keys = function() {
+            s.keys = function () {
                 return Object.keys(i)
             }, s.resolve = n, t.exports = s, s.id = 558
         },
-        559: function(t, e, a) {
+        559: function (t, e, a) {
             "use strict";
-            (function(t) {
+            (function (t) {
                 Object.defineProperty(e, "__esModule", {
                     value: !0
                 });
@@ -1279,28 +1279,28 @@
                         sta: {}
                     },
                     T = parseInt(Date.now() / 1e3),
-                    S = function(t) {
+                    S = function (t) {
                         var e = this;
-                        this._statusData = t, _escObj(t), this._statusProperties = new n.default, this._proxies = new o.default.Collection, this._selectedStationProperties = new n.default, this._stationData = t.wireless.sta, _escObj(this._stationData), this._stationCollection = new l.default, this._interfaceCollection = new d.default, this._airCubeCollection = new u.default, this._reloadStatus(t), this._selectedStationMac = "", this._selectedStationIp = "", i.default.vent.on("rf_environment:station_selected", function(t) {
+                        this._statusData = t, _escObj(t), this._statusProperties = new n.default, this._proxies = new o.default.Collection, this._selectedStationProperties = new n.default, this._stationData = t.wireless.sta, _escObj(this._stationData), this._stationCollection = new l.default, this._interfaceCollection = new d.default, this._airCubeCollection = new u.default, this._reloadStatus(t), this._selectedStationMac = "", this._selectedStationIp = "", i.default.vent.on("rf_environment:station_selected", function (t) {
                             var a = e._stationCollection.findByMac(t);
                             a ? e._selectedStationProperties.set(a.get("properties").models) : e._selectedStationProperties.set([]), e._selectedStationMac = t, e._selectedStationIp = e._getStationIp(a.get("data")), i.default.vent.trigger("station_changed", t)
                         }), this._isDefaultPassword = !1, this._isWatchdogReset = 0, this._ubntboxLabel = "", this._previousStations = []
                     };
                 S.prototype = {
                     _isAllStationsMSeries: !0,
-                    _getValue: function(t) {
+                    _getValue: function (t) {
                         return {
                             value: t,
                             textValue: t
                         }
                     },
-                    _getBooleanValue: function(t) {
+                    _getBooleanValue: function (t) {
                         return {
                             value: t,
                             textValue: t ? __("Enabled") : __("Disabled")
                         }
                     },
-                    _parseStatusData: function(t) {
+                    _parseStatusData: function (t) {
                         var e = [];
                         this.wlan = this._getInterface("ath0"), e.push(f.default.extend({
                             id: this.PLACEHOLDER,
@@ -1317,156 +1317,156 @@
                         }, this._getValue(r.default.getValue(t, "host.hostname", ""))));
                         var a = i.default.device.board.getFccId();
                         if (a && e.push(f.default.extend({
-                                id: this.FCC_ID,
-                                label: __("FCC ID")
-                            }, this._getValue(a))), e.push(f.default.extend({
-                                id: this.FIRMWARE,
-                                label: __("Version")
-                            }, this._getFirmwareVersion())), e.push(f.default.extend({
-                                id: this.DATE,
-                                label: __("Date")
-                            }, this._getValue(this._getDate(!1)))), e.push(f.default.extend({
-                                id: this.NETWORK_MODE,
-                                label: __("Network Mode")
-                            }, this._getNetworkMode(!1))), r.default.getValue(t, "custom_scripts", !1) && e.push({
-                                id: this.CUSTOM_SCRIPTS_ENABLED,
-                                label: __("Custom Scripts"),
+                            id: this.FCC_ID,
+                            label: __("FCC ID")
+                        }, this._getValue(a))), e.push(f.default.extend({
+                            id: this.FIRMWARE,
+                            label: __("Version")
+                        }, this._getFirmwareVersion())), e.push(f.default.extend({
+                            id: this.DATE,
+                            label: __("Date")
+                        }, this._getValue(this._getDate(!1)))), e.push(f.default.extend({
+                            id: this.NETWORK_MODE,
+                            label: __("Network Mode")
+                        }, this._getNetworkMode(!1))), r.default.getValue(t, "custom_scripts", !1) && e.push({
+                            id: this.CUSTOM_SCRIPTS_ENABLED,
+                            label: __("Custom Scripts"),
+                            value: !0,
+                            textValue: __("Enabled")
+                        }), e.push(f.default.extend({
+                            id: this.MEMORY_USAGE,
+                            label: __("Memory")
+                        }, this._getMemoryUsage(!1))), e.push(f.default.extend({
+                            id: this.CPU_USAGE,
+                            label: __("CPU")
+                        }, this._getCpuUsage(!1))), e.push(f.default.extend({
+                            id: this.LAN_SPEED
+                        }, this._getLanSpeed(!1))), e.push(f.default.extend({
+                            id: this.CABLE_LENGTH,
+                            label: __("Cable Length")
+                        }, this._getCableLength(!1))), e.push(f.default.extend({
+                            id: this.CABLE_SNR,
+                            label: __("Cable SNR")
+                        }, this._getAverageSnr(!1))), e.push(f.default.extend({
+                            id: this.UPTIME,
+                            label: __("Uptime")
+                        }, this._getUptime(r.default.getValue(this._statusData, "host.uptime", 0)))), e.push(f.default.extend({
+                            id: this.WIRELESS_MODE,
+                            label: __("Wireless Mode")
+                        }, this._getValue(this._getWirelessMode()))), e.push(f.default.extend({
+                            id: this.WIRELESS_STATE,
+                            label: __("Wireless State")
+                        }, this._getWirelessState())), e.push(f.default.extend({
+                            id: this.FREQUENCY_CENTER1,
+                            label: __("Center1 Frequency")
+                        }, this._getFrequencyCenter1())), e.push(f.default.extend({
+                            id: this.GPS_TIME_SYNC_TIMESTAMP,
+                            label: __("GPS Sync Timestamp")
+                        }, this._getValue(r.default.getValue(this._statusData, "gps.last_sync", "")))), e.push(f.default.extend({
+                            id: this.GPS_TIME_SYNC_ENABLED,
+                            label: __("GPS Sync Enabled")
+                        }, this._getBooleanValue(!!r.default.getValue(this._statusData, "gps.time_sync_enabled", !1)))), e.push(f.default.extend({
+                            id: this.GPS_SIGNAL,
+                            label: __("GPS Signal")
+                        }, this._getGpsSignal())), e.push(f.default.extend({
+                            id: this.GPS_LOCATION,
+                            label: __("Location")
+                        }, this._getGpsLocation())), e.push(f.default.extend({
+                            id: this.GPS_ALTITUDE,
+                            label: __("Altitude")
+                        }, this._getGpsAltitude())), e.push(f.default.extend({
+                            id: this.GPS_SAT_COUNT,
+                            label: __("Satellites tracked")
+                        }, this._getValue(r.default.getValue(this._statusData, "gps.sats", 0)))), e.push({
+                            id: this.MCA_STATUS,
+                            label: __(""),
+                            value: this.isMcadReporting(),
+                            textValue: this.isMcadReporting() ? "Reporting" : ""
+                        }), e.push(f.default.extend({
+                            id: this.PROVMODE_STATUS,
+                            label: __("Provmode Status")
+                        }, this._getValue(r.default.getValue(this._statusData, "provmode.status", -1)))), e.push(f.default.extend({
+                            id: this.PROVMODE_TIMEOUT,
+                            label: __("Provmode Timeout")
+                        }, this._getValue(r.default.getValue(this._statusData, "provmode.timeout", 0)))), e.push(f.default.extend({
+                            id: this.NTP_TIMESTAMP,
+                            label: __("NTP Timestamp")
+                        }, this._getValue(r.default.getValue(this._statusData, "ntpclient.last_sync", "")))), e.push(f.default.extend({
+                            id: this.UNMS,
+                            label: __("UNMS")
+                        }, this._getUnmsInfo())), e.push(f.default.extend({
+                            id: this.ANTENNA_GAIN,
+                            label: __("Antenna Gain")
+                        }, this._getValue(r.default.getValue(this._statusData, "host.antenna_gain", 0)))), this.isWlanEnabled()) {
+                            if (this._getPollingEnabled() && (e.push({
+                                id: this.AIRMAX_ENABLED,
+                                label: "airMAX",
                                 value: !0,
                                 textValue: __("Enabled")
                             }), e.push(f.default.extend({
-                                id: this.MEMORY_USAGE,
-                                label: __("Memory")
-                            }, this._getMemoryUsage(!1))), e.push(f.default.extend({
-                                id: this.CPU_USAGE,
-                                label: __("CPU")
-                            }, this._getCpuUsage(!1))), e.push(f.default.extend({
-                                id: this.LAN_SPEED
-                            }, this._getLanSpeed(!1))), e.push(f.default.extend({
-                                id: this.CABLE_LENGTH,
-                                label: __("Cable Length")
-                            }, this._getCableLength(!1))), e.push(f.default.extend({
-                                id: this.CABLE_SNR,
-                                label: __("Cable SNR")
-                            }, this._getAverageSnr(!1))), e.push(f.default.extend({
-                                id: this.UPTIME,
-                                label: __("Uptime")
-                            }, this._getUptime(r.default.getValue(this._statusData, "host.uptime", 0)))), e.push(f.default.extend({
-                                id: this.WIRELESS_MODE,
-                                label: __("Wireless Mode")
-                            }, this._getValue(this._getWirelessMode()))), e.push(f.default.extend({
-                                id: this.WIRELESS_STATE,
-                                label: __("Wireless State")
-                            }, this._getWirelessState())), e.push(f.default.extend({
-                                id: this.FREQUENCY_CENTER1,
-                                label: __("Center1 Frequency")
-                            }, this._getFrequencyCenter1())), e.push(f.default.extend({
-                                id: this.GPS_TIME_SYNC_TIMESTAMP,
-                                label: __("GPS Sync Timestamp")
-                            }, this._getValue(r.default.getValue(this._statusData, "gps.last_sync", "")))), e.push(f.default.extend({
-                                id: this.GPS_TIME_SYNC_ENABLED,
-                                label: __("GPS Sync Enabled")
-                            }, this._getBooleanValue(!!r.default.getValue(this._statusData, "gps.time_sync_enabled", !1)))), e.push(f.default.extend({
-                                id: this.GPS_SIGNAL,
-                                label: __("GPS Signal")
-                            }, this._getGpsSignal())), e.push(f.default.extend({
-                                id: this.GPS_LOCATION,
-                                label: __("Location")
-                            }, this._getGpsLocation())), e.push(f.default.extend({
-                                id: this.GPS_ALTITUDE,
-                                label: __("Altitude")
-                            }, this._getGpsAltitude())), e.push(f.default.extend({
-                                id: this.GPS_SAT_COUNT,
-                                label: __("Satellites tracked")
-                            }, this._getValue(r.default.getValue(this._statusData, "gps.sats", 0)))), e.push({
-                                id: this.MCA_STATUS,
-                                label: __(""),
-                                value: this.isMcadReporting(),
-                                textValue: this.isMcadReporting() ? "Reporting" : ""
+                                id: this.AVERAGE_CAPACITY_TX_RX,
+                                label: __("Average Capacity TX/RX")
+                            }, this._getAverageCapacity())), e.push(f.default.extend({
+                                id: this.ISOLATED_CAPACITY_TX_RX_PTP_AP,
+                                label: __("Isolated Capacity TX/RX")
+                            }, this._getAverageCapacity())), e.push(f.default.extend({
+                                id: this.ISOLATED_CAPACITY_TX_RX,
+                                label: __("Isolated Capacity TX/RX")
+                            }, this._getIsolatedCapacity())), e.push(f.default.extend({
+                                id: this.ISOLATED_CAPACITY_TX,
+                                label: __("TX Isolated Capacity")
+                            }, this._getValue(this._getIsolatedCapacityTx()))), e.push(f.default.extend({
+                                id: this.ISOLATED_CAPACITY_RX,
+                                label: __("RX Isolated Capacity")
+                            }, this._getValue(this._getIsolatedCapacityRx()))), e.push(f.default.extend({
+                                id: this.AIRTIME,
+                                label: __("Airtime")
+                            }, this._getAirTime())), e.push(f.default.extend({
+                                id: this.TX_RX_AIRTIME,
+                                label: __("TX/RX Airtime")
+                            }, this._getValue(this._getTxRxAirtime() + " %"))), e.push(f.default.extend({
+                                id: this.TDD_FRAMING,
+                                label: __("TDD Framing")
+                            }, this._getTddFraming())), e.push(f.default.extend({
+                                id: this.TDD_FRAMING_GPS_SYNC,
+                                label: __("GPS Sync")
+                            }, this._getValue(this.getTddFramingGpsSync()))), e.push(f.default.extend({
+                                id: this.TDD_FRAMING_DL_RATIO,
+                                label: __("DL/UL Ratio")
+                            }, this._getTddFramingDlRatio()))), this._getDfsTime() > 0 && e.push(f.default.extend({
+                                id: this.DFS_WAIT_TIME,
+                                label: __("DFS Wait")
+                            }, this._getValue(this._getDfsTime() + " s"))), e.push(f.default.extend({
+                                id: this.TX_BYTES,
+                                label: __("TX Bytes")
+                            }, this._getValue(this._getTxBytes()))), e.push(f.default.extend({
+                                id: this.RX_BYTES,
+                                label: __("RX Bytes")
+                            }, this._getValue(this._getRxBytes()))), e.push(f.default.extend({
+                                id: this.SSID
+                            }, this._getSSID())), e.push(f.default.extend({
+                                id: this.WLAN_MAC
+                            }, this._getWlanMac())), this.isSta() && e.push(f.default.extend({
+                                id: this.AP_MAC,
+                                label: __("AP MAC")
+                            }, this._getApMac())), e.push(f.default.extend({
+                                id: this.SIGNAL,
+                                label: __("RX Signal")
+                            }, this._getSignal())), e.push({
+                                id: this.CONNECTIONS,
+                                label: __("Connections"),
+                                value: r.default.getValue(t, "wireless.sta", []).length,
+                                textValue: r.default.getValue(t, "wireless.sta", []).length || "-"
                             }), e.push(f.default.extend({
-                                id: this.PROVMODE_STATUS,
-                                label: __("Provmode Status")
-                            }, this._getValue(r.default.getValue(this._statusData, "provmode.status", -1)))), e.push(f.default.extend({
-                                id: this.PROVMODE_TIMEOUT,
-                                label: __("Provmode Timeout")
-                            }, this._getValue(r.default.getValue(this._statusData, "provmode.timeout", 0)))), e.push(f.default.extend({
-                                id: this.NTP_TIMESTAMP,
-                                label: __("NTP Timestamp")
-                            }, this._getValue(r.default.getValue(this._statusData, "ntpclient.last_sync", "")))), e.push(f.default.extend({
-                                id: this.UNMS,
-                                label: __("UNMS")
-                            }, this._getUnmsInfo())), e.push(f.default.extend({
-                                id: this.ANTENNA_GAIN,
-                                label: __("Antenna Gain")
-                            }, this._getValue(r.default.getValue(this._statusData, "host.antenna_gain", 0)))), this.isWlanEnabled()) {
-                            if (this._getPollingEnabled() && (e.push({
-                                    id: this.AIRMAX_ENABLED,
-                                    label: "airMAX",
-                                    value: !0,
-                                    textValue: __("Enabled")
-                                }), e.push(f.default.extend({
-                                    id: this.AVERAGE_CAPACITY_TX_RX,
-                                    label: __("Average Capacity TX/RX")
-                                }, this._getAverageCapacity())), e.push(f.default.extend({
-                                    id: this.ISOLATED_CAPACITY_TX_RX_PTP_AP,
-                                    label: __("Isolated Capacity TX/RX")
-                                }, this._getAverageCapacity())), e.push(f.default.extend({
-                                    id: this.ISOLATED_CAPACITY_TX_RX,
-                                    label: __("Isolated Capacity TX/RX")
-                                }, this._getIsolatedCapacity())), e.push(f.default.extend({
-                                    id: this.ISOLATED_CAPACITY_TX,
-                                    label: __("TX Isolated Capacity")
-                                }, this._getValue(this._getIsolatedCapacityTx()))), e.push(f.default.extend({
-                                    id: this.ISOLATED_CAPACITY_RX,
-                                    label: __("RX Isolated Capacity")
-                                }, this._getValue(this._getIsolatedCapacityRx()))), e.push(f.default.extend({
-                                    id: this.AIRTIME,
-                                    label: __("Airtime")
-                                }, this._getAirTime())), e.push(f.default.extend({
-                                    id: this.TX_RX_AIRTIME,
-                                    label: __("TX/RX Airtime")
-                                }, this._getValue(this._getTxRxAirtime() + " %"))), e.push(f.default.extend({
-                                    id: this.TDD_FRAMING,
-                                    label: __("TDD Framing")
-                                }, this._getTddFraming())), e.push(f.default.extend({
-                                    id: this.TDD_FRAMING_GPS_SYNC,
-                                    label: __("GPS Sync")
-                                }, this._getValue(this.getTddFramingGpsSync()))), e.push(f.default.extend({
-                                    id: this.TDD_FRAMING_DL_RATIO,
-                                    label: __("DL/UL Ratio")
-                                }, this._getTddFramingDlRatio()))), this._getDfsTime() > 0 && e.push(f.default.extend({
-                                    id: this.DFS_WAIT_TIME,
-                                    label: __("DFS Wait")
-                                }, this._getValue(this._getDfsTime() + " s"))), e.push(f.default.extend({
-                                    id: this.TX_BYTES,
-                                    label: __("TX Bytes")
-                                }, this._getValue(this._getTxBytes()))), e.push(f.default.extend({
-                                    id: this.RX_BYTES,
-                                    label: __("RX Bytes")
-                                }, this._getValue(this._getRxBytes()))), e.push(f.default.extend({
-                                    id: this.SSID
-                                }, this._getSSID())), e.push(f.default.extend({
-                                    id: this.WLAN_MAC
-                                }, this._getWlanMac())), this.isSta() && e.push(f.default.extend({
-                                    id: this.AP_MAC,
-                                    label: __("AP MAC")
-                                }, this._getApMac())), e.push(f.default.extend({
-                                    id: this.SIGNAL,
-                                    label: __("RX Signal")
-                                }, this._getSignal())), e.push({
-                                    id: this.CONNECTIONS,
-                                    label: __("Connections"),
-                                    value: r.default.getValue(t, "wireless.sta", []).length,
-                                    textValue: r.default.getValue(t, "wireless.sta", []).length || "-"
-                                }), e.push(f.default.extend({
-                                    id: this.FREQUENCY,
-                                    label: __("Frequency")
-                                }, this._getFrequency())), e.push(f.default.extend({
-                                    id: this.CHANNEL_WIDTH,
-                                    label: __("Channel Width")
-                                }, this._getChannelWidth())), e.push(f.default.extend({
-                                    id: this.NOISE_FLOOR,
-                                    label: __("Noise Floor")
-                                }, this._getValue(this._getNoiseFloor()))), this._getWirelessState().value === this.WirelessState.CONNECTED) {
+                                id: this.FREQUENCY,
+                                label: __("Frequency")
+                            }, this._getFrequency())), e.push(f.default.extend({
+                                id: this.CHANNEL_WIDTH,
+                                label: __("Channel Width")
+                            }, this._getChannelWidth())), e.push(f.default.extend({
+                                id: this.NOISE_FLOOR,
+                                label: __("Noise Floor")
+                            }, this._getValue(this._getNoiseFloor()))), this._getWirelessState().value === this.WirelessState.CONNECTED) {
                                 e.push(f.default.extend({
                                     id: this.STATION_REMOTE_NOISE_FLOOR,
                                     label: __("Noise Floor")
@@ -1557,21 +1557,21 @@
                         });
                         this._statusProperties.set(e)
                     },
-                    _reloadStatus: function(e) {
+                    _reloadStatus: function (e) {
                         var a, n = this,
                             l = 0,
-                            u = function() {
+                            u = function () {
                                 clearTimeout(a), a = setTimeout(o, s.default.getDeviceStatusReloadInterval())
                             },
-                            o = function() {
+                            o = function () {
                                 i.default.areHeartbeatsEnabled() ? t.ajax({
                                     url: s.default.getStatusUrl(),
                                     cache: !1,
                                     dataType: "json",
                                     timeout: 2e3
-                                }).done(function(t, e, a) {
-                                    if (204 == a.status && l++, "success" == e) {
-                                        _escObj(t), window.sa && function(t) {
+                                }).done(function (t, e, a) {
+                                    if (204 == a.status && l++ , "success" == e) {
+                                        _escObj(t), window.sa && function (t) {
                                             function e(t, e) {
                                                 return Math.floor(Math.random() * (e - t + 1)) + t
                                             }
@@ -1588,7 +1588,7 @@
                                                 rxBytes: i(75, 90),
                                                 downlink_capacity: a(230, 250),
                                                 uplink_capacity: a(200, 230)
-                                            }, t.wireless.polling.dcap = m.local.downlink_capacity, t.wireless.polling.ucap = m.local.uplink_capacity, t.interfaces[1].status.tx_bytes = m.local.txBytes, t.interfaces[1].status.rx_bytes = m.local.rxBytes, f.default.each(t.wireless.sta, function(t) {
+                                            }, t.wireless.polling.dcap = m.local.downlink_capacity, t.wireless.polling.ucap = m.local.uplink_capacity, t.interfaces[1].status.tx_bytes = m.local.txBytes, t.interfaces[1].status.rx_bytes = m.local.rxBytes, f.default.each(t.wireless.sta, function (t) {
                                                 m.sta[t.mac] ? (m.sta[t.mac].txBytes += i(30, 45), m.sta[t.mac].rxBytes += i(40, 65), e(0, 10) % 10 == 0 && (m.sta[t.mac].downlink_capacity = a(230, 250)), e(0, 10) % 10 == 0 && (m.sta[t.mac].uplink_capacity = a(200, 230))) : m.sta[t.mac] = {
                                                     txBytes: i(30, 45),
                                                     rxBytes: i(35, 50),
@@ -1607,15 +1607,15 @@
                                         }
                                         i.default.vent.trigger("status:interface_list_updated", n._stationData), n._stationData = n._statusData.wireless.sta, n._parseStationData(n._stationData), i.default.vent.trigger("status:station_list_updated", n._stationData)
                                     } else l >= s.default.getFailureCountBeforeBlock() && (window.location.href = s.default.getIndexUrl())
-                                }).fail(function(t, e, a) {
-                                    l++, i.default.vent.trigger("heartbeat:failed", l), c.default.error("Device status reload failed")
-                                }).always(function() {
+                                }).fail(function (t, e, a) {
+                                    l++ , i.default.vent.trigger("heartbeat:failed", l), c.default.error("Device status reload failed")
+                                }).always(function () {
                                     u()
                                 }) : u()
                             };
                         e ? (this._parseStatusData(e), n._stationData = n._statusData.wireless.sta, n._parseStationData(n._stationData), i.default.vent.trigger("status:station_list_updated", n._stationData), u()) : o()
                     },
-                    _getStationIp: function(t) {
+                    _getStationIp: function (t) {
                         var e = r.default.getValue(t, "lastip", "");
                         if (!e || "0.0.0.0" === e) {
                             var a = r.default.getValue(t, "remote.ipaddr", []);
@@ -1623,7 +1623,7 @@
                         }
                         return e
                     },
-                    _parseStationData: function(t) {
+                    _parseStationData: function (t) {
                         var e = [],
                             a = [],
                             s = [],
@@ -1637,34 +1637,34 @@
                             a.push(_), "" == this._selectedStationMac && (this._selectedStationMac = _, i.default.vent.trigger("station_changed", _)), "" == this._selectedStationIp && (this._selectedStationIp = d);
                             var c = [];
                             if (c.push(f.default.extend({
-                                    id: this.STATION_SIGNAL_TX_RX,
-                                    label: __("Signal TX/RX")
-                                }, this._getValue(this._getStationSignalTxRx()))), c.push({
-                                    id: this.STATION_SIGNAL_TX,
-                                    label: __("Signal TX"),
-                                    value: parseInt(r.default.getValue(this._remoteEndData, "remote.signal", 0)),
-                                    textValue: r.default.getValue(this._remoteEndData, "remote.signal", 0) + " dBm"
-                                }), c.push({
-                                    id: this.STATION_SIGNAL_RX,
-                                    label: __("Signal RX"),
-                                    value: parseInt(r.default.getValue(this._remoteEndData, "signal", 0)),
-                                    textValue: r.default.getValue(this._remoteEndData, "signal", 0) + " dBm"
-                                }), c.push(f.default.extend({
-                                    id: this.STATION_REMOTE_SIGNAL,
-                                    label: __("RX Signal")
-                                }, this._getStationRemoteSignal())), c.push(f.default.extend({
-                                    id: this.STATION_REMOTE_SIGNAL_AP,
-                                    label: __("RX Signal")
-                                }, this._getStationRemoteSignal())), c.push(f.default.extend({
-                                    id: this.STATION_SIGNAL,
-                                    label: __("RX Signal")
-                                }, this._getStationSignal())), c.push(f.default.extend({
-                                    id: this.STATION_REMOTE_SIGNAL_PER_CHAIN,
-                                    label: __("RX") + " " + this.getChainNames()
-                                }, this.getStationRemoteChainSignal())), c.push(f.default.extend({
-                                    id: this.STATION_SIGNAL_PER_CHAIN,
-                                    label: __("RX") + " " + this.getChainNames()
-                                }, this._getValue(this._getChainSignal()))), this.getStationActiveChainCount() > 0) {
+                                id: this.STATION_SIGNAL_TX_RX,
+                                label: __("Signal TX/RX")
+                            }, this._getValue(this._getStationSignalTxRx()))), c.push({
+                                id: this.STATION_SIGNAL_TX,
+                                label: __("Signal TX"),
+                                value: parseInt(r.default.getValue(this._remoteEndData, "remote.signal", 0)),
+                                textValue: r.default.getValue(this._remoteEndData, "remote.signal", 0) + " dBm"
+                            }), c.push({
+                                id: this.STATION_SIGNAL_RX,
+                                label: __("Signal RX"),
+                                value: parseInt(r.default.getValue(this._remoteEndData, "signal", 0)),
+                                textValue: r.default.getValue(this._remoteEndData, "signal", 0) + " dBm"
+                            }), c.push(f.default.extend({
+                                id: this.STATION_REMOTE_SIGNAL,
+                                label: __("RX Signal")
+                            }, this._getStationRemoteSignal())), c.push(f.default.extend({
+                                id: this.STATION_REMOTE_SIGNAL_AP,
+                                label: __("RX Signal")
+                            }, this._getStationRemoteSignal())), c.push(f.default.extend({
+                                id: this.STATION_SIGNAL,
+                                label: __("RX Signal")
+                            }, this._getStationSignal())), c.push(f.default.extend({
+                                id: this.STATION_REMOTE_SIGNAL_PER_CHAIN,
+                                label: __("RX") + " " + this.getChainNames()
+                            }, this.getStationRemoteChainSignal())), c.push(f.default.extend({
+                                id: this.STATION_SIGNAL_PER_CHAIN,
+                                label: __("RX") + " " + this.getChainNames()
+                            }, this._getValue(this._getChainSignal()))), this.getStationActiveChainCount() > 0) {
                                 c.push(f.default.extend({
                                     id: this.STATION_SIGNAL_PER_CHAIN0,
                                     label: __("RX") + " " + this.getChainNames()
@@ -1874,7 +1874,7 @@
                             var S = this.getStationPropertyValue(_, this.STATION_REMOTE_VERSION_FULL);
                             this._isAllStationsMSeries && !this._isMSeries(S) && (this._isAllStationsMSeries = !1)
                         }
-                        var v = f.default.reject(this._stationCollection.models, function(t) {
+                        var v = f.default.reject(this._stationCollection.models, function (t) {
                             return -1 == f.default.indexOf(a, t.get("mac"))
                         });
                         this._stationCollection.set(v), 0 == e.length ? (this._selectedStationMac = l, this._selectedStationIp = u, this._selectedStationProperties.set(s)) : this._selectedStationProperties.set(e);
@@ -1882,7 +1882,7 @@
                             E = f.default.difference(a, this._previousStations);
                         (A.length > 0 || E.length > 0) && i.default.vent.trigger("status:station_list:changed", E, A, this._previousStations), this._previousStations = a
                     },
-                    getPropertyCollectionSubset: function(t, e) {
+                    getPropertyCollectionSubset: function (t, e) {
                         var a = this._proxies.findWhere({
                             id: t
                         });
@@ -1897,27 +1897,27 @@
                                 id: e[s]
                             })), l && (l.set(i.comparator, s), i.add(l))
                         }
-                        var u = function(t) {
+                        var u = function (t) {
                             var a = f.default.indexOf(e, t.id); - 1 != a && (t.set(i.comparator, a), i.add(t))
                         };
-                        i.listenTo(this._statusProperties, "add", function(t) {
+                        i.listenTo(this._statusProperties, "add", function (t) {
                             u(t)
-                        }), i.listenTo(this._selectedStationProperties, "add", function(t) {
+                        }), i.listenTo(this._selectedStationProperties, "add", function (t) {
                             u(t)
                         });
-                        var o = function(t) {
+                        var o = function (t) {
                             -1 != f.default.indexOf(e, t.id) && i.remove(t)
                         };
-                        return i.listenTo(this._statusProperties, "remove", function(t) {
+                        return i.listenTo(this._statusProperties, "remove", function (t) {
                             o(t)
-                        }), i.listenTo(this._selectedStationProperties, "remove", function(t) {
+                        }), i.listenTo(this._selectedStationProperties, "remove", function (t) {
                             o(t)
                         }), this._proxies.add({
                             id: t,
                             collection: i
                         }), i
                     },
-                    getProperty: function(t) {
+                    getProperty: function (t) {
                         var e = this._statusProperties.findWhere({
                             id: t
                         });
@@ -1925,25 +1925,25 @@
                             id: t
                         })), e
                     },
-                    getStationProperty: function(t, e) {
+                    getStationProperty: function (t, e) {
                         var a = this._stationCollection.findByMac(t);
                         return a ? a.get("properties").findWhere({
                             id: e
                         }) : null
                     },
-                    getStationPropertyValue: function(t, e, a) {
+                    getStationPropertyValue: function (t, e, a) {
                         var i = this.getStationProperty(t, e);
                         return i ? i.get(f.default.isUndefined(a) ? "value" : "textValue") : null
                     },
-                    getStationDataByMac: function(t) {
+                    getStationDataByMac: function (t) {
                         var e = this._stationCollection.findByMac(t);
                         return e ? e.get("data") : null
                     },
-                    getValue: function(t) {
+                    getValue: function (t) {
                         var e = this.getProperty(t);
                         return e ? e.get("value") : null
                     },
-                    _getFirmwareVersion: function() {
+                    _getFirmwareVersion: function () {
                         var t = r.default.getValue(this._statusData, "host.fwversion", ""),
                             e = this.getFirmwarePrefix();
                         return {
@@ -1951,16 +1951,16 @@
                             textValue: r.default.stripFirmwareVersion(t) + (e ? "( " + e + ")" : "")
                         }
                     },
-                    getNetworkMode: function() {
+                    getNetworkMode: function () {
                         return r.default.getValue(this._statusData, "host.netrole", "")
                     },
-                    isBridge: function() {
+                    isBridge: function () {
                         return "bridge" === this.getNetworkMode()
                     },
-                    isRouter: function() {
+                    isRouter: function () {
                         return "router" === this.getNetworkMode()
                     },
-                    _getNetworkMode: function(t) {
+                    _getNetworkMode: function (t) {
                         if (t) var e = r.default.getValue(this._remoteEndData, "remote.netrole", "");
                         else e = r.default.getValue(this._statusData, "host.netrole", "");
                         var a;
@@ -1982,7 +1982,7 @@
                             textValue: a
                         }
                     },
-                    _getMemoryUsage: function(t) {
+                    _getMemoryUsage: function (t) {
                         if (t) var e = r.default.getValue(this._remoteEndData, "remote.totalram", 1),
                             a = r.default.getValue(this._remoteEndData, "remote.freeram", 1);
                         else e = r.default.getValue(this._statusData, "host.totalram", 1), a = r.default.getValue(this._statusData, "host.freeram", 1);
@@ -1993,7 +1993,7 @@
                             textValue: i + "%"
                         }
                     },
-                    _getCpuUsage: function(t) {
+                    _getCpuUsage: function (t) {
                         if (t) var e = Math.round(r.default.getValue(this._remoteEndData, "remote.cpuload", 0));
                         else e = Math.round(r.default.getValue(this._statusData, "host.cpuload", 0));
                         return {
@@ -2001,7 +2001,7 @@
                             textValue: e + "%"
                         }
                     },
-                    _getCableLength: function(t) {
+                    _getCableLength: function (t) {
                         var e;
                         e = t ? r.default.getValue(this._remoteEndData, "remote.ethlist", []) : this._getLanInterfaces();
                         for (var a = [], i = 0; i < e.length; i++) {
@@ -2014,29 +2014,29 @@
                             textValue: l
                         }
                     },
-                    getCableLength: function(t) {
+                    getCableLength: function (t) {
                         var e = this._getInterface(t),
                             a = r.default.getValue(e.status, "cable_len", 0),
                             i = a;
                         return parseInt(a) < 20 && (i = "&lt; 20"), i
                     },
-                    getIfcStatusVal: function(t, e) {
+                    getIfcStatusVal: function (t, e) {
                         var a = this._getInterface(t);
                         return r.default.getValue(a.status, e, 0)
                     },
-                    _getInterface: function(e) {
-                        var a = t.grep(this._statusData.interfaces, function(t) {
+                    _getInterface: function (e) {
+                        var a = t.grep(this._statusData.interfaces, function (t) {
                             return t.ifname == e
                         });
                         return a.length > 0 ? a[0] : null
                     },
-                    _getLanInterfaces: function() {
+                    _getLanInterfaces: function () {
                         var e = /eth[0-9]$/;
-                        return t.grep(this._statusData.interfaces, function(t) {
+                        return t.grep(this._statusData.interfaces, function (t) {
                             return e.test(t.ifname)
                         })
                     },
-                    getCableSnr: function(t, e) {
+                    getCableSnr: function (t, e) {
                         var a = e || r.default.getValue(this._getInterface(t).status, "snr", []);
                         if (4 == a.length) {
                             for (var i = 0; i < a.length; i++) a[i] = parseInt(a[i]);
@@ -2044,7 +2044,7 @@
                         }
                         return [0, 0, 0, 0]
                     },
-                    _getSingleAverageSnr: function(t, e) {
+                    _getSingleAverageSnr: function (t, e) {
                         for (var a = this.getCableSnr(t, e), i = 0, s = 0, n = 0; n < a.length; n++) a[n] > 0 && (i += a[n], s++);
                         var l = 0;
                         s > 0 && (l = i / s);
@@ -2054,7 +2054,7 @@
                             textValue: 0 === u ? "-" : "+" + u + " " + __("dB")
                         }
                     },
-                    _getAverageSnr: function(t) {
+                    _getAverageSnr: function (t) {
                         var e, a, i = [];
                         e = t ? r.default.getValue(this._remoteEndData, "remote.ethlist", []) : this._getLanInterfaces();
                         for (var s = 0; s < e.length; s++) {
@@ -2066,13 +2066,13 @@
                             textValue: a
                         }
                     },
-                    isAirMaxEnabled: function() {
+                    isAirMaxEnabled: function () {
                         return this._getPollingEnabled()
                     },
-                    _getPollingEnabled: function() {
+                    _getPollingEnabled: function () {
                         return r.default.getValue(this._statusData, "wireless.polling.enabled", 1)
                     },
-                    _getLanSpeed: function(t) {
+                    _getLanSpeed: function (t) {
                         var e;
                         e = t ? r.default.getValue(this._remoteEndData, "remote.ethlist", []) : this._getLanInterfaces();
                         var a = r.default.format_eth_str(e);
@@ -2082,10 +2082,10 @@
                             textValue: a.value
                         }
                     },
-                    calculateIsolatedCapacity: function(t, e) {
+                    calculateIsolatedCapacity: function (t, e) {
                         return (e > 0 ? r.default.formatBPS(1e3 * e)[3] : "-") + " / " + (t > 0 ? r.default.formatBPS(1e3 * t)[3] : "-")
                     },
-                    _getIsolatedCapacity: function() {
+                    _getIsolatedCapacity: function () {
                         var t = r.default.getValue(this._statusData, "wireless.polling.dcap", 0),
                             e = r.default.getValue(this._statusData, "wireless.polling.ucap", 0),
                             a = this.calculateIsolatedCapacity(t, e);
@@ -2094,7 +2094,7 @@
                             textValue: a
                         }
                     },
-                    _getAverageCapacity: function() {
+                    _getAverageCapacity: function () {
                         var t = r.default.getValue(this._statusData, "wireless.polling.dcap", 0),
                             e = r.default.getValue(this._statusData, "wireless.polling.ucap", 0),
                             a = this.calculateIsolatedCapacity(e, t);
@@ -2103,61 +2103,61 @@
                             textValue: a
                         }
                     },
-                    _getIsolatedCapacityTx: function() {
+                    _getIsolatedCapacityTx: function () {
                         var t = r.default.getValue(this._statusData, "wireless.polling.dcap", 0);
                         return t > 0 ? r.default.formatBPS(1e3 * t)[3] : "-"
                     },
-                    _getIsolatedCapacityRx: function() {
+                    _getIsolatedCapacityRx: function () {
                         var t = r.default.getValue(this._statusData, "wireless.polling.ucap", 0);
                         return t > 0 ? r.default.formatBPS(1e3 * t)[3] : "-"
                     },
-                    _getStationUplinkCapacity: function() {
+                    _getStationUplinkCapacity: function () {
                         return 1e3 * r.default.getValue(this._remoteEndData, "airmax.uplink_capacity", 0)
                     },
-                    getStationUplinkCapacity: function() {
+                    getStationUplinkCapacity: function () {
                         var t = this.getStationProperty(this.getSelectedStationMac(), this.STATION_UPLINK_CAPACITY);
                         return t ? t.get("rawValue") : 0
                     },
-                    _getStationDownlinkCapacity: function() {
+                    _getStationDownlinkCapacity: function () {
                         return 1e3 * r.default.getValue(this._remoteEndData, "airmax.downlink_capacity", 0)
                     },
-                    getStationDownlinkCapacity: function() {
+                    getStationDownlinkCapacity: function () {
                         var t = this.getStationProperty(this.getSelectedStationMac(), this.STATION_DOWNLINK_CAPACITY);
                         return t ? t.get("rawValue") : 0
                     },
-                    getUplinkCapacity: function() {
+                    getUplinkCapacity: function () {
                         return 1e3 * r.default.getValue(this._statusData, "wireless.polling.ucap", 0)
                     },
-                    getDownlinkCapacity: function() {
+                    getDownlinkCapacity: function () {
                         return 1e3 * r.default.getValue(this._statusData, "wireless.polling.dcap", 0)
                     },
-                    _getStationIsolatedCapacity: function() {
+                    _getStationIsolatedCapacity: function () {
                         var t = r.default.getValue(this._remoteEndData, "airmax.downlink_capacity", 0),
                             e = r.default.getValue(this._remoteEndData, "airmax.uplink_capacity", 0);
                         return this.calculateIsolatedCapacity(t, e)
                     },
-                    _getStationPps: function() {
+                    _getStationPps: function () {
                         var t = null,
                             e = "- / -";
                         if (i.default.chartController && (t = i.default.chartController.staCollection.findWhere({
-                                id: r.default.getValue(this._remoteEndData, "mac", 0)
-                            })), t) {
+                            id: r.default.getValue(this._remoteEndData, "mac", 0)
+                        })), t) {
                             var a = t.get("data").getData().ppsRxData.values,
                                 s = t.get("data").getData().ppsTxData.values;
                             e = s[s.length - 1] + " / " + a[a.length - 1]
                         }
                         return e
                     },
-                    _getStationDistance: function() {
+                    _getStationDistance: function () {
                         return this._formatDistance(r.default.getValue(this._remoteEndData, "distance", 0))
                     },
-                    _getStationRemoteDistance: function() {
+                    _getStationRemoteDistance: function () {
                         return this._formatDistance(r.default.getValue(this._remoteEndData, "remote.distance", 0))
                     },
-                    _isDistanceLimitReached: function(t) {
+                    _isDistanceLimitReached: function (t) {
                         return this.isPtmp() && i.default.device.wireless.checkDistanceWarning(t, this.getChanbw(), this.isFixedFrame() || this.isFlexibleFrameBeta())
                     },
-                    _formatDistance: function(t) {
+                    _formatDistance: function (t) {
                         var e, a = !0,
                             s = t < i.default.settings.MIN_DISTANCE ? i.default.settings.MIN_DISTANCE : t,
                             n = this._isDistanceLimitReached(s);
@@ -2175,7 +2175,7 @@
                             title: __("Propagation-based distance")
                         }
                     },
-                    _getDistanceFromCoordinates: function() {
+                    _getDistanceFromCoordinates: function () {
                         var t = !1,
                             e = !1,
                             a = 0,
@@ -2188,7 +2188,7 @@
                             title: __("Coordinate-based distance")
                         }
                     },
-                    _formatRate: function(t, e) {
+                    _formatRate: function (t, e) {
                         var a = i.default.device.wireless.formatRate(t, e),
                             s = i.default.device.wireless.calculateModulationRate(t, e);
                         return {
@@ -2202,46 +2202,46 @@
                             io: s ? s.io : null
                         }
                     },
-                    _getStationTxRate: function() {
+                    _getStationTxRate: function () {
                         return this._formatRate(r.default.getValue(this._remoteEndData, "tx_idx", 0), r.default.getValue(this._remoteEndData, "tx_nss", 0))
                     },
-                    _getStationRxRate: function() {
+                    _getStationRxRate: function () {
                         return this._formatRate(r.default.getValue(this._remoteEndData, "rx_idx", 0), r.default.getValue(this._remoteEndData, "rx_nss", 0))
                     },
-                    _getStationTxRxBytes: function(t) {
+                    _getStationTxRxBytes: function (t) {
                         return r.default.formatBytesIf(this._getStationTxBytes(t)) + " / " + r.default.formatBytesIf(this._getStationRxBytes(t))
                     },
-                    _getStationTxBytes: function(t) {
+                    _getStationTxBytes: function (t) {
                         return t ? parseInt(r.default.getValue(this._remoteEndData, "remote.tx_bytes", 0)) : parseInt(r.default.getValue(this._remoteEndData, "stats.tx_bytes", 0))
                     },
-                    _getStationRxBytes: function(t) {
+                    _getStationRxBytes: function (t) {
                         return t ? parseInt(r.default.getValue(this._remoteEndData, "remote.rx_bytes", 0)) : parseInt(r.default.getValue(this._remoteEndData, "stats.rx_bytes", 0))
                     },
-                    _getStationAverageCapacity: function() {
+                    _getStationAverageCapacity: function () {
                         var t = r.default.getValue(this._remoteEndData, "airmax.downlink_capacity", 0),
                             e = r.default.getValue(this._remoteEndData, "airmax.uplink_capacity", 0);
                         return this.calculateIsolatedCapacity(e, t)
                     },
-                    _getPollingUse: function() {
+                    _getPollingUse: function () {
                         return r.default.getValue(this._statusData, "wireless.polling.use", 0)
                     },
-                    _getAirTime: function() {
+                    _getAirTime: function () {
                         var t = (this._getPollingUse() / 10).toFixed(1);
                         return this.isAssociated() || (t = 0), {
                             value: t > 100 ? 100 : t,
                             textValue: t > 100 ? 100 : t + "%"
                         }
                     },
-                    isFixedFrame: function() {
+                    isFixedFrame: function () {
                         return r.default.getValue(this._statusData, "wireless.polling.fixed_frame", !1)
                     },
-                    isFlexibleFrameBeta: function() {
+                    isFlexibleFrameBeta: function () {
                         return r.default.getValue(this._statusData, "wireless.polling.flex_mode", 0)
                     },
-                    isTDDReporting: function() {
+                    isTDDReporting: function () {
                         return r.default.getValue(this._statusData, "wireless.polling.ff_cap_rep", 0)
                     },
-                    _getTddFraming: function() {
+                    _getTddFraming: function () {
                         var t;
                         if (this.isFixedFrame()) {
                             var e = r.default.getValue(this._statusData, "wireless.polling.ff_frame_dur", 0);
@@ -2252,22 +2252,22 @@
                             textValue: t
                         }
                     },
-                    getTddFramingGpsSync: function() {
+                    getTddFramingGpsSync: function () {
                         return r.default.getValue(this._statusData, "wireless.polling.gps_sync", !1)
                     },
-                    _getTddFramingDlRatio: function() {
+                    _getTddFramingDlRatio: function () {
                         var t = r.default.getValue(this._statusData, "wireless.polling.ff_dl_ratio", 0);
                         return {
                             value: t,
                             textValue: t
                         }
                     },
-                    _getTxRxAirtime: function() {
+                    _getTxRxAirtime: function () {
                         var t = r.default.getValue(this._statusData, "wireless.polling.tx_use", 0),
                             e = r.default.getValue(this._statusData, "wireless.polling.rx_use", 0);
                         return (t / 10).toFixed(1) + " / " + (e / 10).toFixed(1)
                     },
-                    _getUptime: function(t) {
+                    _getUptime: function (t) {
                         var e = r.default.getElapsedTime(t);
                         return {
                             value: e,
@@ -2275,43 +2275,43 @@
                             rawValue: t
                         }
                     },
-                    isWlanEnabled: function() {
+                    isWlanEnabled: function () {
                         return null != this.wlan && this.wlan.enabled
                     },
-                    _getTxBytes: function() {
+                    _getTxBytes: function () {
                         return r.default.formatBytesIf(this.wlan.status.tx_bytes)
                     },
-                    _getRxBytes: function() {
+                    _getRxBytes: function () {
                         return r.default.formatBytesIf(this.wlan.status.rx_bytes)
                     },
-                    _getTxRxBytes: function() {
+                    _getTxRxBytes: function () {
                         return r.default.formatBytesIf(this.wlan.status.tx_bytes) + " / " + r.default.formatBytesIf(this.wlan.status.rx_bytes)
                     },
-                    isAp: function(t) {
+                    isAp: function (t) {
                         return 0 === (t ? this._remoteEndData.remote.mode : this._statusData.wireless.mode).indexOf("ap")
                     },
-                    isSta: function(t) {
+                    isSta: function (t) {
                         return 0 === (t ? this._remoteEndData.remote.mode : this._statusData.wireless.mode).indexOf("sta")
                     },
-                    isPtp: function(t) {
+                    isPtp: function (t) {
                         return (t ? this._remoteEndData.remote.mode : this._statusData.wireless.mode).indexOf("-ptp") > 0
                     },
-                    isPtmp: function(t) {
+                    isPtmp: function (t) {
                         return (t ? this._remoteEndData.remote.mode : this._statusData.wireless.mode).indexOf("-ptmp") > 0
                     },
-                    isMixedMode: function(t) {
+                    isMixedMode: function (t) {
                         return t ? r.default.getValue(this._remoteEndData, "remote.compat_11n", 0) > 0 : r.default.getValue(this._statusData, "wireless.compat_11n", 0) > 0
                     },
-                    getIeeeMode: function() {
+                    getIeeeMode: function () {
                         var t = this._statusData.wireless.ieeemode,
                             e = this._statusData.wireless.band;
                         return "auto" === t.toLowerCase() && e > 0 && (t = 1 === e ? "11nght" : "11acvht"), t
                     },
-                    _getWirelessMode: function(t) {
+                    _getWirelessMode: function (t) {
                         var e;
                         return this.isWlanEnabled() ? (e = this.isAp(t) ? __("AP") : __("Station"), this.isPtp(t) ? e += " " + __("PtP") : this.isPtmp(t) && this.isAp(t) ? e += " " + __("PtMP airMAX") : this.isPtmp(t) && this.isSta(t) && (e += " " + __("PtMP")), this.isMixedMode(t) ? e += " " + __("Mixed") : this.isPtmp(t) && this.isAp(t) && (e += " " + __("AC")), e) : __("Disabled")
                     },
-                    _getSSID: function() {
+                    _getSSID: function () {
                         var t, e;
                         t = __("SSID"), e = r.default.getValue(this._statusData, "wireless.essid", "-");
                         var a = r.default.getValue(this._statusData, "wireless.hide_essid", !1);
@@ -2325,14 +2325,14 @@
                             textValue: e
                         }
                     },
-                    _getWlanMac: function() {
+                    _getWlanMac: function () {
                         return {
                             label: r.default.devname2uidevname(this.wlan.ifname) + " MAC",
                             value: this.wlan.hwaddr,
                             textValue: this.wlan.hwaddr
                         }
                     },
-                    _getApMac: function() {
+                    _getApMac: function () {
                         var t = this.isAssociated(),
                             e = r.default.getValue(this._statusData, "wireless.apmac", "00:00:00:00:00:00");
                         return {
@@ -2340,18 +2340,18 @@
                             textValue: t ? e : __("Not Associated")
                         }
                     },
-                    isAssociated: function() {
+                    isAssociated: function () {
                         return this._getWirelessState().value == this.WirelessState.CONNECTED
                     },
-                    _getSecurity: function() {
+                    _getSecurity: function () {
                         var t = r.default.getValue(this._statusData, "wireless.security", "-"),
                             e = t;
                         return "wep" == (t = t.toLowerCase()) ? e = "WEP" : "wpa" == t.substr(0, 3) && (e = "WPA", "2" == t.substr(3, 1) && (e += "2"), -1 != t.indexOf("aes") ? e += "-AES" : -1 != t.indexOf("tkip") && (e += "-TKIP")), __(e)
                     },
-                    _getDistance: function() {
+                    _getDistance: function () {
                         return this._formatDistance(r.default.getValue(this._statusData, "wireless.distance", 0))
                     },
-                    _getSignal: function() {
+                    _getSignal: function () {
                         var t = r.default.getValue(this._remoteEndData, "rssi", 0),
                             e = r.default.getValue(this._remoteEndData, "signal", 0);
                         return this.isAssociated() || (e = 0, t = 0), {
@@ -2360,7 +2360,7 @@
                             units: "dBm"
                         }
                     },
-                    _getGpsSignal: function(t) {
+                    _getGpsSignal: function (t) {
                         if (t) var e = r.default.getValue(this._remoteEndData, "remote.gps.fix", 0),
                             a = r.default.getValue(this._remoteEndData, "remote.gps.dop", 0);
                         else e = r.default.getValue(this._statusData, "gps.fix", 0), a = r.default.getValue(this._statusData, "gps.dop", 0);
@@ -2390,7 +2390,7 @@
                             units: "%"
                         }
                     },
-                    _getGpsLocation: function(t) {
+                    _getGpsLocation: function (t) {
                         if (t) var e = !!r.default.getValue(this._remoteEndData, "remote.gps.fix", 0),
                             a = parseFloat(r.default.getValue(this._remoteEndData, "remote.gps.lat", 0)).toFixed(6),
                             s = parseFloat(r.default.getValue(this._remoteEndData, "remote.gps.lon", 0)).toFixed(6),
@@ -2416,7 +2416,7 @@
                             height: l
                         }
                     },
-                    getGpsInfo: function(t) {
+                    getGpsInfo: function (t) {
                         if (t) var e = this.getStationProperty(this.getSelectedStationMac(), this.STATION_REMOTE_GPS_LOCATION);
                         else e = this.getProperty(this.GPS_LOCATION);
                         return {
@@ -2429,7 +2429,7 @@
                             height: e ? e.get("height") : ""
                         }
                     },
-                    _getGpsAltitude: function(t) {
+                    _getGpsAltitude: function (t) {
                         if (t) var e = r.default.getValue(this._remoteEndData, "remote.gps.fix", 0),
                             a = r.default.getValue(this._remoteEndData, "remote.gps.alt", "-");
                         else e = r.default.getValue(this._statusData, "gps.fix", 0), a = r.default.getValue(this._statusData, "gps.alt", "-");
@@ -2439,7 +2439,7 @@
                             textValue: i
                         }
                     },
-                    _getUnmsInfo: function(t) {
+                    _getUnmsInfo: function (t) {
                         var e = t ? this._remoteEndData.remote : this._statusData,
                             a = r.default.getValue(e, "unms.status", 0),
                             i = r.default.getValue(e, "unms.timestamp", "-"),
@@ -2454,14 +2454,14 @@
                             link: s = 2 != a ? "https://unms.com" : _uesc(s).replace(/^wss:\/\//, "https://").replace(/\+.*/, "")
                         }
                     },
-                    isMcadReporting: function() {
+                    isMcadReporting: function () {
                         return !1
                     },
-                    _getActiveChainCount: function() {
+                    _getActiveChainCount: function () {
                         var t = r.default.getValue(this._statusData, "wireless.tx_chainmask", 0);
                         return r.default.numberOfSetBits(t)
                     },
-                    _getSignalPerChain: function() {
+                    _getSignalPerChain: function () {
                         var t = r.default.getValue(this._remoteEndData, "rssi", 0),
                             e = r.default.getValue(this._remoteEndData, "signal", 0),
                             a = r.default.getValue(this._statusData, "wireless.rx_chainmask", 0),
@@ -2485,7 +2485,7 @@
                             chainPercentage: u
                         }
                     },
-                    _getFrequency: function() {
+                    _getFrequency: function () {
                         if ((this.isAp() || this.isSta()) && this._getWirelessState().value != this.WirelessState.DISABLED) {
                             var t = r.default.getValue(this._statusData, "wireless.frequency", "0"),
                                 e = r.default.getValue(this._statusData, "wireless.dfs", 0),
@@ -2508,7 +2508,7 @@
                             units: ""
                         }
                     },
-                    _getFrequencyCenter1: function() {
+                    _getFrequencyCenter1: function () {
                         var t = this.getChanbw(),
                             e = r.default.getValue(this._statusData, "wireless.center1_freq", "0");
                         return {
@@ -2519,16 +2519,16 @@
                             textValue: e
                         }
                     },
-                    getChanbw: function() {
+                    getChanbw: function () {
                         return parseInt(r.default.getValue(this._statusData, "wireless.chanbw", 0))
                     },
-                    getAntennaGain: function(t) {
+                    getAntennaGain: function (t) {
                         return t ? this.getStationPropertyValue(this.getSelectedStationMac(), this.STATION_REMOTE_ANTENNA_GAIN) || 0 : parseInt(r.default.getValue(this._statusData, "wireless.antenna_gain", 0))
                     },
-                    isAirBeamEnabled: function() {
+                    isAirBeamEnabled: function () {
                         return r.default.getValue(this._statusData, "wireless.airbeam", !1)
                     },
-                    _getChannelWidth: function() {
+                    _getChannelWidth: function () {
                         var t = r.default.getValue(this._statusData, "wireless.chanbw", 0),
                             e = t;
                         this.isSta() && r.default.isChanbwAuto(t) && this._getWirelessState().value != this.WirelessState.CONNECTED && (e = i.default.device.wireless.is2GHz() || this.isPtmp() ? __("Auto") + " 20 / 40" : __("Auto") + " 20 / 40 / 80");
@@ -2541,49 +2541,49 @@
                             units: a ? "MHz" : "-"
                         }
                     },
-                    _getNoiseFloor: function() {
+                    _getNoiseFloor: function () {
                         var t = r.default.getValue(this._statusData, "wireless.noisef", 0);
                         return 0 != t && this.isAssociated() ? t + " dBm" : "-"
                     },
-                    _getStationNoiseFloor: function() {
+                    _getStationNoiseFloor: function () {
                         var t = r.default.getValue(this._remoteEndData, "noisefloor", 0);
                         return 0 != t && this.isAssociated() ? t + " dBm" : "-"
                     },
-                    _getRemoteNoiseFloor: function() {
+                    _getRemoteNoiseFloor: function () {
                         var t = r.default.getValue(this._remoteEndData, "remote.noisefloor", 0);
                         return 0 != t && this.isAssociated() ? t + " dBm" : "-"
                     },
-                    _getTxRate: function() {
+                    _getTxRate: function () {
                         var t = r.default.getValue(this._statusData, "wireless.tx_idx", 0),
                             e = r.default.getValue(this._statusData, "wireless.tx_nss", 0);
                         return i.default.device.wireless.formatRate(t, e)
                     },
-                    _getRxRate: function() {
+                    _getRxRate: function () {
                         var t = r.default.getValue(this._statusData, "wireless.rx_idx", 0),
                             e = r.default.getValue(this._statusData, "wireless.rx_nss", 0);
                         return i.default.device.wireless.formatRate(t, e)
                     },
-                    _getStationSignalTxRx: function() {
+                    _getStationSignalTxRx: function () {
                         return r.default.getValue(this._remoteEndData, "remote.signal", 0) + " / " + r.default.getValue(this._remoteEndData, "signal", 0) + " dBm"
                     },
-                    getMinChainCount: function() {
+                    getMinChainCount: function () {
                         return f.default.min([this.getStationRemoteActiveChainCount(), this.getStationActiveChainCount()])
                     },
-                    getStationRemoteActiveChainCount: function(t) {
+                    getStationRemoteActiveChainCount: function (t) {
                         var e = t || this._selectedStationMac,
-                            a = r.default.getValue(this._stationData.filter(function(t) {
+                            a = r.default.getValue(this._stationData.filter(function (t) {
                                 return t.mac === e
                             })[0], "remote.rx_chainmask", 0);
                         return r.default.numberOfSetBits(a)
                     },
-                    getStationActiveChainCount: function() {
+                    getStationActiveChainCount: function () {
                         var t = r.default.getValue(this._statusData, "wireless.rx_chainmask", 0);
                         return r.default.numberOfSetBits(t)
                     },
-                    _atpcStatusToString: function(t) {
+                    _atpcStatusToString: function (t) {
                         return void 0 !== s.default.ATPC_STATUS_LABEL[parseInt(t)] ? s.default.ATPC_STATUS_LABEL[parseInt(t)] : ""
                     },
-                    _getTxPower: function(t) {
+                    _getTxPower: function (t) {
                         if (t) var e = r.default.getValue(this._remoteEndData, "remote.tx_power", "-"),
                             a = r.default.getValue(this._remoteEndData, "airmax.atpc_status", 0);
                         else {
@@ -2597,15 +2597,15 @@
                             rawValue: parseInt(e)
                         }
                     },
-                    getTxPower: function(t) {
+                    getTxPower: function (t) {
                         return this._getTxPower(t).rawValue
                     },
-                    getChainNames: function() {
+                    getChainNames: function () {
                         var t = r.default.getValue(this._statusData, "chain_names", null),
                             e = "";
                         return t && t.length > 1 && (e = __("Chain") + " 0 / 1"), e
                     },
-                    _getRawChainSignal: function(t) {
+                    _getRawChainSignal: function (t) {
                         var e = r.default.getValue(this._remoteEndData, t ? "remote.rssi" : "rssi", 0),
                             a = r.default.getValue(this._remoteEndData, t ? "remote.signal" : "signal", 0);
                         if (t) var i = r.default.getValue(this._remoteEndData, "remote.rx_chainmask", 0);
@@ -2621,20 +2621,20 @@
                                 }
                         return n
                     },
-                    _getChainSignal: function(t, e) {
+                    _getChainSignal: function (t, e) {
                         var a = this._getRawChainSignal(e),
                             i = this.isAssociated() && a.length > 1;
                         return f.default.indexOf([0, 1], t) > -1 ? i && a[t] < 0 ? a[t] + " dBm" : "-" : (i && a[0] < 0 ? a[0] + " dBm" : "-") + " / " + (i && a[1] < 0 ? a[1] + " dBm" : "-")
                     },
-                    _isChainSignalDiffTooHigh: function(t, e, a) {
+                    _isChainSignalDiffTooHigh: function (t, e, a) {
                         return this._getChainImbalance(t, e, a) > 5
                     },
-                    _getChainImbalance: function(t, e, a) {
+                    _getChainImbalance: function (t, e, a) {
                         var i = parseInt(t, 10),
                             s = parseInt(e, 10);
                         return a < 2 || f.default.isNaN(i) || f.default.isNaN(s) ? 0 : Math.abs(i - s)
                     },
-                    getStationRemoteChainSignal: function() {
+                    getStationRemoteChainSignal: function () {
                         var t = r.default.getValue(this._remoteEndData, "remote.rssi", 0),
                             e = r.default.getValue(this._remoteEndData, "remote.signal", 0),
                             a = r.default.getValue(this._remoteEndData, "remote.rx_chainmask", 0),
@@ -2657,7 +2657,7 @@
                             chainPercentage: l
                         }
                     },
-                    _getAntennaCount: function() {
+                    _getAntennaCount: function () {
                         return i.default.device.wireless.getAntennaCount()
                     },
                     WirelessState: {
@@ -2668,7 +2668,7 @@
                         AUTHENTICATING: 4,
                         DFS_WAIT: 5
                     },
-                    _getWirelessState: function() {
+                    _getWirelessState: function () {
                         var t, e;
                         if (this.isWlanEnabled()) {
                             var a = r.default.getValue(this._statusData, "wireless.sta", []).length;
@@ -2698,10 +2698,10 @@
                             textValue: e
                         }
                     },
-                    _getDfsTime: function() {
+                    _getDfsTime: function () {
                         return r.default.getValue(this._statusData, "wireless.cac_state", 0)
                     },
-                    _getStationRemoteFirmware: function(t) {
+                    _getStationRemoteFirmware: function (t) {
                         var e = r.default.getValue(this._remoteEndData, "remote.version", "");
                         if (t) {
                             var a = e.split(".")[0];
@@ -2709,76 +2709,76 @@
                         }
                         return r.default.getFirmwareVersion(e)
                     },
-                    _getStationAirtimeTx: function() {
+                    _getStationAirtimeTx: function () {
                         return (r.default.getValue(this._remoteEndData, "airmax.tx.usage", 0) / 10).toFixed(1)
                     },
-                    _getStationAirtimeRx: function() {
+                    _getStationAirtimeRx: function () {
                         return (r.default.getValue(this._remoteEndData, "airmax.rx.usage", 0) / 10).toFixed(1)
                     },
-                    _getStationAirtime: function() {
+                    _getStationAirtime: function () {
                         return this._getStationAirtimeTx() + " / " + this._getStationAirtimeRx()
                     },
-                    getFirmwarePrefix: function() {
+                    getFirmwarePrefix: function () {
                         return UBNT.Utils.Session.get("fullVersion").split(".")[0]
                     },
-                    getFirmwareVersion: function() {
+                    getFirmwareVersion: function () {
                         return this.getFirmwarePrefix() + "." + r.default.getValue(this._statusData, "host.fwversion", "")
                     },
-                    getDeviceName: function(t) {
+                    getDeviceName: function (t) {
                         return t ? this.getStationPropertyValue(this.getSelectedStationMac(), this.STATION_REMOTE_DEVICE_NAME) || "" : r.default.getValue(this._statusData, "host.hostname", "")
                     },
-                    getDeviceModel: function(t) {
+                    getDeviceModel: function (t) {
                         return t ? this.getStationPropertyValue(this.getSelectedStationMac(), this.STATION_REMOTE_DEVICE_MODEL) || "" : r.default.getValue(this._statusData, "host.devmodel", "")
                     },
-                    isStationMSeries: function() {
+                    isStationMSeries: function () {
                         return this._isMSeries(this.getStationPropertyValue(this.getSelectedStationMac(), this.STATION_REMOTE_VERSION_FULL) || "")
                     },
-                    getFirmwareBuild: function() {
+                    getFirmwareBuild: function () {
                         var t = /[.]([0-9]+)[.][0-9]{6}[.][0-9]{4}/.exec(UBNT.Utils.Session.get("fullVersion"));
                         return t && t[1] ? t[1] : __("Unknown")
                     },
-                    _isMSeries: function(t) {
+                    _isMSeries: function (t) {
                         return -1 != t.indexOf("(XM)") || -1 != t.indexOf("(XW)") || -1 != t.indexOf("(TI)")
                     },
-                    isEnabledDHCPClient: function() {
+                    isEnabledDHCPClient: function () {
                         return 0 != r.default.getValue(this._statusData, "services.dhcpc", 0)
                     },
-                    isEnabledDHCPDaemon: function() {
+                    isEnabledDHCPDaemon: function () {
                         return 0 != r.default.getValue(this._statusData, "services.dhcpd", 0)
                     },
-                    isEnabledDHCP6Daemon: function() {
+                    isEnabledDHCP6Daemon: function () {
                         return 0 != r.default.getValue(this._statusData, "services.dhcp6d_stateful", 0)
                     },
-                    isEnabledPPPoE: function() {
+                    isEnabledPPPoE: function () {
                         return 0 != r.default.getValue(this._statusData, "services.pppoe", 0)
                     },
-                    isEnabledAirview: function() {
+                    isEnabledAirview: function () {
                         return r.default.getValue(this._statusData, "services.airview", 0) > 0
                     },
-                    isRunningAirview: function() {
+                    isRunningAirview: function () {
                         return 2 == r.default.getValue(this._statusData, "services.airview", 0)
                     },
-                    isEnabledServiceConfiguration: function() {
+                    isEnabledServiceConfiguration: function () {
                         return 0 != r.default.getValue(this._statusData, "host.uservice", 0)
                     },
-                    isPortForwardEnabled: function() {
+                    isPortForwardEnabled: function () {
                         return 1 == r.default.getValue(this._statusData, "portfw", 0)
                     },
-                    isFirewallEnabled: function() {
+                    isFirewallEnabled: function () {
                         var t = r.default.getValue(this._statusData, "firewall.iptables", 0),
                             e = r.default.getValue(this._statusData, "firewall.ebtables", 0);
                         return 1 == t || 1 == e
                     },
-                    getStationData: function() {
+                    getStationData: function () {
                         return this._stationData
                     },
-                    getStationCollection: function() {
+                    getStationCollection: function () {
                         return this._stationCollection
                     },
-                    getInterfaceCollection: function() {
+                    getInterfaceCollection: function () {
                         return this._interfaceCollection
                     },
-                    _getDate: function(t) {
+                    _getDate: function (t) {
                         if (t) var e = r.default.getValue(this._remoteEndData, "remote.time", "-");
                         else e = r.default.getValue(this._statusData, "host.time", "-");
                         if ("-" != e) {
@@ -2787,7 +2787,7 @@
                         }
                         return e
                     },
-                    getPriorityStringValue: function(t) {
+                    getPriorityStringValue: function (t) {
                         switch (t) {
                             case s.default.AirmaxPriority.HIGH:
                                 return __("High");
@@ -2800,21 +2800,21 @@
                                 return __("Base")
                         }
                     },
-                    getIsolatedCapacityRx: function() {
+                    getIsolatedCapacityRx: function () {
                         return r.default.getValue(this._statusData, "wireless.polling.ucap", 0)
                     },
-                    getIsolatedCapacityTx: function() {
+                    getIsolatedCapacityTx: function () {
                         return r.default.getValue(this._statusData, "wireless.polling.dcap", 0)
                     },
-                    _getActualPriority: function() {
+                    _getActualPriority: function () {
                         var t = r.default.getValue(this._remoteEndData, "airmax.actual_priority", 2);
                         return this.getPriorityStringValue(t)
                     },
-                    _getDesiredPriority: function() {
+                    _getDesiredPriority: function () {
                         var t = r.default.getValue(this._remoteEndData, "airmax.desired_priority", 2);
                         return this.getPriorityStringValue(t)
                     },
-                    _getStationRemoteSignal: function() {
+                    _getStationRemoteSignal: function () {
                         var t = r.default.getValue(this._remoteEndData, "remote.rssi", 0),
                             e = r.default.getValue(this._remoteEndData, "remote.signal", 0);
                         return {
@@ -2823,7 +2823,7 @@
                             units: "dBm"
                         }
                     },
-                    _getStationSignal: function() {
+                    _getStationSignal: function () {
                         var t = r.default.getValue(this._remoteEndData, "rssi", 0),
                             e = r.default.getValue(this._remoteEndData, "signal", 0);
                         return {
@@ -2832,41 +2832,41 @@
                             units: "dBm"
                         }
                     },
-                    getSelectedStationMac: function() {
+                    getSelectedStationMac: function () {
                         return this._selectedStationMac
                     },
-                    getSelectedStationIp: function() {
+                    getSelectedStationIp: function () {
                         var t = "";
                         return this.isAssociated() ? ("0.0.0.0" !== this._selectedStationIp && (t = this._selectedStationIp), t) : t
                     },
-                    getControlFrequency: function() {
+                    getControlFrequency: function () {
                         return parseInt(r.default.getValue(this._statusData, "wireless.frequency", "0"))
                     },
-                    getCenterFrequency: function() {
+                    getCenterFrequency: function () {
                         return parseInt(r.default.getValue(this._statusData, "wireless.center1_freq", "0"))
                     },
-                    getUbntboxLabel: function() {
+                    getUbntboxLabel: function () {
                         return this._ubntboxLabel
                     },
-                    setUbntboxLabel: function(t) {
+                    setUbntboxLabel: function (t) {
                         this._ubntboxLabel = t
                     },
-                    isWatchdogReset: function() {
+                    isWatchdogReset: function () {
                         return this._isWatchdogReset
                     },
-                    setIsWatchdogReset: function(t) {
+                    setIsWatchdogReset: function (t) {
                         this._isWatchdogReset = t
                     },
-                    isDefaultPassword: function() {
+                    isDefaultPassword: function () {
                         return this._isDefaultPassword
                     },
-                    setIsDefaultPassword: function(t) {
+                    setIsDefaultPassword: function (t) {
                         this._isDefaultPassword = t
                     },
-                    isAllStationsMSeries: function() {
+                    isAllStationsMSeries: function () {
                         return this._isAllStationsMSeries
                     },
-                    getThroughputRx: function(t) {
+                    getThroughputRx: function (t) {
                         if (t) var e = i.default.chartController.options.remoteChartModel;
                         else e = i.default.chartController.options.wlanChartModel;
                         if (e) {
@@ -2875,7 +2875,7 @@
                         }
                         return 0
                     },
-                    getThroughputTx: function(t) {
+                    getThroughputTx: function (t) {
                         if (t) var e = i.default.chartController.options.remoteChartModel;
                         else e = i.default.chartController.options.wlanChartModel;
                         if (e) {
@@ -2884,20 +2884,20 @@
                         }
                         return 0
                     },
-                    isManagementRadioUp: function() {
+                    isManagementRadioUp: function () {
                         var t = this._getInterface("ath1");
                         return null != t && t.enabled
                     },
-                    isIpv6Enabled: function() {
+                    isIpv6Enabled: function () {
                         var t = !1;
-                        return f.default.each(this._interfaceCollection.models, function(e) {
+                        return f.default.each(this._interfaceCollection.models, function (e) {
                             e.get("status").ip6addr && (t = !0)
                         }, this), t
                     },
-                    getAirCubeCollection: function() {
+                    getAirCubeCollection: function () {
                         return this._airCubeCollection
                     },
-                    setAirCubeCollection: function(t) {
+                    setAirCubeCollection: function (t) {
                         for (var e in this._airCubeCollection.reset(), t)
                             if (t.hasOwnProperty(e)) {
                                 var a = f.default.extend({
@@ -3051,7 +3051,7 @@
                 }, e.default = S
             }).call(this, a(8))
         },
-        572: function(t, e, a) {
+        572: function (t, e, a) {
             "use strict";
             Object.defineProperty(e, "__esModule", {
                 value: !0
@@ -3085,7 +3085,7 @@
                     },
                     system: "metric"
                 },
-                in : {
+                in: {
                     ratio: {
                         metric: 1 / 3.28084 / 12,
                         imperial: 1 / 12
@@ -3108,11 +3108,11 @@
                 }
             });
             e.default = {
-                convert: function(t, e, a) {
+                convert: function (t, e, a) {
                     var s = i[e].system;
                     return t * i[e].ratio[s] / i[a].ratio[s]
                 },
-                toBest: function(t, e) {
+                toBest: function (t, e) {
                     var a;
                     for (var s in i)
                         if (i.hasOwnProperty(s) && i[e].system === i[s].system) {
@@ -3126,7 +3126,7 @@
                 }
             }
         },
-        581: function(t, e, a) {
+        581: function (t, e, a) {
             "use strict";
             Object.defineProperty(e, "__esModule", {
                 value: !0
@@ -3152,18 +3152,18 @@
                     click: "onSelect",
                     render: "onRenderChild"
                 },
-                getChildView: function(t) {
+                getChildView: function (t) {
                     return i.default.settings.isMobileLayout() ? t.hasUrl() ? o.default : l.default : t.hasUrl() ? u.default : n.default
                 },
-                onSelect: function(t) {
+                onSelect: function (t) {
                     this.trigger("select", t.model)
                 }
             });
             e.default = _
         },
-        582: function(t, e, a) {
+        582: function (t, e, a) {
             "use strict";
-            (function(t) {
+            (function (t) {
                 Object.defineProperty(e, "__esModule", {
                     value: !0
                 });
@@ -3182,30 +3182,30 @@
                 e.default = o.default.Object.extend({
                     __name__: "NavigationController",
                     listView: l.default,
-                    addItem: function(e) {
+                    addItem: function (e) {
                         var a = new n.default(e);
                         if (this.list.where({
-                                name: e.name
-                            }).length > 0 && log.error("Duplicate menu item is added"), this.list.add(a), a.hasUrl() && this.router.route(a.get("url"), a.get("name"), t.bind(function() {
-                                this.routeAction(a)
-                            }, this)), a.hasKeymap()) {
+                            name: e.name
+                        }).length > 0 && log.error("Duplicate menu item is added"), this.list.add(a), a.hasUrl() && this.router.route(a.get("url"), a.get("name"), t.bind(function () {
+                            this.routeAction(a)
+                        }, this)), a.hasKeymap()) {
                             var s = this,
-                                l = function() {
-                                    Mousetrap.bind(a.get("keymap"), function() {
+                                l = function () {
+                                    Mousetrap.bind(a.get("keymap"), function () {
                                         return s.onSelect(a), !1
                                     })
                                 };
-                            l(), i.default.listenTo(i.default.vent, "mousetrap:bind", l), i.default.listenTo(i.default.vent, "mousetrap:unbind", function() {
+                            l(), i.default.listenTo(i.default.vent, "mousetrap:bind", l), i.default.listenTo(i.default.vent, "mousetrap:unbind", function () {
                                 Mousetrap.unbind(a.get("keymap"))
                             })
                         }
                         return a
                     },
-                    removeItem: function(t) {
+                    removeItem: function (t) {
                         var e = this.list.findWhere(t);
                         e && this.list.remove(e)
                     },
-                    updateItem: function(t) {
+                    updateItem: function (t) {
                         var e = this.list.where({
                             name: t.name
                         });
@@ -3214,36 +3214,36 @@
                             this.list.remove(e), this.list.add(a)
                         }
                     },
-                    routeAction: function(t) {
+                    routeAction: function (t) {
                         this.isNavigationAllowed(t) && this.doAction(t), i.default.vent.trigger("navigate:route_action")
                     },
-                    doAction: function(t) {
+                    doAction: function (t) {
                         if (this.list.toggleActive(t, !0), t.get("openAction").call(t), t.hasUrl()) {
                             var e = t.get("title");
                             i.default.navigation.setDocumentTitle(e), i.default.vent.trigger("navigate:on_action", t)
                         }
                     },
-                    isNavigationAllowed: function(t) {
+                    isNavigationAllowed: function (t) {
                         var e = this.list.getActive();
                         return !e || (t && e.get("url") === t.get("url") && !!e.get("canReload") || e.get("beforeCloseAction").call(e))
                     },
-                    getView: function() {
+                    getView: function () {
                         return this.view
                     },
-                    onSelect: function(t) {
+                    onSelect: function (t) {
                         t.hasUrl() ? this.isNavigationAllowed(t) && (u.default.history.navigate(t.get("url"), {
                             trigger: !1
                         }), this.doAction(t)) : t.get("openAction").call(t), i.default.vent.trigger("navigate:on_select")
                     },
-                    initializeView: function() {
+                    initializeView: function () {
                         return this.view = new this.listView({
                             collection: this.list
                         }), this.listenTo(this.view, "select", this.onSelect), this.view
                     },
-                    initialize: function() {
+                    initialize: function () {
                         var t = this,
                             e = u.default.Router.extend({
-                                execute: function(e, a) {
+                                execute: function (e, a) {
                                     var i = u.default.history.fragment,
                                         s = t.list.getByUrl(i);
                                     if (s && t.isNavigationAllowed(s)) e && e.apply(this, a);
@@ -3260,20 +3260,20 @@
                 })
             }).call(this, a(3))
         },
-        583: function(t, e, a) {
+        583: function (t, e, a) {
             "use strict";
-            (function(t) {
+            (function (t) {
                 Object.defineProperty(e, "__esModule", {
                     value: !0
                 });
                 var a = {
-                    disableAutocomplete: function() {
-                        t(":input:not(:button)").each(function() {
+                    disableAutocomplete: function () {
+                        t(":input:not(:button)").each(function () {
                             t(this).attr("autocomplete", "off")
                         })
                     },
-                    disableLastPass: function() {
-                        t(":input:not(:button)").each(function() {
+                    disableLastPass: function () {
+                        t(":input:not(:button)").each(function () {
                             t(this).attr("data-lpignore", "true")
                         })
                     }
@@ -3281,7 +3281,7 @@
                 e.default = a
             }).call(this, a(8))
         },
-        635: function(t, e, a) {
+        635: function (t, e, a) {
             "use strict";
             Object.defineProperty(e, "__esModule", {
                 value: !0
@@ -3304,20 +3304,20 @@
                 modelEvents: {
                     change: "render"
                 },
-                onClick: function(t) {
+                onClick: function (t) {
                     t.preventDefault(), this.trigger("click")
                 },
-                onRender: function() {
+                onRender: function () {
                     this.$el.find("a").toggleClass("is-item-selected", this.model.get("isActive")), this.$el.toggleClass("active", this.model.get("isActive"))
                 },
-                onShow: function() {
+                onShow: function () {
                     var t = [this.model.get("className"), this.className + "_" + this.model.get("name")];
                     this.$el.addClass(t.join(" "))
                 }
             });
             e.default = n
         },
-        636: function(t, e, a) {
+        636: function (t, e, a) {
             "use strict";
             Object.defineProperty(e, "__esModule", {
                 value: !0
@@ -3340,25 +3340,25 @@
                 modelEvents: {
                     change: "render"
                 },
-                onClick: function(t) {
+                onClick: function (t) {
                     t.preventDefault(), this.trigger("click")
                 },
-                onRender: function() {
+                onRender: function () {
                     this.$el.toggleClass("is-item-selected", this.model.get("isActive")), this.$el.toggleClass("active", this.model.get("isActive"))
                 },
-                onShow: function() {
+                onShow: function () {
                     var t = [this.model.get("className"), this.className + "_" + this.model.get("name")];
                     this.$el.addClass(t.join(" "))
                 }
             });
             e.default = n
         },
-        637: function(t, e, a) {
+        637: function (t, e, a) {
             "use strict";
             Object.defineProperty(e, "__esModule", {
                 value: !0
             });
-            var i = function(t) {
+            var i = function (t) {
                 return t && t.__esModule ? t : {
                     default: t
                 }
@@ -3376,26 +3376,26 @@
                     className: "",
                     tooltip: "",
                     keymap: "",
-                    openAction: function() {},
-                    beforeCloseAction: function() {
+                    openAction: function () { },
+                    beforeCloseAction: function () {
                         return !0
                     }
                 },
-                isStateful: function() {
+                isStateful: function () {
                     return this.get("isStateful")
                 },
-                hasUrl: function() {
+                hasUrl: function () {
                     return "" != this.get("url")
                 },
-                hasKeymap: function() {
+                hasKeymap: function () {
                     return "" !== this.get("keymap")
                 }
             });
             e.default = i
         },
-        638: function(t, e, a) {
+        638: function (t, e, a) {
             "use strict";
-            (function(t) {
+            (function (t) {
                 Object.defineProperty(e, "__esModule", {
                     value: !0
                 });
@@ -3411,7 +3411,7 @@
                 }
                 e.default = s.default.Region.extend({
                     __name__: "DialogRegion",
-                    onShow: function(e) {
+                    onShow: function (e) {
                         this.view = e;
                         var a = this;
                         e.dialogOptions = e.dialogOptions || {}, this.listenTo(e, "dialog:close", this.closeDialog);
@@ -3425,14 +3425,14 @@
                                 at: "center",
                                 of: t("body")
                             },
-                            close: function() {
+                            close: function () {
                                 a.closeDialog()
                             },
-                            open: function(e) {
+                            open: function (e) {
                                 var i = t(e.target),
                                     s = i.parent();
                                 s.find(".ui-dialog-buttonset").children().removeClass("ui-button ui-widget ui-corner-all");
-                                var n = setTimeout(function() {
+                                var n = setTimeout(function () {
                                     var t = i.dialog("instance");
                                     t._focusedElement && t._focusedElement.is(":disabled") && (t._focusedElement = null), t._focusTabbable(), clearTimeout(n)
                                 }, 400);
@@ -3448,38 +3448,38 @@
                         };
                         l.default.extend(s, l.default.result(e, "dialogExtendOptions")), this.$el.dialog(i).dialogExtend(s), this._makeDocumentBodyOverflow("hidden"), n.default.disableAutocomplete(), n.default.disableLastPass()
                     },
-                    _makeDocumentBodyOverflow: function(e) {
+                    _makeDocumentBodyOverflow: function (e) {
                         t("body").hasClass("mobile_layout") && (document.body.style.overflow = e)
                     },
-                    updateButtonClasses: function(t) {
-                        l.default.each(t, function(t) {
+                    updateButtonClasses: function (t) {
+                        l.default.each(t, function (t) {
                             l.default.isUndefined(t.class) && (t.class = ""), t.class += " appMainButton appMainButton--cozy ", t.primary ? t.class += "appMainButton--primary" : t.danger && (t.class += "appMainButton--danger")
                         })
                     },
-                    closeDialog: function() {
+                    closeDialog: function () {
                         this.view.trigger("dialog:before_close");
                         var t = l.default.invert(i.default.openDialogs)[this.$el.selector.substr(1)];
                         t && delete i.default.openDialogs[t], this.stopListening(), this.$el && this.$el.dialog("destroy"), this._makeDocumentBodyOverflow("inherit"), this.empty(), this.mousetrap.unbind(i.default.settings.KeyboardShortcuts.ACTION_TRIGGER), this.mousetrap.unbind(i.default.settings.KeyboardShortcuts.ACTION_CANCEL)
                     },
-                    openDialog: function() {
+                    openDialog: function () {
                         var t = this;
-                        this.mousetrap = new Mousetrap, this.mousetrap.stopCallback = function(t) {
+                        this.mousetrap = new Mousetrap, this.mousetrap.stopCallback = function (t) {
                             return t.target.blur(), !1
-                        }, this.mousetrap.bind(i.default.settings.KeyboardShortcuts.ACTION_TRIGGER, function(e) {
+                        }, this.mousetrap.bind(i.default.settings.KeyboardShortcuts.ACTION_TRIGGER, function (e) {
                             t && t.view && t.view.onActionTrigger && l.default.isFunction(t.view.onActionTrigger) && t._triggerFocusDialogKeyboardAction(e) && t.view.onActionTrigger()
-                        }), this.mousetrap.bind(i.default.settings.KeyboardShortcuts.ACTION_CANCEL, function(e) {
+                        }), this.mousetrap.bind(i.default.settings.KeyboardShortcuts.ACTION_CANCEL, function (e) {
                             t && t.view && t.view.onActionCancel && l.default.isFunction(t.view.onActionCancel) && t._triggerFocusDialogKeyboardAction(e) && t.view.onActionCancel()
                         })
                     },
-                    _isNotFocusedDialogElement: function() {
+                    _isNotFocusedDialogElement: function () {
                         return !document.hasFocus() || document.activeElement.isEqualNode(document.body)
                     },
-                    _isFocusedDialogPrimaryActionButton: function() {
+                    _isFocusedDialogPrimaryActionButton: function () {
                         if (!document.activeElement) return !1;
                         var e = t(document.activeElement);
                         return e && e.is(":button") && e.attr("primary") && "true" === e.attr("primary")
                     },
-                    _triggerFocusDialogKeyboardAction: function(e) {
+                    _triggerFocusDialogKeyboardAction: function (e) {
                         var a = document.activeElement,
                             i = a && (this.el.parentNode === a || t.contains(this.el.parentNode, a));
                         return this._isNotFocusedDialogElement() && e.target && (i = this.el.parentNode === e.target || t.contains(this.el.parentNode, e.target)), this._isFocusedDialogPrimaryActionButton() && (i = !1), i
@@ -3487,7 +3487,7 @@
                 })
             }).call(this, a(8))
         },
-        639: function(t, e, a) {
+        639: function (t, e, a) {
             "use strict";
             Object.defineProperty(e, "__esModule", {
                 value: !0
@@ -3506,7 +3506,7 @@
                     label: "",
                     toolTip: !1
                 },
-                initialize: function(t, e) {
+                initialize: function (t, e) {
                     s.default.isUndefined(t.textValue) && this.set("textValue", t.value)
                 }
             });

@@ -71,7 +71,7 @@ class ExporterHandler(tornado.web.RequestHandler):
         }
 
     @run_on_executor
-    def get_device_information(self, hostname):
+    def get_device_information(self, hostname, lock):
         try:
             module = self.application.CONFIG[self.get_argument('module')]
         except tornado.web.MissingArgumentError:
@@ -156,7 +156,10 @@ class ExporterHandler(tornado.web.RequestHandler):
 
         # get metrics from file
         types = module['metrics']
-        return self.collectors[module['device']].metrics(types, dev, Metrics())
+        lock.acquire()
+        data = self.collectors[module['device']].metrics(types, dev, Metrics())
+        lock.release()
+        return data
 
     async def get(self):
         self.set_header('Content-type', 'text/plain')
@@ -168,19 +171,18 @@ class ExporterHandler(tornado.web.RequestHandler):
         if hostname:
             if hostname not in CONNECTION_POOL.keys():
                 CONNECTION_POOL[hostname] = {}
-                CONNECTION_POOL[hostname]['lock'] = threading.RLock()
+                CONNECTION_POOL[hostname]['lock'] = threading.Lock()
 
             self.application.used_workers.inc()
-            lock = CONNECTION_POOL[hostname]['lock']
-            lock.acquire()
             try:
-                code, status, data = await self.get_device_information(hostname=hostname)
+                code, status, data = await self.get_device_information(
+                    hostname=hostname,
+                    lock=CONNECTION_POOL[hostname]['lock']
+                )
             except Exception as e:
                 raise(e)
             finally:
                 self.application.used_workers.dec()
-                lock.release()
-                CONNECTION_POOL[hostname]['lock'] = lock
 
         self.set_status(code, reason=status)
         self.write(bytes(data, 'utf-8'))
