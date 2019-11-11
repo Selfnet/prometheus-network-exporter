@@ -8,6 +8,7 @@ verify_ssl = true
 pylint = "*"
 "flake8" = "*"
 "PySocks" = "*"
+
 [packages]
 junos-eznc = "==2.2.1"
 PyYAML= "*"
@@ -17,6 +18,7 @@ unifi_client= "*"
 prometheus_client= "*"
 fqdn= "*"
 voluptuous = "*"
+cached-property = "*"
 
 [requires]
 python_version = "3.5"

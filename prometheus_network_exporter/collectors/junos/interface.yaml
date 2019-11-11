@@ -1,0 +1,173 @@
+---
+METRICS:
+  Gauge:
+    - metric: last_flapped
+      key: flapped
+      type: seconds
+      description: Port Date (Unix TimeStamp) for last flap
+
+    - metric: is_running
+      key: running
+      description: Port is_up (0(DOWN)/1(UP))
+      function: is_ok
+
+    - metric: is_operational
+      key: oper
+      description: Port oper (0(DOWN)/1(UP))
+      function: is_ok
+
+    - metric: is_admin
+      key: admin
+      description: Port admin (0(DOWN)/1(UP))
+      function: is_ok
+
+    - metric: is_enabled
+      key: present
+      description: Port is_enabled (0(DOWN)/1(UP))
+      function: is_ok
+
+  # Optic Specific
+    - metric: temperature
+      key: module_temperature
+      type: celsius
+      description: Port SFP temperature
+
+    - metric: sending_laser_fault_alarm
+      key: tx_laser_fault_alarm
+      description: Port tx laser fault alarm on sfp (0(FAULT)/1(OK))
+      function: is_ok
+
+    - metric: sending_optic_power
+      key: tx_optic_power
+      description: Sending Power on interface
+      type: dbm
+      function: floatify
+
+    - metric: receiving_optic_power
+      key: rx_optic_power
+      description: Receiving Power on interface
+      type: dbm
+      function: floatify
+
+    - metric: voltage
+      key: module_voltage
+      description: Port SFP voltage
+      type: dbm
+
+    - metric: laser_bias_current
+      key: laser_bias_current
+      description: Laser Bias Current
+      type: dbm
+  # Thresholds for alarms
+  # temperature
+    - metric: module_temperature_high_alarm_threshold
+      key: module_temperature_high_alarm
+      description: Threshold for alarms
+      type: celsius
+
+    - metric: module_temperature_low_alarm_threshold
+      key: module_temperature_low_alarm
+      description: Threshold for alarms
+      type: celsius
+
+    - metric: module_temperature_high_warn_threshold
+      key: module_temperature_high_warn
+      description: Threshold for alarms
+      type: celsius
+
+    - metric: module_temperature_low_warn_threshold
+      key: module_temperature_low_warn
+      description: Threshold for alarms
+      type: celsius
+  # receiving
+    - metric: receiving_optic_power_high_alarm_threshold
+      key: rx_optic_power_high_alarm
+      description: Threshold for alarms
+      type: dbm
+
+    - metric: receiving_optic_power_low_alarm_threshold
+      key: rx_optic_power_low_alarm
+      description: Threshold for alarms
+      type: dbm
+
+    - metric: receiving_optic_power_high_warn_threshold
+      key: rx_optic_power_high_warn
+      description: Threshold for alarms
+      type: dbm
+
+    - metric: receiving_optic_power_low_warn_threshold
+      key: rx_optic_power_low_warn
+      description: Threshold for alarms
+      type: dbm
+  # sending
+    - metric: sending_optic_power_high_alarm_threshold
+      key: tx_optic_power_high_alarm
+      description: Threshold for alarms
+      type: dbm
+
+    - metric: sending_optic_power_low_alarm_threshold
+      key: tx_optic_power_low_alarm
+      description: Threshold for alarms
+      type: dbm
+
+    - metric: sending_optic_power_high_warn_threshold
+      key: tx_optic_power_high_warn
+      description: Threshold for alarms
+      type: dbm
+
+    - metric: sending_optic_power_low_warn_threshold
+      key: tx_optic_power_low_warn
+      description: Threshold for alarms
+      type: dbm
+  # laser bias
+    - metric: laser_bias_high_alarm_threshold
+      key: laser_bias_high_alarm
+      description: Threshold for alarms
+      type: dbm
+
+    - metric: laser_bias_low_alarm_threshold
+      key: laser_bias_low_alarm
+      description: Threshold for alarms
+      type: dbm
+
+    - metric: laser_bias_high_warn_threshold
+      key: laser_bias_high_warn
+      description: Threshold for alarms
+      type: dbm
+
+    - metric: laser_bias_low_warn_threshold
+      key: laser_bias_low_warn
+      description: Threshold for alarms
+      type: dbm
+
+  Counter:
+    - metric: received
+      key: rx_bytes
+      description: Total received Bytes by Port
+      type: bytes_total
+
+    - metric: transmitted
+      key: tx_bytes
+      description: Total transmitted Bytes of Port
+      type: bytes_total
+
+  ## Error Counters
+    - metric: transmit_error_output
+      type: total
+      key: input_errors
+      description: Errors in transmitted packets
+
+    - metric: receive_error_input
+      type: total
+      key: output_errors
+      description: Errors in received packets
+
+LABELS:
+  - label: description
+    key: description
+
+  - label: MAC
+    key: macaddr
+
+  - label: speed
+    key: speed

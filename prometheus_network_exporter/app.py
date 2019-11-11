@@ -3,7 +3,6 @@ import sys
 import getpass
 import signal
 import argparse
-import threading
 import tornado.ioloop
 import tornado.web
 from collections import Counter
@@ -14,7 +13,6 @@ from concurrent.futures import ThreadPoolExecutor
 from prometheus_client import generate_latest
 from prometheus_network_exporter import __version__ as VERSION
 from prometheus_network_exporter.baseapp import Application
-from prometheus_network_exporter.registry import Metrics
 from prometheus_network_exporter.devices.junosdevice import JuniperNetworkDevice, JuniperMetrics
 from prometheus_network_exporter.devices.arubadevice import ArubaNetworkDevice, ArubaMetrics
 from prometheus_network_exporter.devices.ubntdevice import AirMaxDevice, AirMaxMetrics
@@ -71,7 +69,7 @@ class ExporterHandler(tornado.web.RequestHandler):
         }
 
     @run_on_executor
-    def get_device_information(self, hostname, lock):
+    def get_device_information(self, hostname):
         try:
             module = self.application.CONFIG[self.get_argument('module')]
         except tornado.web.MissingArgumentError:
@@ -156,9 +154,7 @@ class ExporterHandler(tornado.web.RequestHandler):
 
         # get metrics from file
         types = module['metrics']
-        lock.acquire()
-        data = self.collectors[module['device']].metrics(types, dev, Metrics())
-        lock.release()
+        data = self.collectors[module['device']].metrics(types, dev)
         return data
 
     async def get(self):
@@ -171,14 +167,10 @@ class ExporterHandler(tornado.web.RequestHandler):
         if hostname:
             if hostname not in CONNECTION_POOL.keys():
                 CONNECTION_POOL[hostname] = {}
-                CONNECTION_POOL[hostname]['lock'] = threading.Lock()
-
             self.application.used_workers.inc()
             try:
                 code, status, data = await self.get_device_information(
-                    hostname=hostname,
-                    lock=CONNECTION_POOL[hostname]['lock']
-                )
+                    hostname=hostname)
             except Exception as e:
                 raise(e)
             finally:
@@ -199,15 +191,13 @@ class AllDeviceReloadHandler(tornado.web.RequestHandler):
         entries = list(CONNECTION_POOL.keys())
         for entry in entries:
             if entry in CONNECTION_POOL.keys():
-                lock = CONNECTION_POOL[entry]['lock']
-                lock.acquire()
                 try:
+                    CONNECTION_POOL[entry]['device'].lock.acquire()
                     CONNECTION_POOL[entry]['device'].disconnect()
                 except:
                     pass
                 finally:
-                    lock.release()
-                    CONNECTION_POOL[entry]['lock'] = lock
+                    CONNECTION_POOL[entry]['device'].lock.release()
                 del CONNECTION_POOL[entry]
                 print("{} :: Connection Object {}".format(
                     entry, "deleted" if entry not in CONNECTION_POOL.keys() else "what the f***"))
@@ -218,17 +208,15 @@ class DeviceReloadHandler(tornado.web.RequestHandler):
 
     async def reload_device(self, hostname):
         if FQDN(hostname).is_valid:
-            if hostname in CONNECTION_POOL.keys:
-                lock = CONNECTION_POOL[hostname]['lock']
-                lock.acquire()
+            if hostname in CONNECTION_POOL.keys():
                 try:
+                    CONNECTION_POOL[hostname]['device'].lock.acquire()
                     CONNECTION_POOL[hostname]['device'].disconnect()
                 except:
                     pass
                 finally:
-                    lock.release()
-                    CONNECTION_POOL[hostname]['lock'] = lock
-                del CONNECTION_POOL[hostname]
+                    CONNECTION_POOL[hostname]['device'].lock.release()
+                    del CONNECTION_POOL[hostname]
                 print("{} :: Connection Object {}".format(
                     hostname, "deleted" if hostname not in CONNECTION_POOL.keys() else "what the f***"))
                 return 200, 'Deleted!', "{} got deleted!".format(
@@ -292,15 +280,13 @@ def sig_handler(sig, frame):
 def shutdown():
     print('Stopping http server')
     for hostname, data in CONNECTION_POOL.items():
-        lock = data['lock']
-        lock.acquire()
         try:
+            data['device'].lock.acquire()
             data['device'].disconnect()
         except:
             pass
         finally:
-            lock.release()
-            data['lock'] = lock
+            data['device'].lock.release()
         print("{} :: Connection State {}".format(
             hostname, "Disconnected" if (
                 not data.get('device') or

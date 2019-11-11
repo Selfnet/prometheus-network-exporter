@@ -61,6 +61,7 @@ class Application(_Application):
         self.request_time_histogram = Histogram(
             'tornado_http_request_duration_seconds',
             'Tornado HTTP request duration in seconds',
+            registry=self.multiprocess_registry,
             **histogram_kwargs)
 
     def log_request(self, handler):

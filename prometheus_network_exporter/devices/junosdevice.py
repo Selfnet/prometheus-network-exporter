@@ -1,4 +1,3 @@
-
 '''
     General Device
 '''
@@ -18,23 +17,53 @@ from prometheus_network_exporter.views.junos.igmp import IGMPGroupTable
 
 class JuniperNetworkDevice(basedevice.Device):
     def __init__(
-            self,
-            hostname,
-            user=None,
-            password=None,
-            port=22,
-            ssh_private_key_file=None,
-            ssh_config=None):
-        device = Device(host=hostname,
-                        user=user,
-                        ssh_private_key_file=ssh_private_key_file,
-                        ssh_config=ssh_config,
-                        password=password,
-                        port=port,
-                        fact_style='old',
-                        gather_facts=False)
-        super().__init__(hostname, device)
+        self,
+        hostname,
+        user=None,
+        password=None,
+        port=22,
+        ssh_private_key_file=None,
+        ssh_config=None,
+        **kwargs
+    ):
+        device = Device(
+            host=hostname,
+            user=user,
+            ssh_private_key_file=ssh_private_key_file,
+            ssh_config=ssh_config,
+            password=password,
+            port=port,
+            fact_style='old',
+            gather_facts=False
+        )
+        self.register_collectors()
+        super(JuniperNetworkDevice, self).__init__(hostname, device, **kwargs)
 
+    def register_coolectors(self):
+        ospf = True
+        optics = True
+        if 'ospf' not in types:
+            ospf = False
+        if 'optics' not in types:
+            optics = False
+        if 'interface' in types:
+                self.get_interface_metrics(
+                    access=False,
+                    optics=optics,
+                    ospf=ospf
+                )
+            if 'interface_specifics' in types:
+                self.get_interface_metrics(
+                    access=True,
+                    optics=optics,
+                    ospf=ospf
+                )
+            if 'environment' in types:
+                self.get_environment_metrics()
+            if 'bgp' in types:
+                self.get_bgp_metrics()
+            if 'igmp' in types:
+                self.get_igmp_metrics()
     def get_bgp(self):
         try:
             bgp = dict(BGPNeighborTable(self.device).get())
@@ -143,17 +172,18 @@ class JuniperNetworkDevice(basedevice.Device):
             self.device.close()
         return self.is_connected()
 
-
-class JuniperMetrics(basedevice.Metrics):
-    def __init__(self, *args, **kwargs):
-        super(JuniperMetrics, self).__init__(*args, **kwargs)
-
-    def get_igmp_metrics(self, registry, dev, hostname):
-        igmp_groups = dev.get_igmp()
-        ignored_networks = [ipaddress.ip_network(
-            net) for net in wrapping.IGMP_NETWORKS.get('ignore', {}).keys()]
-        networks = [ipaddress.ip_network(
-            prefix) for prefix in wrapping.IGMP_NETWORKS.get('allow', {}).keys()]
+    def get_igmp_metrics(self):
+        igmp_groups = self.get_igmp()
+        ignored_networks = [
+            ipaddress.ip_network(
+                net
+            ) for net in wrapping.IGMP_NETWORKS.get('ignore', {}).keys()
+        ]
+        networks = [
+            ipaddress.ip_network(
+                prefix
+            ) for prefix in wrapping.IGMP_NETWORKS.get('allow', {}).keys()
+        ]
         counter = {}
         metric_name = "{}_{}_{}".format(wrapping.METRICS_BASE.get(
             'base', 'junos'),
@@ -162,7 +192,7 @@ class JuniperMetrics(basedevice.Metrics):
         description = "Users subscribed on broadcasting company/channel"
         for firm in wrapping.IGMP_NETWORKS['allow'].values():
             counter[firm] = 0
-        registry.register(metric_name, description, 'gauge')
+        self.registry.register(metric_name, description, 'gauge')
         for network in networks:
             for mgm_addresses in igmp_groups.values():
                 for address in mgm_addresses['mgm_addresses']:
@@ -173,20 +203,26 @@ class JuniperMetrics(basedevice.Metrics):
                                 counter[wrapping.IGMP_NETWORKS['allow']
                                         [str(network)]] += 1
 
-            create_metric(metric_name, registry, wrapping.IGMP_NETWORKS['allow'][str(network)], {
+            create_metric(metric_name, self.registry, wrapping.IGMP_NETWORKS['allow'][str(network)], {
                           'broadcaster': wrapping.IGMP_NETWORKS['allow'][str(network)]}, counter)
 
-    def get_interface_metrics(self, registry, dev, hostname, access=True, ospf=True, optics=True):
+    def get_interface_metrics(self, access=True, ospf=True, optics=True):
         """
         Get interface metrics
         """
         # interfaces
         interfaces = {}
         if access:
-            interfaces = dev.get_interface(
-                interface_names=wrapping.NETWORK_REGEXES, optics=optics, ospf=ospf)
+            interfaces = self.get_interface(
+                interface_names=wrapping.NETWORK_REGEXES,
+                optics=optics,
+                ospf=ospf
+            )
         else:
-            interfaces = dev.get_interface(optics=optics, ospf=ospf)
+            interfaces = self.get_interface(
+                optics=optics,
+                ospf=ospf
+            )
         if ospf:
             for MetricName, MetricFamily in METRICS.items():
                 for metric_def in wrapping.OSPF_METRICS.get(MetricName, []):
@@ -199,7 +235,7 @@ class JuniperMetrics(basedevice.Metrics):
                                 'interface', 'interface'),
                             ospf,
                             name)
-                        registry.register(
+                        self.registry.register(
                             metric_name, description, MetricFamily)
                         for interface, metrics in interfaces.items():
                             for unit, data in metrics.get(ospf, {}).items():
@@ -213,7 +249,7 @@ class JuniperMetrics(basedevice.Metrics):
                                     labels = {**labels_data, **
                                               labels_variable, **labels_ospf}
                                     create_metric(metric_name,
-                                                  registry, key, labels, data, function=function)
+                                                  self.registry, key, labels, data, function=function)
 
         for MetricName, MetricFamily in METRICS.items():
             for metric_def in wrapping.NETWORK_METRICS.get(MetricName, []):
@@ -221,7 +257,7 @@ class JuniperMetrics(basedevice.Metrics):
                     metric_def)
                 metric_name = "{}_{}_{}".format(wrapping.METRICS_BASE.get(
                     'base', 'junos'), wrapping.METRICS_BASE.get('interface', 'interface'), metric_name)
-                registry.register(metric_name, description, MetricFamily)
+                self.registry.register(metric_name, description, MetricFamily)
                 for interface, metrics in interfaces.items():
                     if metrics.get(key) is not None:
                         labels_data = {'interface': interface}
@@ -275,39 +311,30 @@ class JuniperMetrics(basedevice.Metrics):
                                 label['key'], "") for label in wrapping.BGP_LABEL_WRAPPER}
                             labels = {**labels_data, **labels_variable}
                             create_metric(
-                                metric_name, registry, key, labels, metrics, function=function)
+                                metric_name, self.registry, key, labels, metrics, function=function)
 
-    def metrics(self, types, dev, registry):
+    def collect(self):
+        yield self.registry.collect()
+
+    def metrics(self, types, dev):
         optics = ospf = True
+        response = tuple()
         try:
+            if not dev.lock.acquire(False):
+                raise Exception("{} is locked.".format(dev.hostname))
             dev.connect()
             dev.device.timeout = 60
-            if 'ospf' not in types:
-                ospf = False
-            if 'optics' not in types:
-                optics = False
-            if 'interface' in types:
-                self.get_interface_metrics(registry, dev, dev.hostname,
-                                           access=False, optics=optics, ospf=ospf)
-            if 'interface_specifics' in types:
-                self.get_interface_metrics(registry, dev, dev.hostname,
-                                           access=True, optics=optics, ospf=ospf)
-            if 'environment' in types:
-                self.get_environment_metrics(registry, dev, dev.hostname)
-            if 'bgp' in types:
-                self.get_bgp_metrics(registry, dev, dev.hostname)
-            if 'igmp' in types:
-                self.get_igmp_metrics(registry, dev, dev.hostname)
+
+            response = 200, "OK", self.registry.collect()
         except Exception as exception:
-            dev.disconnect()
-            print(exception)
             exception_name = type(exception).__name__
             self.exception_counter.labels(
                 exception=exception_name, collector='JuniperMetrics', hostname=dev.hostname).inc()
-            hostname = dev.hostname
+            hostname = self.hostname
             if exception_name == 'AttributeError':
                 del(dev)
-            return 500, exception_name, "Device {} unreachable".format(hostname)
+            response = 500, exception_name, "Device {} unreachable".format(hostname)
         finally:
-            dev.disconnect()
-        return 200, "OK", registry.collect()
+            self.disconnect()
+            self.lock.release()
+        return response

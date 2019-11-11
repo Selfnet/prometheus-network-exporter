@@ -357,7 +357,10 @@ class ArubaMetrics(basedevice.Metrics):
                     pass
 
     def metrics(self, types, dev, registry):
+        response = tuple()
         try:
+            if not dev.lock.acquire(False):
+                raise Exception("{} is locked.".format(dev.hostname))
             dev.connect()
             if 'clients' in types:
                 self.get_clients(registry, dev, dev.hostname)
@@ -371,13 +374,13 @@ class ArubaMetrics(basedevice.Metrics):
                 self.get_access_point_statistics(registry, dev, dev.hostname)
             if 'access point state' in types:
                 self.get_access_point_state(registry, dev, dev.hostname)
-            dev.disconnect()
+            response = 200, "OK", registry.collect()
         except Exception as exception:
-            print(exception)
-            dev.disconnect()
             exception_name = type(exception).__name__
             self.exception_counter.labels(exception=exception_name,
                                           collector='ArubaMetrics', hostname=dev.hostname).inc()
-            return 500, exception_name, "Device {} unreachable".format(dev.hostname)
-
-        return 200, "OK", registry.collect()
+            response = 500, exception_name, "Device {} unreachable".format(dev.hostname)
+        finally:
+            dev.disconnect()
+            dev.lock.release()
+        return response

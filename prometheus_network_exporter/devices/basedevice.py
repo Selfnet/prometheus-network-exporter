@@ -3,12 +3,18 @@
     General Device
 '''
 import socket
+import threading
+from prometheus_client import CollectorRegistry
 
 
 class Device():
-    def __init__(self, hostname, device):
+    def __init__(self, hostname: str, device, **kwargs):
         self.hostname = hostname
         self.device = device
+        self.lock = threading.Lock()
+        self.exception_counter = kwargs.pop("exception_counter", None)
+        self.types = kwargs.pop('types')
+        self.registry = CollectorRegistry()
 
     def is_connected(self):
         raise NotImplementedError
@@ -29,11 +35,5 @@ class Device():
         self.disconnect()
         return self.connect()
 
-
-class Metrics(object):
-    def __init__(self, *args, **kwargs):
-        self.exception_counter = kwargs.pop("exception_counter", None)
-        super(Metrics, self).__init__(*args, **kwargs)
-
-    def metrics(self, types, dev, registry):
+    def metrics(self, types):
         raise NotImplementedError
