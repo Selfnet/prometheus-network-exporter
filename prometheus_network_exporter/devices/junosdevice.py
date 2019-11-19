@@ -56,20 +56,20 @@ class JuniperNetworkDevice(basedevice.Device):
     def register_collectors(self, types: list):
         ospf = True
         optics = True
-        if 'ospf' not in types:
-            ospf = False
-        if 'optics' not in types:
-            optics = False
-        if 'interface' in types and 'interface_specifics' not in types:
-            self.registry.register(InterfaceCollector(self, ospf=ospf, optics=optics))
-        if 'interface_specifics' in types and 'interface' not in types:
-            self.registry.register(InterfaceCollector(self, access=True, ospf=ospf, optics=optics))
+        # if 'ospf' not in types:
+        #     ospf = False
+        # if 'optics' not in types:
+        #     optics = False
+        # if 'interface' in types and 'interface_specifics' not in types:
+        #     self.registry.register(InterfaceCollector(self, ospf=ospf, optics=optics))
+        # if 'interface_specifics' in types and 'interface' not in types:
+        #     self.registry.register(InterfaceCollector(self, access=True, ospf=ospf, optics=optics))
         # if 'environment' in types:
         #     self.registry.register(EnvironmentCollector(self))
         # if 'bgp' in types:
         #     self.registry.register(BGPCollector(self))
-        # if 'igmp' in types:
-        #     self.registry.register(IGMPCollector(self))
+        if 'igmp' in types:
+            self.registry.register(IGMPCollector(self))
 
     def get_bgp(self):
         try:

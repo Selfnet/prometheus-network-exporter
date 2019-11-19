@@ -8,7 +8,6 @@ from importlib_resources import read_text
 
 from ...config.junos import JunosMetricConfiguration
 from ...devices import junosdevice
-from ...utitlities import create_list_from_dict, merge_dicts_by_key
 from .. import junos
 from ..base import Collector
 from . import base
@@ -28,14 +27,13 @@ class IGMPCollector(Collector):
     def __init__(
             self,
             device: junosdevice.JuniperNetworkDevice,
-            interface_regex: str = None,
-            config_path: str = None) -> 'IGMPCollector':
-        self.interface_regex = interface_regex
+            config_path: str = None) -> IGMPCollector:
         config = self.default
         if config_path is not None:
             with open(config_path, 'r') as file:
                 config = yaml.load(file, loader=yaml.SafeLoader)
         super(IGMPCollector, self).__init__(self.base_name, device, config)
+        self._init_prometheus_metrics(metric_configuration=JunosMetricConfiguration)
 
     @cached_property
     def allowed_networks(self):
@@ -54,8 +52,12 @@ class IGMPCollector(Collector):
         ]
 
     def get_igmp_broadcasts(self):
-        igmp = junosdevice.JuniperNetworkDevice(self.device).get_igmp()
+        igmp = self.device.get_igmp()
         counter = {}
+
+        for broadcaster in self.config['IGMP_NETWORKS']['allow'].values():
+            counter[broadcaster] = 0
+
         for network in self.allowed_networks:
             for mgm_addresses in igmp.values():
                 for address in mgm_addresses['mgm_addresses']:
@@ -75,12 +77,10 @@ class IGMPCollector(Collector):
     def collect(self):
         igmp_list = self.get_igmp_broadcasts()
         for prometheus in self.prometheus_metrics.values():
-            prometheus = JunosMetricConfiguration(prometheus)
             for interface in igmp_list:
-                labels = self.get_labels(interface)
                 prometheus.metric.add_metric(
-                    labels,
-                    prometheus.function(
+                    labels=self.get_labels(interface),
+                    value=prometheus.function(
                         interface.get(
                             prometheus.json_key
                         )

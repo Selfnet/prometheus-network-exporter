@@ -5,6 +5,8 @@ METRICS:
       type: total
       key: pfx_rx
       description: Received Prefixes from Peer
+      function: none_to_zero
+  
   Gauge:
     - metric: is_up
       type: status
@@ -15,5 +17,6 @@ METRICS:
 LABELS:
   - label: peername
     key: peername
+
   - label: peeraddress
     key: peeraddr

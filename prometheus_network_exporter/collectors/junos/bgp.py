@@ -37,20 +37,19 @@ class BGPCollector(Collector):
         self._init_prometheus_metrics(metric_configuration=JunosMetricConfiguration)
 
     def collect(self):
-        bgp = junosdevice.JuniperNetworkDevice(self.device).get_bgp()
-
+        bgp = self.device.get_bgp()
         if bgp:
             bgp_list = create_list_from_dict(bgp, 'peeraddr')
+
             for prometheus in self.prometheus_metrics.values():
-                prometheus = JunosMetricConfiguration(prometheus)
                 for interface in bgp_list:
-                    labels = self.get_labels(interface)
                     prometheus.metric.add_metric(
-                        labels,
-                        prometheus.function(
+                        labels=self.get_labels(interface),
+                        value=prometheus.function(
                             interface.get(
                                 prometheus.json_key
                             )
                         )
                     )
+
                 yield prometheus.metric
