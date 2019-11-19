@@ -1,26 +1,4 @@
 ---
-DEFINITIONS:
-
-  METRICS_BASE:
-    base: pyez_junos
-    interface: interface
-    device: device
-    bgp: bgp
-    igmp: igmp
-
-
-  IGMP_NETWORKS:
-    ignore:
-      "239.195.255.255/32" : Senderliste
-    allow:
-      "239.192.0.0/16": GEMA
-      "239.193.0.0/16": ProSiebenSat.1 MediaSE
-      "239.194.0.0/16": RTL Gruppe
-      "239.195.0.0/16": Andere
-      "239.199.0.0/16": Lokale Streams
-
-
-
 
   ENVIRONMENT_METRICS:
     Gauge:
@@ -34,63 +12,63 @@ DEFINITIONS:
         key: Fans
         description: Fan STATUS (0(WRACKED)/1(OK))
         function: fan_power_temp_status
-        specific: yes
+        complex: yes
       
       - metric: power
         type: status
         key: Power
         description: Power STATUS (0(WRACKED)/1(OK))
         function: fan_power_temp_status
-        specific: yes
+        complex: yes
   
       - metric: temp
         type: status
         key: Temp
         description: Temperature Sensor STATUS (0(WRACKED)/1(OK))
         function: fan_power_temp_status
-        specific: yes
+        complex: yes
 
       - metric: temp
         type: celsius
         key: Temp
         description: Temperature Sensor Value in celsius
         function: temp_celsius
-        specific: yes
+        complex: yes
 
       - metric: reboot
         type: status
         key: RE0
         description: Last Reboot REASON (0(WRACKED)/1(OK))
         function: reboot
-        specific: yes
+        complex: yes
       
       - metric: cpu_usage
         type: ratio
         key: re_loads
         description: Current CPU Load Ratio in percent
         function: cpu_usage
-        specific: yes
+        complex: yes
       
       - metric: cpu_idle
         type: ratio
         key: re_loads
         description: Current CPU Idle Ratio in percent
         function: cpu_idle
-        specific: yes
+        complex: yes
 
       - metric: ram
         type: bytes
         key: re_loads
         description: Current Memory Usage in bytes
         function: ram_usage
-        specific: yes
+        complex: yes
 
       - metric: ram
         type: bytes_total
         key: re_loads
         description: Available Memory in bytes
         function: ram
-        specific: yes
+        complex: yes
 
   ENVIRONMENT_LABEL_WRAPPER:
     - label: software_version

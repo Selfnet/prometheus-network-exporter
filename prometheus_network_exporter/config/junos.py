@@ -29,11 +29,13 @@ class Function(Enum):
 class JunosMetricConfiguration(MetricConfiguration):
 
     function_mapping = {
+        # Functions with simple type conversion.
         Function.IS_OK: functions.is_ok,
         Function.FLOATIFY: functions.floatify,
         Function.NONE_TO_ZERO: functions.none_to_zero,
         Function.NONE_TO_MINUS_INF: functions.none_to_minus_inf,
         Function.NONE_TO_PLUS_INF: functions.none_to_plus_inf,
+        # Functions for complex Metrics
         Function.FAN_POWER_TEMP_STATUS: functions.fan_power_temp_status,
         Function.TEMP_CELSIUS: functions.temp_celsius,
         Function.REBOOT: functions.reboot,
@@ -49,3 +51,7 @@ class JunosMetricConfiguration(MetricConfiguration):
         return self.function_mapping[
             Function(self.config.get('function'))
         ]
+
+     @property
+     def complex(self) -> bool:
+         return self.config.get('complex', False)

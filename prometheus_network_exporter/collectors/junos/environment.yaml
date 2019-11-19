@@ -69,12 +69,11 @@ METRICS:
       function: ram
       specific: yes
 
-LABELS:
-  - label: software_version
-    key: version
+  Info:
+    - metric: software_version
+      key: version
+      description: The Software Version of the current Switch OS
 
-  - label: hardware_model
-    key: model
-
-  - label: personality
-    key: personality
+    - metric: hardware_model
+      key: model
+      description: The Hardware Model of the manufacturer

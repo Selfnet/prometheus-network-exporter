@@ -1,7 +1,8 @@
-# from __future__ import annotations
+from __future__ import annotations
 
 from enum import Enum
 from typing import List, Union
+
 
 from prometheus_client.core import CounterMetricFamily, GaugeMetricFamily
 from prometheus_client.core import Metric as PrometheusMetric
@@ -49,7 +50,7 @@ class MetricConfiguration(_Configuration):
         metric_type: Union[str, Metric],
         labels: List[LabelConfiguration],
         config: dict
-    ) -> 'MetricConfiguration':
+    ) -> MetricConfiguration:
         self.__metric_type = metric_type if isinstance(metric_type, Metric) else Metric(metric_type.lower())
         self.__base_name = base_name
         self.labels = labels

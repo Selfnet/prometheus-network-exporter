@@ -7,7 +7,7 @@ def is_ok(boolean: Union[bool, str]) -> float:
             return 1.0
         return 0.0
     elif isinstance(boolean, str):
-        if boolean.lower() in ['up', 'ok', 'established']:
+        if boolean.lower().strip() in ['up', 'ok', 'established']:
             return 1.0
         return 0.0
     elif boolean is None:

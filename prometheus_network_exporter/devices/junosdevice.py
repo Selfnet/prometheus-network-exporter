@@ -6,7 +6,6 @@ from __future__ import annotations
 
 from jnpr.junos import Device
 from jnpr.junos.exception import RpcError
-
 from prometheus_client import generate_latest
 
 from prometheus_network_exporter.collectors.junos.bgp import BGPCollector
@@ -46,9 +45,7 @@ class JuniperNetworkDevice(basedevice.Device):
             ssh_private_key_file=ssh_private_key_file,
             ssh_config=ssh_config,
             password=password,
-            port=port,
-            # fact_style='old',
-            # gather_facts=False
+            port=port
         )
         super(JuniperNetworkDevice, self).__init__(hostname, device, **kwargs)
         self.register_collectors(self.types)
@@ -56,18 +53,18 @@ class JuniperNetworkDevice(basedevice.Device):
     def register_collectors(self, types: list):
         ospf = True
         optics = True
-        # if 'ospf' not in types:
-        #     ospf = False
-        # if 'optics' not in types:
-        #     optics = False
-        # if 'interface' in types and 'interface_specifics' not in types:
-        #     self.registry.register(InterfaceCollector(self, ospf=ospf, optics=optics))
-        # if 'interface_specifics' in types and 'interface' not in types:
-        #     self.registry.register(InterfaceCollector(self, access=True, ospf=ospf, optics=optics))
+        if 'ospf' not in types:
+            ospf = False
+        if 'optics' not in types:
+            optics = False
+        if 'interface' in types and 'interface_specifics' not in types:
+            self.registry.register(InterfaceCollector(self, ospf=ospf, optics=optics))
+        if 'interface_specifics' in types and 'interface' not in types:
+            self.registry.register(InterfaceCollector(self, access=True, ospf=ospf, optics=optics))
         # if 'environment' in types:
         #     self.registry.register(EnvironmentCollector(self))
-        # if 'bgp' in types:
-        #     self.registry.register(BGPCollector(self))
+        if 'bgp' in types:
+            self.registry.register(BGPCollector(self))
         if 'igmp' in types:
             self.registry.register(IGMPCollector(self))
 
@@ -144,7 +141,11 @@ class JuniperNetworkDevice(basedevice.Device):
                     }
                 )
             except IndexError as e:
-                print(e)
+                self.exception_counter.labels(
+                    exception=type(e).__name__,
+                    collector=type(self).__name__,
+                    hostname=self.device.hostname
+                ).inc()
         return result
 
     def get_ospf(self, interface_regex: str = None):
@@ -212,7 +213,7 @@ class JuniperNetworkDevice(basedevice.Device):
             exception_name = type(exception).__name__
             raise exception
             self.exception_counter.labels(
-                exception=exception_name, collector='JuniperMetrics', hostname=self.device.hostname).inc()
+                exception=exception_name, collector=type(self).__name__, hostname=self.device.hostname).inc()
             return 500, exception_name, "Device {} unreachable".format(self.device.hostname)
         finally:
             self.disconnect()

@@ -36,3 +36,6 @@ class EnvironmentCollector(Collector):
 
         super(EnvironmentCollector, self).__init__(self.base_name, device, config)
         self._init_prometheus_metrics(metric_configuration=JunosMetricConfiguration)
+
+    def collect(self):
+        pass
