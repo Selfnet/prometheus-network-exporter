@@ -1,0 +1,19 @@
+---
+METRICS:
+  Counter:
+    - metric: prefixes_received
+      type: total
+      key: pfx_rx
+      description: Received Prefixes from Peer
+  Gauge:
+    - metric: is_up
+      type: status
+      key: peerstate
+      description: BGP Session is established (0(DOWN)/1(UP))
+      function: is_ok
+
+LABELS:
+  - label: peername
+    key: peername
+  - label: peeraddress
+    key: peeraddr

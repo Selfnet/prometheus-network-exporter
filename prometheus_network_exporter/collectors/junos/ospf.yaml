@@ -1,0 +1,23 @@
+
+METRICS:
+  Gauge:
+  - metric: neighbor_state
+    key: ospf_neighbor_state
+    description: OSPF is (0(DOWN)/1(UP))
+    function: is_ok
+
+LABELS:
+  - label: description
+    key: description
+
+  - label: MAC
+    key: macaddr
+
+  - label: speed
+    key: speed
+
+  - label: interface
+    key: interface_name
+
+  - label: neighbor
+    key: neighbor_id

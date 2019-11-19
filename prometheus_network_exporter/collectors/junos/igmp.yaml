@@ -1,0 +1,20 @@
+---
+IGMP_NETWORKS:
+  ignore:
+    "239.195.255.255/32" : Senderliste
+  allow:
+    "239.192.0.0/16": GEMA
+    "239.193.0.0/16": ProSiebenSat.1 MediaSE
+    "239.194.0.0/16": RTL Gruppe
+    "239.195.0.0/16": Andere
+    "239.199.0.0/16": Lokale Streams
+
+METRICS:
+  Gauge:
+    - metric: broadcasts
+      key: broadcasts
+      description: "Users subscribed on broadcasting company/channel"
+
+LABELS:
+  - label: broadcaster
+    key: broadcaster

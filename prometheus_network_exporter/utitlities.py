@@ -1,48 +1,47 @@
 import collections
-from prometheus_network_exporter.config.definitions.junos import wrapping as junos
+from typing import List
+
+from .config.configuration import LabelConfiguration
+import copy
 
 
-FUNCTIONS = {
-    'is_ok': junos.is_ok,
-    'floatify': junos.floatify,
-    'fan_power_temp_status': junos.fan_power_temp_status,
-    'temp_celsius': junos.temp_celsius,
-    'reboot': junos.reboot,
-    'cpu_idle': junos.cpu_idle,
-    'cpu_usage': junos.cpu_usage,
-    'ram': junos.ram,
-    'ram_usage': junos.ram_usage
-}
-
-METRICS = {
-    'Counter': 'counter',
-    'Gauge': 'gauge'
-}
+def merge_dicts_by_key(first: dict, second: dict) -> dict:
+    result = {}
+    for key in first.keys():
+        result[key] = {
+            **first[key],
+            **second.get(key, {})
+        }
+    return result
 
 
-def create_metric_params(metric_def, call='interfaces'):
-    metric_name = metric_def['metric']
-    key = metric_def['key']
-    description = metric_def.get('description', '')
-    type_of = metric_def.get('type', None)
-    function = metric_def.get('function', None)
-    specific = metric_def.get('specific', False)
-    if type_of:
-        metric_name = '{}_{}'.format(metric_name, type_of)
-    return metric_name, description, key, function, specific
+def create_list_from_dict(dictionary: dict, key: str) -> list:
+    return [
+        {
+            key: dict_key,
+            **dict_values
+        } for dict_key, dict_values in dictionary.items()
+    ]
 
 
-def create_metric(metric_name, registry, key, labels, metrics, function=None):
-    if metrics.get(key) is not None:
-        try:
-            if function:
-                registry.add_metric(metric_name, FUNCTIONS[function](
-                    metrics.get(key)), labels=labels)
-            else:
-                registry.add_metric(
-                    metric_name, metrics.get(key), labels=labels)
-        except (ValueError, KeyError) as e:
-            print("Error :: {}".format(e))
+def remove_empty(dictionary: dict) -> dict:
+    return {
+        key: value for key, value in dictionary.items() if value is not None
+    }
+
+
+def enrich_dict_from_upper_dict_by_labels(listing: dict, labels: List[LabelConfiguration], key: str) -> list:
+    for dictionary in listing:
+        data = {
+            label.json_key: label.get_label(dictionary)
+            for label in labels
+        }
+        data = remove_empty(data)
+        if dictionary.get(key) is not None:
+            dictionary[key] = [
+                {**item, **data} for item in dictionary.get(key, [])
+            ]
+    return listing
 
 
 def flatten(d, parent_key='', sep='_'):
@@ -54,3 +53,11 @@ def flatten(d, parent_key='', sep='_'):
         else:
             items.append((new_key, v))
     return dict(items)
+
+
+def get_resource(name):
+    """Return a file handle on a named resource next to this module."""
+    # get_resource_reader() may not exist or may return None, which this
+    # code doesn't handle.
+    reader = __loader__.get_resource_reader(__name__)
+    return reader.open_resource(name)

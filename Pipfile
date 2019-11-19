@@ -5,12 +5,11 @@ verify_ssl = true
 
 [dev-packages]
 "autopep8" = "*"
-pylint = "*"
 "flake8" = "*"
 "PySocks" = "*"
 
 [packages]
-junos-eznc = "==2.2.1"
+junos-eznc = "*" # "==2.2.1"
 PyYAML= "*"
 tornado= "*"
 arubaos_client= "*"
@@ -19,6 +18,7 @@ prometheus_client= "*"
 fqdn= "*"
 voluptuous = "*"
 cached-property = "*"
+importlib-resources = "*"
 
 [requires]
-python_version = "3.5"
+python_version = "3.8"

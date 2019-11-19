@@ -4,6 +4,8 @@
 '''
 import socket
 import threading
+
+from functools import lru_cache
 from prometheus_client import CollectorRegistry
 
 
@@ -19,11 +21,15 @@ class Device():
     def is_connected(self):
         raise NotImplementedError
 
+    @lru_cache
     def lookup(self, ip):
         try:
             return socket.gethostbyaddr(ip)[0]
         except (socket.herror):
             return ip
+
+    def register_collectors(self, types: list):
+        raise NotImplementedError
 
     def connect(self):
         raise NotImplementedError
@@ -35,5 +41,5 @@ class Device():
         self.disconnect()
         return self.connect()
 
-    def metrics(self, types):
+    def collect(self):
         raise NotImplementedError

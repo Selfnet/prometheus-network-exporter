@@ -1,23 +1,26 @@
-import os
-import sys
-import getpass
-import signal
 import argparse
+import getpass
+import os
+import signal
+import sys
+from collections import Counter
+from concurrent.futures import ThreadPoolExecutor
+
 import tornado.ioloop
 import tornado.web
-from collections import Counter
 from fqdn import FQDN
-from prometheus_client import exposition
+from prometheus_client import exposition, generate_latest
 from tornado.concurrent import run_on_executor
-from concurrent.futures import ThreadPoolExecutor
-from prometheus_client import generate_latest
+
+# from prometheus_network_exporter.devices.arubadevice import ArubaNetworkDevice, ArubaMetrics
+# from prometheus_network_exporter.devices.ubntdevice import AirMaxDevice, AirMaxMetrics
+# from prometheus_network_exporter.devices.ciscodevice import CiscoMetrics
+import prometheus_network_exporter.netstat as netstat
 from prometheus_network_exporter import __version__ as VERSION
 from prometheus_network_exporter.baseapp import Application
-from prometheus_network_exporter.devices.junosdevice import JuniperNetworkDevice, JuniperMetrics
-from prometheus_network_exporter.devices.arubadevice import ArubaNetworkDevice, ArubaMetrics
-from prometheus_network_exporter.devices.ubntdevice import AirMaxDevice, AirMaxMetrics
-from prometheus_network_exporter.devices.ciscodevice import CiscoMetrics
-import prometheus_network_exporter.netstat as netstat
+from prometheus_network_exporter.devices.junosdevice import \
+    JuniperNetworkDevice
+
 if not sys.warnoptions:
     import warnings
     warnings.simplefilter("ignore")
@@ -60,14 +63,6 @@ class MetricsHandler(tornado.web.RequestHandler):
 class ExporterHandler(tornado.web.RequestHandler):
     executor = ThreadPoolExecutor(max_workers=MAX_WORKERS)
 
-    def initialize(self):
-        self.collectors = {
-            'junos': JuniperMetrics(exception_counter=self.application.exception_counter),
-            'arubaos': ArubaMetrics(exception_counter=self.application.exception_counter),
-            'ios': CiscoMetrics(exception_counter=self.application.exception_counter),
-            'airmax': AirMaxMetrics(exception_counter=self.application.exception_counter)
-        }
-
     @run_on_executor
     def get_device_information(self, hostname):
         try:
@@ -91,71 +86,75 @@ class ExporterHandler(tornado.web.RequestHandler):
             if module['auth']['method'] == 'ssh_key':
                 # using ssh key
                 if module['device'] == 'junos':
-                    dev = JuniperNetworkDevice(hostname=hostname,
-                                               user=module['auth'].get(
-                                                   'username', getpass.getuser()),
-                                               ssh_private_key_file=module['auth'].get(
-                                                   'ssh_key', None),
-                                               port=module['auth'].get(
-                                                   'port', 22),
-                                               ssh_config=module['auth'].get(
-                                                   'ssh_config', None),
-                                               password=module['auth'].get('password', None))
+                    dev = JuniperNetworkDevice(
+                        hostname=hostname,
+                        user=module['auth'].get(
+                            'username', getpass.getuser()),
+                        ssh_private_key_file=module['auth'].get(
+                            'ssh_key', None),
+                        port=module['auth'].get(
+                            'port', 22),
+                        ssh_config=module['auth'].get(
+                            'ssh_config', None),
+                        password=module['auth'].get('password', None),
+                        types=module['metrics'],
+                        exception_counter=self.application.exception_counter
+                    )
             elif module['auth']['method'] == 'password':
                 try:
-                    if module['device'] == 'arubaos':
-
-                        http = 'https' if module['auth'].get(
-                            'http_secure', True) else 'http'
-                        port = module['auth'].get('port', 4343)
-                        dev = ArubaNetworkDevice(
-                            hostname=hostname,
-                            username=module['auth'].get(
-                                'username', getpass.getuser()),
-                            password=module['auth']['password'],
-                            protocol=http,
-                            port=port,
-                            proxy=module['auth'].get(
-                                'proxy'),
-                            verify=module['auth'].get(
-                                'verify', False)
-                        )
-                    elif module['device'] == 'junos':
+            #         if module['device'] == 'arubaos':
+            #             http = 'https' if module['auth'].get(
+            #                 'http_secure', True) else 'http'
+            #             port = module['auth'].get('port', 4343)
+            #             dev = ArubaNetworkDevice(
+            #                 hostname=hostname,
+            #                 username=module['auth'].get(
+            #                     'username', getpass.getuser()),
+            #                 password=module['auth']['password'],
+            #                 protocol=http,
+            #                 port=port,
+            #                 proxy=module['auth'].get(
+            #                     'proxy'),
+            #                 verify=module['auth'].get(
+            #                     'verify', False)
+            #             )
+                    if module['device'] == 'junos':
                         dev = JuniperNetworkDevice(
                             hostname=hostname,
                             user=module['auth'].get(
                                 'username', getpass.getuser()),
                             password=module['auth']['password'],
-                            port=module['auth'].get('port', 22)
+                            port=module['auth'].get('port', 22),
+                            types=module['metrics'],
+                            exception_counter=self.application.exception_counter
                         )
-                    elif module['device'] == 'airmax':
-                        http = 'https' if module['auth'].get(
-                            'http_secure', True) else 'http'
-                        port = module['auth'].get('port', 443)
-                        dev = AirMaxDevice(
-                            hostname=hostname,
-                            username=module['auth'].get(
-                                'username', getpass.getuser()),
-                            password=module['auth']['password'],
-                            protocol=http,
-                            port=port,
-                            proxy=module['auth'].get(
-                                'proxy'),
-                            verify=module['auth'].get(
-                                'verify', False)
-                        )
-                except KeyError:
-                    return 500, 'Config Error', "You must specify a password."
+            #         elif module['device'] == 'airmax':
+            #             http = 'https' if module['auth'].get(
+            #                 'http_secure', True) else 'http'
+            #             port = module['auth'].get('port', 443)
+            #             dev = AirMaxDevice(
+            #                 hostname=hostname,
+            #                 username=module['auth'].get(
+            #                     'username', getpass.getuser()),
+            #                 password=module['auth']['password'],
+            #                 protocol=http,
+            #                 port=port,
+            #                 proxy=module['auth'].get(
+            #                     'proxy'),
+            #                 verify=module['auth'].get(
+            #                     'verify', False)
+            #             )
+                except KeyError as e:
+                    raise e
+                    return 500, 'ConfigError', "You must specify a password."
             CONNECTION_POOL[hostname]['device'] = dev
         dev = CONNECTION_POOL[hostname]['device']
         if not dev or not dev.device:
             del CONNECTION_POOL[hostname]
-            return 500, 'No Connection for {}, have done cleanup!'.format(hostname)
+            return 500, 'ConnectionError', 'No Connection for {}, have done cleanup!'.format(hostname)
 
         # get metrics from file
-        types = module['metrics']
-        data = self.collectors[module['device']].metrics(types, dev)
-        return data
+        return dev.collect()
 
     async def get(self):
         self.set_header('Content-type', 'text/plain')
@@ -177,7 +176,7 @@ class ExporterHandler(tornado.web.RequestHandler):
                 self.application.used_workers.dec()
 
         self.set_status(code, reason=status)
-        self.write(bytes(data, 'utf-8'))
+        self.write(data)
 
 
 class AllDeviceReloadHandler(tornado.web.RequestHandler):
@@ -285,8 +284,6 @@ def shutdown():
             data['device'].disconnect()
         except:
             pass
-        finally:
-            data['device'].lock.release()
         print("{} :: Connection State {}".format(
             hostname, "Disconnected" if (
                 not data.get('device') or

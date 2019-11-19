@@ -1,3 +1,6 @@
+from typing import Union
+
+
 def is_ok(boolean: Union[bool, str]) -> float:
     if isinstance(boolean, bool):
         if boolean:
@@ -7,20 +10,35 @@ def is_ok(boolean: Union[bool, str]) -> float:
         if boolean.lower() in ['up', 'ok', 'established']:
             return 1.0
         return 0.0
+    elif boolean is None:
+        return 0.0
     else:
-        raise Exception("Unknown Type")
+        raise Exception("Unknown Type: {}".format(boolean))
 
 
 def boolify(string: str) -> bool:
     return 'true' in string.lower()
 
 
-def floatify(string: str) -> float:
-    if "- Inf" in string:
-        return - float('inf')
-    elif "Inf" in string:
-        return float('inf')
-    return float(string)
+def none_to_zero(string) -> float:
+    return 0 if string is None else string
+
+
+def none_to_minus_inf(string) -> float:
+    return - float('inf') if string is None else string
+
+
+def none_to_plus_inf(string) -> float:
+    return float('inf') if string is None else string
+
+
+def floatify(string: Union[str, float]) -> float:
+    if isinstance(string, str):
+        if "- Inf" in string:
+            return - float('inf')
+        elif "Inf" in string:
+            return float('inf')
+    return float(string) if string is not None else none_to_zero(string)
 
 
 def fan_power_temp_status(metric, registry, labels, data, create_metric=None):
@@ -98,5 +116,5 @@ def create_metric_params(metric_def, call='interfaces'):
     return metric_name, description, key, function, specific
 
 
-def default(metric: Metric, labels, data, create_metric=None):
-    yield metric(labels=labels, data)
+def default(value):
+    return value
