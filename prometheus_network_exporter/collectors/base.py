@@ -26,7 +26,7 @@ class Collector(object):
         metric_config_key='METRICS',
         metric_configuration: MetricConfiguration = MetricConfiguration
     ):
-        for label in self.config.get(label_config_key, [{}]):
+        for label in self.config.get(label_config_key, []):
             self.labels.append(LabelConfiguration(config=label))
 
         for metric_type, possible_metrics in self.config.get(metric_config_key, {}).items():

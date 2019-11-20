@@ -4,12 +4,13 @@ from __future__ import annotations
 import yaml
 from importlib_resources import read_text
 
-
+from ...config.configuration import Metric, MetricConfiguration
 from ...config.junos import JunosMetricConfiguration
 from ...devices import junosdevice
-from ..base import Collector
 from .. import junos
+from ..base import Collector
 from . import base
+from .test import test_data
 
 
 class EnvironmentCollector(Collector):
@@ -27,7 +28,7 @@ class EnvironmentCollector(Collector):
             self,
             device: junosdevice.JuniperNetworkDevice,
             config_path: str = None
-    ) -> 'EnvironmentCollector':
+    ) -> EnvironmentCollector:
 
         config = self.default
         if config_path is not None:
@@ -37,5 +38,42 @@ class EnvironmentCollector(Collector):
         super(EnvironmentCollector, self).__init__(self.base_name, device, config)
         self._init_prometheus_metrics(metric_configuration=JunosMetricConfiguration)
 
+    def collect_complex_metric(self, metric: MetricConfiguration, complex_data: dict) -> list:
+
+        metric.function(
+            metric, complex_data 
+        )
+        print(complex_data)
+        return []
+
     def collect(self):
-        pass
+        environment = test_data
+        for prometheus in self.prometheus_metrics.values():
+            if prometheus.complex:
+                for metric in self.collect_complex_metric(
+                    prometheus,
+                    environment.get(
+                        prometheus.json_key
+                    )
+                ):
+                    yield metric
+            elif prometheus.metric_type is Metric.Info:
+                prometheus.metric.add_metric(
+                    labels=self.get_labels(environment),
+                    value={
+                        prometheus.name: environment.get(
+                            prometheus.json_key
+                        )
+                    }
+                )
+                yield prometheus.metric
+            else:
+                prometheus.metric.add_metric(
+                    labels=self.get_labels(environment),
+                    value=prometheus.function(
+                        environment.get(
+                            prometheus.json_key
+                        )
+                    )
+                )
+                yield prometheus.metric

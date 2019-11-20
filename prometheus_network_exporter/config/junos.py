@@ -43,6 +43,7 @@ class JunosMetricConfiguration(MetricConfiguration):
         Function.CPU_USAGE: functions.cpu_usage,
         Function.RAM: functions.ram,
         Function.RAM_USAGE: functions.ram_usage,
+        # The default function
         Function.DEFAULT: functions.default
     }
 
@@ -52,6 +53,6 @@ class JunosMetricConfiguration(MetricConfiguration):
             Function(self.config.get('function'))
         ]
 
-     @property
-     def complex(self) -> bool:
-         return self.config.get('complex', False)
+    @property
+    def complex(self) -> bool:
+        return self.config.get('complex', False)

@@ -4,7 +4,7 @@ from enum import Enum
 from typing import List, Union
 
 
-from prometheus_client.core import CounterMetricFamily, GaugeMetricFamily
+from prometheus_client.core import CounterMetricFamily, GaugeMetricFamily, InfoMetricFamily
 from prometheus_client.core import Metric as PrometheusMetric
 
 
@@ -27,6 +27,7 @@ class LabelConfiguration(_Configuration):
 
     @property
     def label(self) -> str:
+        print(self.config)
         return self.config['label']
 
     @property
@@ -41,7 +42,8 @@ class MetricConfiguration(_Configuration):
 
     metric_family = {
         Metric.Counter: CounterMetricFamily,
-        Metric.Gauge: GaugeMetricFamily
+        Metric.Gauge: GaugeMetricFamily,
+        Metric.Info: InfoMetricFamily
     }
 
     def __init__(
@@ -80,6 +82,14 @@ class MetricConfiguration(_Configuration):
             self.description,
             labels=[label.label for label in self.labels]
         )
+
+    @property
+    def metric_type(self) -> Metric:
+        return self.__metric_type
+
+    @property
+    def name(self) -> str:
+        return self.config['metric']
 
     @property
     def json_key(self) -> str:

@@ -1,6 +1,10 @@
 from typing import Union
 
 
+def default(value) -> float:
+    return 0 if value is None else float(value)
+
+
 def is_ok(boolean: Union[bool, str]) -> float:
     if isinstance(boolean, bool):
         if boolean:
@@ -21,7 +25,7 @@ def boolify(string: str) -> bool:
 
 
 def none_to_zero(string) -> float:
-    return 0 if string is None else string
+    return default(string)
 
 
 def none_to_minus_inf(string) -> float:
@@ -40,6 +44,8 @@ def floatify(string: Union[str, float]) -> float:
             return float('inf')
     return float(string) if string is not None else none_to_zero(string)
 
+# The complex Functions
+
 
 def fan_power_temp_status(metric, registry, labels, data, create_metric=None):
     for sensorname, information in data.items():
@@ -48,14 +54,14 @@ def fan_power_temp_status(metric, registry, labels, data, create_metric=None):
                       information, function='is_ok')
 
 
-def temp_celsius(metric, registry, labels, data, create_metric=None):
+def temp_celsius(metric, data, create_metric=None):
     for sensorname, information in data.items():
         labels['sensorname'] = sensorname
         create_metric(metric, registry, 'temperature',
                       labels, information)
 
 
-def reboot(metric, registry, labels, data, create_metric=None):
+def reboot(metric, data):
     reason_string = data.get('last_reboot_reason', '')
     reason = 1
     for a in ["failure", "error", "failed"]:
@@ -65,7 +71,7 @@ def reboot(metric, registry, labels, data, create_metric=None):
     registry.add_metric(metric, reason, labels=labels)
 
 
-def cpu_usage(metric, registry, labels, data, create_metric=None):
+def cpu_usage(metric, data):
     for slot, perf in data.items():
         label = "cpu_{}".format(str(slot))
         labels['cpu'] = label
@@ -73,7 +79,7 @@ def cpu_usage(metric, registry, labels, data, create_metric=None):
         registry.add_metric(metric, cpu_usage, labels=labels)
 
 
-def cpu_idle(metric, registry, labels, data, create_metric=None):
+def cpu_idle(metric, data):
     for slot, perf in data.items():
         label = "cpu_{}".format(str(slot))
         labels['cpu'] = label
@@ -81,7 +87,7 @@ def cpu_idle(metric, registry, labels, data, create_metric=None):
         registry.add_metric(metric, cpu_idle, labels=labels)
 
 
-def ram_usage(metric, registry, labels, data, create_metric=None):
+def ram_usage(metric, data):
     for slot, perf in data.items():
         label = "ram_{}".format(str(slot))
         labels['ram'] = label
@@ -93,7 +99,7 @@ def ram_usage(metric, registry, labels, data, create_metric=None):
         registry.add_metric(metric, memory_bytes_usage, labels=labels)
 
 
-def ram(metric, registry, labels, data, create_metric=None):
+def ram(metric, data):
     for slot, perf in data.items():
         label = "ram_{}".format(str(slot))
         labels['ram'] = label
@@ -102,19 +108,3 @@ def ram(metric, registry, labels, data, create_metric=None):
         memory_complete = int(memory_complete)
         memory_bytes = memory_complete * 1049000
         registry.add_metric(metric, memory_bytes, labels=labels)
-
-
-def create_metric_params(metric_def, call='interfaces'):
-    metric_name = metric_def['metric']
-    key = metric_def['key']
-    description = metric_def.get('description', '')
-    type_of = metric_def.get('type', None)
-    function = metric_def.get('function', None)
-    specific = metric_def.get('specific', False)
-    if type_of:
-        metric_name = '{}_{}'.format(metric_name, type_of)
-    return metric_name, description, key, function, specific
-
-
-def default(value):
-    return value
