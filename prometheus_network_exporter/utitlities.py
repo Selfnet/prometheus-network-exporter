@@ -15,10 +15,12 @@ def merge_dicts_by_key(first: dict, second: dict) -> dict:
     return result
 
 
-def create_list_from_dict(dictionary: dict, key: str) -> list:
+def create_list_from_dict(dictionary: dict, key: str, format_str="{}") -> list:
     return [
         {
-            key: dict_key,
+            key: format_str.format(
+                dict_key
+            ),
             **dict_values
         } for dict_key, dict_values in dictionary.items()
     ]

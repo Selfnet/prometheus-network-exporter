@@ -39,24 +39,21 @@ class EnvironmentCollector(Collector):
         self._init_prometheus_metrics(metric_configuration=JunosMetricConfiguration)
 
     def collect_complex_metric(self, metric: MetricConfiguration, complex_data: dict) -> list:
-
-        metric.function(
-            metric, complex_data 
+        return metric.function(
+            metric,
+            complex_data
         )
-        print(complex_data)
-        return []
 
     def collect(self):
-        environment = test_data
+        environment = self.device.get_environment()
         for prometheus in self.prometheus_metrics.values():
             if prometheus.complex:
-                for metric in self.collect_complex_metric(
+                yield self.collect_complex_metric(
                     prometheus,
                     environment.get(
                         prometheus.json_key
                     )
-                ):
-                    yield metric
+                )
             elif prometheus.metric_type is Metric.Info:
                 prometheus.metric.add_metric(
                     labels=self.get_labels(environment),

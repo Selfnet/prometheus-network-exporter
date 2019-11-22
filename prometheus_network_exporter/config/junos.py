@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import Callable
 from .configuration import MetricConfiguration
 from enum import Enum
-from .definitions.junos import functions
+from .functions import junos
 
 
 class OSPFType(Enum):
@@ -30,21 +30,21 @@ class JunosMetricConfiguration(MetricConfiguration):
 
     function_mapping = {
         # Functions with simple type conversion.
-        Function.IS_OK: functions.is_ok,
-        Function.FLOATIFY: functions.floatify,
-        Function.NONE_TO_ZERO: functions.none_to_zero,
-        Function.NONE_TO_MINUS_INF: functions.none_to_minus_inf,
-        Function.NONE_TO_PLUS_INF: functions.none_to_plus_inf,
+        Function.IS_OK: junos.is_ok,
+        Function.FLOATIFY: junos.floatify,
+        Function.NONE_TO_ZERO: junos.none_to_zero,
+        Function.NONE_TO_MINUS_INF: junos.none_to_minus_inf,
+        Function.NONE_TO_PLUS_INF: junos.none_to_plus_inf,
         # Functions for complex Metrics
-        Function.FAN_POWER_TEMP_STATUS: functions.fan_power_temp_status,
-        Function.TEMP_CELSIUS: functions.temp_celsius,
-        Function.REBOOT: functions.reboot,
-        Function.CPU_IDLE: functions.cpu_idle,
-        Function.CPU_USAGE: functions.cpu_usage,
-        Function.RAM: functions.ram,
-        Function.RAM_USAGE: functions.ram_usage,
+        Function.FAN_POWER_TEMP_STATUS: junos.fan_power_temp_status,
+        Function.TEMP_CELSIUS: junos.temp_celsius,
+        Function.REBOOT: junos.reboot,
+        Function.CPU_IDLE: junos.cpu_idle,
+        Function.CPU_USAGE: junos.cpu_usage,
+        Function.RAM: junos.ram,
+        Function.RAM_USAGE: junos.ram_usage,
         # The default function
-        Function.DEFAULT: functions.default
+        Function.DEFAULT: junos.default
     }
 
     @property

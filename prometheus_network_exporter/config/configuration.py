@@ -27,7 +27,6 @@ class LabelConfiguration(_Configuration):
 
     @property
     def label(self) -> str:
-        print(self.config)
         return self.config['label']
 
     @property
@@ -35,7 +34,13 @@ class LabelConfiguration(_Configuration):
         return self.config['key']
 
     def get_label(self, data: dict) -> str:
-        return data.get(self.json_key)
+        return data.get(self.json_key, '')
+
+    def __repr__(self):
+        return self.__str__()
+
+    def __str__(self):
+        return f"<label: {self.label}, key: {self.json_key}>"
 
 
 class MetricConfiguration(_Configuration):
