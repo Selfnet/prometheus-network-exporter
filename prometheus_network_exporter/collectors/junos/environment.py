@@ -10,7 +10,6 @@ from ...devices import junosdevice
 from .. import junos
 from ..base import Collector
 from . import base
-from .test import test_data
 
 
 class EnvironmentCollector(Collector):
