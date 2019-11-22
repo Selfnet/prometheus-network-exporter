@@ -28,7 +28,7 @@ class Device():
     def cache_info(self):
         return self.lookup.cache_info()
 
-    @lru_cache()
+    @lru_cache(maxsize=1024)
     def lookup(self, ip):
         try:
             return socket.gethostbyaddr(ip)[0]
