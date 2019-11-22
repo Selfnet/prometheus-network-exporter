@@ -21,7 +21,14 @@ class Device():
     def is_connected(self):
         raise NotImplementedError
 
-    @lru_cache
+    def clear_cache(self):
+        self.lookup.cache_clear()
+
+    @property
+    def cache_info(self):
+        return self.lookup.cache_info()
+
+    @lru_cache()
     def lookup(self, ip):
         try:
             return socket.gethostbyaddr(ip)[0]
