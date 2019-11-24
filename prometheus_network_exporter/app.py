@@ -5,31 +5,29 @@ import signal
 import sys
 from collections import Counter
 from concurrent.futures import ThreadPoolExecutor
-
+from typing import Dict
 import tornado.ioloop
 import tornado.web
 from fqdn import FQDN
 from prometheus_client import exposition, generate_latest
 from tornado.concurrent import run_on_executor
 
-# from prometheus_network_exporter.devices.arubadevice import ArubaNetworkDevice, ArubaMetrics
-# from prometheus_network_exporter.devices.ubntdevice import AirMaxDevice, AirMaxMetrics
-# from prometheus_network_exporter.devices.ciscodevice import CiscoMetrics
 import prometheus_network_exporter.netstat as netstat
 from prometheus_network_exporter import __version__ as VERSION
 from prometheus_network_exporter.baseapp import Application
+from prometheus_network_exporter.devices.basedevice import Device
 from prometheus_network_exporter.devices.junosdevice import \
     JuniperNetworkDevice
 
 if not sys.warnoptions:
     import warnings
     warnings.simplefilter("ignore")
-
-CONNECTION_POOL = {}
+SERVER = None
+GLOBAL_GUARD: bool = False
+CONNECTION_POOL: Dict[str, Device] = {}
+COUNTER_DIR = '.tmp'
 MAX_WAIT_SECONDS_BEFORE_SHUTDOWN = 60
 MAX_WORKERS = 90
-SERVER = None
-COUNTER_DIR = '.tmp'
 
 
 class MetricsHandler(tornado.web.RequestHandler):
@@ -65,6 +63,7 @@ class ExporterHandler(tornado.web.RequestHandler):
 
     @run_on_executor
     def get_device_information(self, hostname):
+        global CONNECTION_POOL
         try:
             module = self.application.CONFIG[self.get_argument('module')]
         except tornado.web.MissingArgumentError:
@@ -77,11 +76,7 @@ class ExporterHandler(tornado.web.RequestHandler):
             return 404, "Wrong module!", "you're holding it wrong!:\nAvailable modules are: {}".format(
                 list(self.application.CONFIG.keys()))
 
-        if (
-            not CONNECTION_POOL[hostname] or
-            not CONNECTION_POOL[hostname].get('device')
-        ):
-            CONNECTION_POOL[hostname] = {}
+        if not CONNECTION_POOL.get(hostname):
             dev = None
             if module['auth']['method'] == 'ssh_key':
                 # using ssh key
@@ -102,7 +97,17 @@ class ExporterHandler(tornado.web.RequestHandler):
                     )
             elif module['auth']['method'] == 'password':
                 try:
-            #         if module['device'] == 'arubaos':
+                    if module['device'] == 'junos':
+                        dev = JuniperNetworkDevice(
+                            hostname=hostname,
+                            user=module['auth'].get(
+                                'username', getpass.getuser()),
+                            password=module['auth']['password'],
+                            port=module['auth'].get('port', 22),
+                            types=module['metrics'],
+                            exception_counter=self.application.exception_counter
+                        )
+            #         elif module['device'] == 'arubaos':
             #             http = 'https' if module['auth'].get(
             #                 'http_secure', True) else 'http'
             #             port = module['auth'].get('port', 4343)
@@ -118,16 +123,6 @@ class ExporterHandler(tornado.web.RequestHandler):
             #                 verify=module['auth'].get(
             #                     'verify', False)
             #             )
-                    if module['device'] == 'junos':
-                        dev = JuniperNetworkDevice(
-                            hostname=hostname,
-                            user=module['auth'].get(
-                                'username', getpass.getuser()),
-                            password=module['auth']['password'],
-                            port=module['auth'].get('port', 22),
-                            types=module['metrics'],
-                            exception_counter=self.application.exception_counter
-                        )
             #         elif module['device'] == 'airmax':
             #             http = 'https' if module['auth'].get(
             #                 'http_secure', True) else 'http'
@@ -147,31 +142,39 @@ class ExporterHandler(tornado.web.RequestHandler):
                 except KeyError as e:
                     raise e
                     return 500, 'ConfigError', "You must specify a password."
-            CONNECTION_POOL[hostname]['device'] = dev
-        dev = CONNECTION_POOL[hostname]['device']
+            CONNECTION_POOL[hostname] = dev
+        dev = CONNECTION_POOL[hostname]
         if not dev or not dev.device:
             del CONNECTION_POOL[hostname]
-            return 500, 'ConnectionError', 'No Connection for {}, have done cleanup!'.format(hostname)
+            return 500, 'ConnectionError', 'No Connection for {}, have done cleanup!'.format(hostname).encode('utf8')
 
         # get metrics from file
         return dev.collect()
 
     async def get(self):
+        global CONNECTION_POOL, GLOBAL_GUARD
         self.set_header('Content-type', 'text/plain')
         hostname = self.get_argument('target')
+        if GLOBAL_GUARD:
+            self.set_status(503, reason="Service Unavailable Ressource blocked")
+            self.write(bytes("{} is not a valid FQDN!".format(hostname).encode('utf8')))
+            return
         if not FQDN(hostname).is_valid:
             self.set_status(409, reason="FQDN is invalid!")
-            self.write(bytes("{} is not a valid FQDN!".format(hostname)))
+            self.write(bytes("{} is not a valid FQDN!".format(hostname).encode('utf8')))
             return
         if hostname:
             if hostname not in CONNECTION_POOL.keys():
-                CONNECTION_POOL[hostname] = {}
+                CONNECTION_POOL[hostname] = None
             self.application.used_workers.inc()
             try:
                 code, status, data = await self.get_device_information(
                     hostname=hostname)
             except Exception as e:
-                raise(e)
+                print(f"{hostname} :: {e}")
+                self.set_status(503, "Ressource Locked")
+                self.write(bytes("{} is currently locked".format(hostname).encode('utf8')))
+                return
             finally:
                 self.application.used_workers.dec()
 
@@ -187,34 +190,37 @@ class AllDeviceReloadHandler(tornado.web.RequestHandler):
         self.write(bytes(status, 'utf-8'))
 
     async def reload_all(self):
+        global GLOBAL_GUARD, CONNECTION_POOL
+        GLOBAL_GUARD = True
         entries = list(CONNECTION_POOL.keys())
         for entry in entries:
-            if entry in CONNECTION_POOL.keys():
-                try:
-                    CONNECTION_POOL[entry]['device'].lock.acquire()
-                    CONNECTION_POOL[entry]['device'].disconnect()
-                except:
-                    pass
-                finally:
-                    CONNECTION_POOL[entry]['device'].lock.release()
+            try:
+                CONNECTION_POOL[entry].lock.acquire()
+                CONNECTION_POOL[entry].disconnect()
+            except:
+                pass
+            finally:
+                CONNECTION_POOL[entry].lock.release()
                 del CONNECTION_POOL[entry]
-                print("{} :: Connection Object {}".format(
-                    entry, "deleted" if entry not in CONNECTION_POOL.keys() else "what the f***"))
+            print("{} :: Connection Object {}".format(
+                entry, "deleted" if entry not in CONNECTION_POOL.keys() else "what the f***"))
+        GLOBAL_GUARD = False
         return 200, "Reloaded all!"
 
 
 class DeviceReloadHandler(tornado.web.RequestHandler):
 
     async def reload_device(self, hostname):
+        global CONNECTION_POOL
         if FQDN(hostname).is_valid:
             if hostname in CONNECTION_POOL.keys():
                 try:
-                    CONNECTION_POOL[hostname]['device'].lock.acquire()
-                    CONNECTION_POOL[hostname]['device'].disconnect()
+                    CONNECTION_POOL[hostname].lock.acquire()
+                    CONNECTION_POOL[hostname].disconnect()
                 except:
                     pass
                 finally:
-                    CONNECTION_POOL[hostname]['device'].lock.release()
+                    CONNECTION_POOL[hostname].lock.release()
                     del CONNECTION_POOL[hostname]
                 print("{} :: Connection Object {}".format(
                     hostname, "deleted" if hostname not in CONNECTION_POOL.keys() else "what the f***"))
@@ -234,7 +240,7 @@ class DeviceReloadHandler(tornado.web.RequestHandler):
 
 
 def app():
-    global MAX_WORKERS
+    global MAX_WORKERS, COUNTER_DIR
     parser = argparse.ArgumentParser(
         prog='prometheus-network-exporter',
         description="Prometheus exporter for JunOS switches and routers + Others")
@@ -277,18 +283,21 @@ def sig_handler(sig, frame):
 
 
 def shutdown():
+    global SERVER, GLOBAL_GUARD
+    GLOBAL_GUARD = True
     print('Stopping http server')
     for hostname, data in CONNECTION_POOL.items():
         try:
-            data['device'].lock.acquire()
-            data['device'].disconnect()
+            data.lock.acquire()
+            data.disconnect()
         except:
             pass
         print("{} :: Connection State {}".format(
             hostname, "Disconnected" if (
-                not data.get('device') or
-                not data['device'].is_connected()) else "Connected"))
+                not data or
+                not data.is_connected()) else "Connected"))
     SERVER.stop()
+    GLOBAL_GUARD = False
     exit(0)
 
 

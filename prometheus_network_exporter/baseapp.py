@@ -30,7 +30,6 @@ class Application(_Application):
         multiprocess.MultiProcessCollector(registry=self.multiprocess_registry, path='.tmp')
         self.max_workers = kwargs.pop('max_workers', 10)
         buckets = kwargs.pop('prometheus_buckets', None)
-
         histogram_kwargs = {
             'labelnames': ['method', 'path', 'status'],
             'registry': self.multiprocess_registry,

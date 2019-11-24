@@ -202,7 +202,6 @@ class JuniperNetworkDevice(basedevice.Device):
         return self.is_connected()
 
     def collect(self):
-        print("Collecting")
         try:
             if not self.lock.acquire(False):
                 raise Exception("{} is locked.".format(self.device.hostname))

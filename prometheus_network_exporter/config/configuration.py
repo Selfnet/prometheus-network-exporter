@@ -34,7 +34,7 @@ class LabelConfiguration(_Configuration):
         return self.config['key']
 
     def get_label(self, data: dict) -> str:
-        return data.get(self.json_key, '')
+        return str(data.get(self.json_key))
 
     def __repr__(self):
         return self.__str__()
