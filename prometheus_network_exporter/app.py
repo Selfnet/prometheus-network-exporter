@@ -71,12 +71,12 @@ class ExporterHandler(tornado.web.RequestHandler):
                 """you're holding it wrong!:
                 {}
                 /metrics?module=default&target=target.example.com""".format(
-                    self.request.uri)
+                    self.request.uri).encode("utf8")
         except KeyError:
             return 404, "Wrong module!", "you're holding it wrong!:\nAvailable modules are: {}".format(
-                list(self.application.CONFIG.keys()))
+                list(self.application.CONFIG.keys())).encode('utf8')
 
-        if not CONNECTION_POOL.get(hostname):
+        if CONNECTION_POOL.get(hostname) is None:
             dev = None
             if module['auth']['method'] == 'ssh_key':
                 # using ssh key
@@ -141,9 +141,11 @@ class ExporterHandler(tornado.web.RequestHandler):
             #             )
                 except KeyError as e:
                     raise e
-                    return 500, 'ConfigError', "You must specify a password."
+                    return 500, 'ConfigError', "You must specify a password.".encode('utf8')
             CONNECTION_POOL[hostname] = dev
         dev = CONNECTION_POOL[hostname]
+        if dev.lock.locked():
+            return 500, "Ressource Locked", "{} is currently locked".format(hostname).encode('utf8')
         if not dev or not dev.device:
             del CONNECTION_POOL[hostname]
             return 500, 'ConnectionError', 'No Connection for {}, have done cleanup!'.format(hostname).encode('utf8')
@@ -172,9 +174,7 @@ class ExporterHandler(tornado.web.RequestHandler):
                     hostname=hostname)
             except Exception as e:
                 print(f"{hostname} :: {e}")
-                self.set_status(503, "Ressource Locked")
-                self.write(bytes("{} is currently locked".format(hostname).encode('utf8')))
-                return
+                raise(e)
             finally:
                 self.application.used_workers.dec()
 
