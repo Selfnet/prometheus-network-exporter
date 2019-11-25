@@ -7,6 +7,7 @@ verify_ssl = true
 "autopep8" = "*"
 "flake8" = "*"
 "PySocks" = "*"
+pyinstaller = "*"
 
 [packages]
 junos-eznc = "*" # "==2.2.1"
@@ -21,4 +22,4 @@ cached-property = "*"
 importlib-resources = "*"
 
 [requires]
-python_version = "3.8"
+python_version = "3.7"

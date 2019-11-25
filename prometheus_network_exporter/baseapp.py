@@ -4,7 +4,6 @@ from logging import getLogger
 from prometheus_client import Histogram, Gauge, Counter, multiprocess, CollectorRegistry
 from tornado.web import Application as _Application
 from prometheus_network_exporter.schema import Configuration
-import importlib.resources
 
 log = getLogger('tornado_prometheus_exporter')
 CONF_DIR = os.path.join('/etc', 'prometheus-network-exporter')

@@ -11,7 +11,7 @@ import tornado.web
 from fqdn import FQDN
 from prometheus_client import exposition, generate_latest
 from tornado.concurrent import run_on_executor
-
+import logging
 import prometheus_network_exporter.netstat as netstat
 from prometheus_network_exporter import __version__ as VERSION
 from prometheus_network_exporter.baseapp import Application
@@ -29,6 +29,7 @@ COUNTER_DIR = '.tmp'
 MAX_WAIT_SECONDS_BEFORE_SHUTDOWN = 60
 MAX_WORKERS = 90
 
+app_logger = logging.getLogger("network_exporter").setLevel(logging.INFO)
 
 class MetricsHandler(tornado.web.RequestHandler):
     """
@@ -141,10 +142,12 @@ class ExporterHandler(tornado.web.RequestHandler):
             #             )
                 except KeyError as e:
                     raise e
+                    app_logger.info(e)
                     return 500, 'ConfigError', "You must specify a password.".encode('utf8')
             CONNECTION_POOL[hostname] = dev
         dev = CONNECTION_POOL[hostname]
         if dev.lock.locked():
+            app_logger.info("Device is locked")
             return 500, "Ressource Locked", "{} is currently locked".format(hostname).encode('utf8')
         if not dev or not dev.device:
             del CONNECTION_POOL[hostname]
@@ -173,7 +176,7 @@ class ExporterHandler(tornado.web.RequestHandler):
                 code, status, data = await self.get_device_information(
                     hostname=hostname)
             except Exception as e:
-                print(f"{hostname} :: {e}")
+                app_logger.info(f"{hostname} :: {e}")
                 raise(e)
             finally:
                 self.application.used_workers.dec()
@@ -202,7 +205,7 @@ class AllDeviceReloadHandler(tornado.web.RequestHandler):
             finally:
                 CONNECTION_POOL[entry].lock.release()
                 del CONNECTION_POOL[entry]
-            print("{} :: Connection Object {}".format(
+            app_logger.info("{} :: Connection Object {}".format(
                 entry, "deleted" if entry not in CONNECTION_POOL.keys() else "what the f***"))
         GLOBAL_GUARD = False
         return 200, "Reloaded all!"
@@ -222,7 +225,7 @@ class DeviceReloadHandler(tornado.web.RequestHandler):
                 finally:
                     CONNECTION_POOL[hostname].lock.release()
                     del CONNECTION_POOL[hostname]
-                print("{} :: Connection Object {}".format(
+                app_logger.info("{} :: Connection Object {}".format(
                     hostname, "deleted" if hostname not in CONNECTION_POOL.keys() else "what the f***"))
                 return 200, 'Deleted!', "{} got deleted!".format(
                     hostname)
@@ -270,35 +273,35 @@ def app():
 
     global SERVER
     SERVER = tornado.httpserver.HTTPServer(app)
-    print("Listening on http://{}:{}".format(args.ip, args.port))
+    print("Starting HTTP Server on http://{}:{}".format(args.ip, args.port))
     SERVER.listen(args.port, address=args.ip)
 
     tornado.ioloop.IOLoop.current().start()
-    print("Exiting ...")
+    app_logger.info("Exiting ...")
 
 
 def sig_handler(sig, frame):
-    print('Caught signal: {}'.format(sig))
+    app_logger.info('Caught signal: {}'.format(sig))
     tornado.ioloop.IOLoop.current().add_callback_from_signal(shutdown)
 
 
 def shutdown():
     global SERVER, GLOBAL_GUARD
     GLOBAL_GUARD = True
-    print('Stopping http server')
+    app_logger.warning('Stopping http server')
     for hostname, data in CONNECTION_POOL.items():
         try:
             data.lock.acquire()
             data.disconnect()
         except:
             pass
-        print("{} :: Connection State {}".format(
+        app_logger.info("{} :: Connection State {}".format(
             hostname, "Disconnected" if (
                 not data or
                 not data.is_connected()) else "Connected"))
     SERVER.stop()
     GLOBAL_GUARD = False
-    exit(0)
+    sys.exit(0)
 
 
 if __name__ == "__main__":
