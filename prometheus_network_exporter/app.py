@@ -29,7 +29,8 @@ COUNTER_DIR = '.tmp'
 MAX_WAIT_SECONDS_BEFORE_SHUTDOWN = 60
 MAX_WORKERS = 90
 
-app_logger = logging.getLogger("network_exporter").setLevel(logging.INFO)
+APP_LOGGER = logging.getLogger("network_exporter")
+APP_LOGGER.setLevel(logging.INFO)
 
 class MetricsHandler(tornado.web.RequestHandler):
     """
@@ -64,7 +65,7 @@ class ExporterHandler(tornado.web.RequestHandler):
 
     @run_on_executor
     def get_device_information(self, hostname):
-        global CONNECTION_POOL
+        global CONNECTION_POOL, APP_LOGGER
         try:
             module = self.application.CONFIG[self.get_argument('module')]
         except tornado.web.MissingArgumentError:
@@ -142,12 +143,12 @@ class ExporterHandler(tornado.web.RequestHandler):
             #             )
                 except KeyError as e:
                     raise e
-                    app_logger.info(e)
+                    APP_LOGGER.info(e)
                     return 500, 'ConfigError', "You must specify a password.".encode('utf8')
             CONNECTION_POOL[hostname] = dev
         dev = CONNECTION_POOL[hostname]
         if dev.lock.locked():
-            app_logger.info("Device is locked")
+            APP_LOGGER.info("Device is locked")
             return 500, "Ressource Locked", "{} is currently locked".format(hostname).encode('utf8')
         if not dev or not dev.device:
             del CONNECTION_POOL[hostname]
@@ -176,7 +177,7 @@ class ExporterHandler(tornado.web.RequestHandler):
                 code, status, data = await self.get_device_information(
                     hostname=hostname)
             except Exception as e:
-                app_logger.info(f"{hostname} :: {e}")
+                APP_LOGGER.info(f"{hostname} :: {e}")
                 raise(e)
             finally:
                 self.application.used_workers.dec()
@@ -193,7 +194,7 @@ class AllDeviceReloadHandler(tornado.web.RequestHandler):
         self.write(bytes(status, 'utf-8'))
 
     async def reload_all(self):
-        global GLOBAL_GUARD, CONNECTION_POOL
+        global GLOBAL_GUARD, CONNECTION_POOL, APP_LOGGER
         GLOBAL_GUARD = True
         entries = list(CONNECTION_POOL.keys())
         for entry in entries:
@@ -205,7 +206,7 @@ class AllDeviceReloadHandler(tornado.web.RequestHandler):
             finally:
                 CONNECTION_POOL[entry].lock.release()
                 del CONNECTION_POOL[entry]
-            app_logger.info("{} :: Connection Object {}".format(
+            APP_LOGGER.info("{} :: Connection Object {}".format(
                 entry, "deleted" if entry not in CONNECTION_POOL.keys() else "what the f***"))
         GLOBAL_GUARD = False
         return 200, "Reloaded all!"
@@ -214,7 +215,7 @@ class AllDeviceReloadHandler(tornado.web.RequestHandler):
 class DeviceReloadHandler(tornado.web.RequestHandler):
 
     async def reload_device(self, hostname):
-        global CONNECTION_POOL
+        global CONNECTION_POOL, APP_LOGGER
         if FQDN(hostname).is_valid:
             if hostname in CONNECTION_POOL.keys():
                 try:
@@ -225,7 +226,7 @@ class DeviceReloadHandler(tornado.web.RequestHandler):
                 finally:
                     CONNECTION_POOL[hostname].lock.release()
                     del CONNECTION_POOL[hostname]
-                app_logger.info("{} :: Connection Object {}".format(
+                APP_LOGGER.info("{} :: Connection Object {}".format(
                     hostname, "deleted" if hostname not in CONNECTION_POOL.keys() else "what the f***"))
                 return 200, 'Deleted!', "{} got deleted!".format(
                     hostname)
@@ -243,7 +244,7 @@ class DeviceReloadHandler(tornado.web.RequestHandler):
 
 
 def app():
-    global MAX_WORKERS, COUNTER_DIR
+    global MAX_WORKERS, COUNTER_DIR, APP_LOGGER
     parser = argparse.ArgumentParser(
         prog='prometheus-network-exporter',
         description="Prometheus exporter for JunOS switches and routers + Others")
@@ -273,29 +274,29 @@ def app():
 
     global SERVER
     SERVER = tornado.httpserver.HTTPServer(app)
-    print("Starting HTTP Server on http://{}:{}".format(args.ip, args.port))
+    APP_LOGGER.info("Starting HTTP Server on http://{}:{}".format(args.ip, args.port))
     SERVER.listen(args.port, address=args.ip)
 
     tornado.ioloop.IOLoop.current().start()
-    app_logger.info("Exiting ...")
+    APP_LOGGER.info("Exiting ...")
 
 
 def sig_handler(sig, frame):
-    app_logger.info('Caught signal: {}'.format(sig))
+    APP_LOGGER.info('Caught signal: {}'.format(sig))
     tornado.ioloop.IOLoop.current().add_callback_from_signal(shutdown)
 
 
 def shutdown():
-    global SERVER, GLOBAL_GUARD
+    global SERVER, GLOBAL_GUARD, APP_LOGGER
     GLOBAL_GUARD = True
-    app_logger.warning('Stopping http server')
+    APP_LOGGER.warning('Stopping http server')
     for hostname, data in CONNECTION_POOL.items():
         try:
             data.lock.acquire()
             data.disconnect()
         except:
             pass
-        app_logger.info("{} :: Connection State {}".format(
+        APP_LOGGER.info("{} :: Connection State {}".format(
             hostname, "Disconnected" if (
                 not data or
                 not data.is_connected()) else "Connected"))
