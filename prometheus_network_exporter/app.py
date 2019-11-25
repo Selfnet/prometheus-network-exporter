@@ -53,11 +53,8 @@ class MetricsHandler(tornado.web.RequestHandler):
 
     async def get(self):
         await self.get_metrics()
-        _, content_type = exposition.choose_encoder(
-            self.request.headers.get('Accept'))
-        self.set_header('Content-Type', content_type)
-        data = generate_latest(self.application.multiprocess_registry)
-        self.write(data)
+        self.set_header('Content-type', 'text/plain')
+        self.write(generate_latest(self.application.multiprocess_registry))
 
 
 class ExporterHandler(tornado.web.RequestHandler):
