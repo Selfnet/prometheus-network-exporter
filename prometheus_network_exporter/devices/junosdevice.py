@@ -45,7 +45,9 @@ class JuniperNetworkDevice(basedevice.Device):
             ssh_private_key_file=ssh_private_key_file,
             ssh_config=ssh_config,
             password=password,
-            port=port
+            port=port,
+            gather_facts=False,
+            fact_style='old'
         )
         super(JuniperNetworkDevice, self).__init__(hostname, device, **kwargs)
         self.register_collectors(self.types)
@@ -90,6 +92,7 @@ class JuniperNetworkDevice(basedevice.Device):
         )
 
     def get_environment(self):
+        self.device.facts_refresh()
         facts = self.device.facts
         uptime = self.device.uptime
         rengine = RoutingEngineTable(self.device).get()
