@@ -7,7 +7,7 @@ added_files = [
     ('prometheus_network_exporter/views/junos/*.yml', 'prometheus_network_exporter/views/junos')
 ]
 a = Analysis(['prometheus_network_exporter/app.py'],
-             pathex=['/home/cellebyte/git/selfnet/prometheus_junos_exporter'],
+             pathex=['prometheus_junos_exporter'],
              binaries=[],
              datas=added_files,
              hiddenimports=[],
