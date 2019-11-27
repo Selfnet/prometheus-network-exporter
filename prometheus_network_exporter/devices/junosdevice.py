@@ -221,5 +221,4 @@ class JuniperNetworkDevice(basedevice.Device):
         finally:
             # fix the memory consumption problem?
             self.disconnect()
-            self.registry.samples.clear()
             self.lock.release()

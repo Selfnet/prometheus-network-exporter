@@ -1,6 +1,5 @@
 from typing import Union
 
-from ...collectors.base import Collector
 from ...utitlities import create_list_from_dict
 from ..configuration import LabelConfiguration, MetricConfiguration
 

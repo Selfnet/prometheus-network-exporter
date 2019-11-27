@@ -53,3 +53,4 @@ class BGPCollector(Collector):
                     )
 
                 yield prometheus.metric
+                prometheus.flush()

@@ -70,3 +70,4 @@ class InterfaceCollector(Collector):
                     )
                 )
             yield prometheus.metric
+            prometheus.flush()

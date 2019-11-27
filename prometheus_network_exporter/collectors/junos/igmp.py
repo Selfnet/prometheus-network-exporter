@@ -87,3 +87,4 @@ class IGMPCollector(Collector):
                     )
                 )
             yield prometheus.metric
+            prometheus.flush()

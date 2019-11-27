@@ -73,3 +73,4 @@ class EnvironmentCollector(Collector):
                     )
                 )
                 yield prometheus.metric
+            prometheus.flush()

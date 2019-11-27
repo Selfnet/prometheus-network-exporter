@@ -62,3 +62,4 @@ class OSPF3Collector(Collector):
                         )
                     )
             yield prometheus.metric
+            prometheus.flush()

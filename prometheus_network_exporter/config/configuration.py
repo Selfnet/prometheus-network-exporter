@@ -88,6 +88,9 @@ class MetricConfiguration(_Configuration):
             labels=[label.label for label in self.labels]
         )
 
+    def flush(self):
+        self.metric.samples.clear()
+
     @property
     def metric_type(self) -> Metric:
         return self.__metric_type

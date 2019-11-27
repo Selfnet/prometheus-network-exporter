@@ -54,3 +54,4 @@ class OpticsCollector(Collector):
                     )
                 )
             yield prometheus.metric
+            prometheus.flush()
