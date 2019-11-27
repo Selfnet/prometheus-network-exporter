@@ -5,7 +5,8 @@
 from __future__ import annotations
 
 from jnpr.junos import Device
-from jnpr.junos.exception import RpcError
+from jnpr.junos.exception import RpcError, ConnectAuthError, RpcTimeoutError
+from ncclient.transport.errors import AuthenticationError
 from prometheus_client import generate_latest
 
 from prometheus_network_exporter.collectors.junos.bgp import BGPCollector
@@ -211,12 +212,14 @@ class JuniperNetworkDevice(basedevice.Device):
             self.connect()
             self.device.timeout = 60
             return 200, "OK", generate_latest(self.registry)
-        except Exception as exception:
+        except (Exception, ConnectAuthError, AuthenticationError, RpcTimeoutError) as exception:
             exception_name = type(exception).__name__
             raise exception
             self.exception_counter.labels(
                 exception=exception_name, collector=type(self).__name__, hostname=self.device.hostname).inc()
             return 500, exception_name, "Device {} unreachable".format(self.device.hostname)
         finally:
+            # fix the memory consumption problem?
             self.disconnect()
+            self.registry.samples = []
             self.lock.release()
