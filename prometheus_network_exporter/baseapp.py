@@ -28,6 +28,7 @@ class Application(_Application):
         Configuration().validate(self.CONFIG)
         multiprocess.MultiProcessCollector(registry=self.multiprocess_registry, path='.tmp')
         self.max_workers = kwargs.pop('max_workers', 10)
+        self.debug = kwargs.pop('debug', False)
         buckets = kwargs.pop('prometheus_buckets', None)
         histogram_kwargs = {
             'labelnames': ['method', 'path', 'status'],
