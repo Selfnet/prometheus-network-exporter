@@ -5,7 +5,7 @@
 import socket
 import threading
 
-from functools import lru_cache
+from ..utitlities import timed_cache
 from prometheus_client import CollectorRegistry
 
 
@@ -28,7 +28,8 @@ class Device():
     def cache_info(self):
         return self.lookup.cache_info()
 
-    @lru_cache(maxsize=1024)
+    # cache two times as long as the dns default ttl
+    @timed_cache(seconds=600)
     def lookup(self, ip):
         try:
             return socket.gethostbyaddr(ip)[0]
