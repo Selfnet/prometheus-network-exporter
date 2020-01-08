@@ -214,7 +214,6 @@ class JuniperNetworkDevice(basedevice.Device):
             return 200, "OK", generate_latest(self.registry)
         except (Exception, ConnectAuthError, AuthenticationError, RpcTimeoutError) as exception:
             exception_name = type(exception).__name__
-            raise exception
             self.exception_counter.labels(
                 exception=exception_name, collector=type(self).__name__, hostname=self.device.hostname).inc()
             return 500, exception_name, "Device {} unreachable".format(self.device.hostname)
