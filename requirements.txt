@@ -1,7 +1,0 @@
-junos-eznc==2.2.1
-PyYAML
-tornado
-arubaos_client
-unifi_client
-prometheus_client
-fqdn
