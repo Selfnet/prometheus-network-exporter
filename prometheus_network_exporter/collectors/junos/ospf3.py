@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import yaml
-from importlib_resources import read_text
+from importlib.resources import read_text
 
 from ...config.junos import JunosMetricConfiguration, OSPFType
 from ...devices import junosdevice

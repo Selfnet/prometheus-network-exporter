@@ -4,7 +4,7 @@ import ipaddress
 
 import yaml
 from cached_property import cached_property
-from importlib_resources import read_text
+from importlib.resources import read_text
 
 from ...config.junos import JunosMetricConfiguration
 from ...devices import junosdevice
