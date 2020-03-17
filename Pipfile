@@ -19,7 +19,6 @@ prometheus_client= "*"
 fqdn= "*"
 voluptuous = "*"
 cached-property = "*"
-importlib-resources = "*"
 
 [requires]
 python_version = "3.7"
