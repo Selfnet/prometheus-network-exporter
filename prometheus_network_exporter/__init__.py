@@ -3,7 +3,7 @@ from typing import Dict
 
 from prometheus_network_exporter.devices.basedevice import Device
 
-__version__ = "1.0.8"
+__version__ = "1.0.9"
 
 GLOBAL_GUARD: bool = False
 CONNECTION_POOL: Dict[str, Device] = {}
@@ -13,5 +13,3 @@ MAX_WORKERS = 90
 
 APP_LOGGER = logging.getLogger("network_exporter")
 APP_LOGGER.setLevel(logging.INFO)
-
-
