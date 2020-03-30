@@ -89,7 +89,7 @@ def temp_celsius(prometheus: MetricConfiguration, data: dict):
             labels=[label.get_label(data_part) for label in prometheus.labels],
             value=data_part.get(
                 'temperature'
-            )
+            ) or float('-inf')
         )
     return prometheus.metric
 
@@ -129,7 +129,7 @@ def cpu_usage(prometheus: MetricConfiguration, data: dict):
     for perf in data_list:
         prometheus.metric.add_metric(
             labels=[label.get_label(perf) for label in prometheus.labels],
-            value=(100 - int(perf['cpu-idle']))
+            value=(100 - int(perf['cpu-idle'] or 0))
         )
     return prometheus.metric
 

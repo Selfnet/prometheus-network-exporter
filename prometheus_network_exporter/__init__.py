@@ -3,7 +3,7 @@ from typing import Dict
 
 from prometheus_network_exporter.devices.basedevice import Device
 
-__version__ = "1.0.9"
+__version__ = "1.0.10"
 
 GLOBAL_GUARD: bool = False
 CONNECTION_POOL: Dict[str, Device] = {}
