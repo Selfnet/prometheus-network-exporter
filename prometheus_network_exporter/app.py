@@ -84,11 +84,11 @@ def shutdown():
     global SERVER, GLOBAL_GUARD, APP_LOGGER
     GLOBAL_GUARD.acquire(True)
     APP_LOGGER.info("Sleeping for 60s")
-    time.sleep(60)
+    time.sleep(30)
     APP_LOGGER.warning('Stopping http server')
     for hostname, data in CONNECTION_POOL.items():
         try:
-            data.lock.acquire(True)
+            data.lock.acquire()
             data.disconnect()
         except Exception as e:
             APP_LOGGER.error(f"{hostname} :: Shutting down got {e}")

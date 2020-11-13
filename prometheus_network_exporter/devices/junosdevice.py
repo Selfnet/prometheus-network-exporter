@@ -217,7 +217,7 @@ class JuniperNetworkDevice(basedevice.Device):
             exception_name = type(exception).__name__
             self.exception_counter.labels(
                 exception=exception_name, collector=type(self).__name__, hostname=self.device.hostname).inc()
-            return 500, exception_name, "Device {} unreachable -> {}".format(self.device.hostname, exception)
+            raise exception
         finally:
             # fix the memory consumption problem?
             self.disconnect()
