@@ -21,3 +21,6 @@ LABELS:
 
   - label: neighbor
     key: neighbor_id
+
+  - label: subinterface
+    key: unit

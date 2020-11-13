@@ -18,7 +18,7 @@ from prometheus_network_exporter.collectors.junos.interface import \
 from prometheus_network_exporter.devices import basedevice
 from prometheus_network_exporter.views.junos.bgp import BGPNeighborTable
 from prometheus_network_exporter.views.junos.environment import (
-    EnvironmentTable, RoutingEngineTable)
+    EnvironmentTable, RoutingEngineTable, SoftwareTable)
 from prometheus_network_exporter.views.junos.igmp import IGMPGroupTable
 from prometheus_network_exporter.views.junos.interface_metrics import \
     MetricsTable
@@ -74,11 +74,12 @@ class JuniperNetworkDevice(basedevice.Device):
     def get_bgp(self):
         try:
             bgp = dict(BGPNeighborTable(self.device).get())
-        except RpcError:
+        except RpcError as e:
+            print(e)
             return {}
         bgp = {k: dict(v) for k, v in bgp.items()}
         for information in bgp.values():
-            information['peername'] = self.lookup(information['peeraddr'])
+            information['peername'] = self.lookup(information['peerid'])
         return bgp
 
     def get_interfaces(self, interface_regex=None) -> list:
@@ -93,15 +94,15 @@ class JuniperNetworkDevice(basedevice.Device):
         )
 
     def get_environment(self):
-        self.device.facts_refresh()
-        facts = self.device.facts
-        uptime = self.device.uptime
+        software = SoftwareTable(self.device).get()
         rengine = RoutingEngineTable(self.device).get()
+        rengine_dict = {k: dict(v) for k, v in rengine.items()}
+        uptime = rengine_dict['0']['uptime']
         temperatures = EnvironmentTable(self.device).get()
         return {
-            **facts,
             **{'uptime': uptime},
-            **{'re_loads': {k: dict(v) for k, v in rengine.items()}},
+            **{k: v for value in {k: dict(v) for k, v in software.items()}.values() for k, v in value.items()},
+            **{'re_loads': rengine_dict},
             **{'Temp': {k: dict(v) for k, v in temperatures.items() if 'Temp' == dict(v)['class']}},
             **{'Fans': {k: dict(v) for k, v in temperatures.items() if 'Fans' == dict(v)['class']}},
             **{'Power': {k: dict(v) for k, v in temperatures.items() if 'Power' == dict(v)['class']}}
@@ -216,7 +217,7 @@ class JuniperNetworkDevice(basedevice.Device):
             exception_name = type(exception).__name__
             self.exception_counter.labels(
                 exception=exception_name, collector=type(self).__name__, hostname=self.device.hostname).inc()
-            return 500, exception_name, "Device {} unreachable".format(self.device.hostname)
+            return 500, exception_name, "Device {} unreachable -> {}".format(self.device.hostname, exception)
         finally:
             # fix the memory consumption problem?
             self.disconnect()

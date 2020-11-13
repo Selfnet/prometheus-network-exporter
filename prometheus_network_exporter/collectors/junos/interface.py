@@ -40,7 +40,7 @@ class InterfaceCollector(Collector):
         config = self.default
         if config_path is not None:
             with open(config_path, 'r') as file:
-                config = yaml.load(file, loader=yaml.SafeLoader)
+                config = yaml.load(file, Loader=yaml.SafeLoader)
         super(InterfaceCollector, self).__init__(self.base_name, device, config=config)
         self._init_prometheus_metrics(metric_configuration=JunosMetricConfiguration)
         if ospf:

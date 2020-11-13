@@ -43,13 +43,23 @@ METRICS:
   ## Error Counters
     - metric: transmit_error_output
       type: total
-      key: input_errors
+      key: output_errors
       description: Errors in transmitted packets
+
+    - metric: transmit_drops_output
+      type: total
+      key: output_drops
+      description: Drops in transmitted packets
 
     - metric: receive_error_input
       type: total
-      key: output_errors
+      key: input_errors
       description: Errors in received packets
+
+    - metric: receive_drops_input
+      type: total
+      key: input_drops
+      description: Drops in transmitted packets
 
 LABELS:
   - label: description

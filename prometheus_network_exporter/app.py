@@ -2,6 +2,7 @@ import argparse
 import os
 import signal
 import sys
+import time
 import tracemalloc
 
 import tornado.ioloop
@@ -14,9 +15,8 @@ from prometheus_network_exporter import __version__ as VERSION
 from prometheus_network_exporter.baseapp import Application
 from prometheus_network_exporter.handlers.device import ExporterHandler
 from prometheus_network_exporter.handlers.metrics import MetricsHandler
-from prometheus_network_exporter.handlers.reload import (
-    AllDeviceReloadHandler, DeviceReloadHandler)
 from prometheus_network_exporter.handlers.tracemalloc import TraceMallocHandler
+from prometheus_network_exporter.handlers.unlock import DeviceUnlockHandler
 
 if not sys.warnoptions:
     import warnings
@@ -54,11 +54,15 @@ def app():
     urls = [
         (r'^/metrics$', MetricsHandler),
         (r'^/device$', ExporterHandler),
-        (r'^/reload$', AllDeviceReloadHandler),
-        (r'^/reload/(.*?)', DeviceReloadHandler),
+        (r'^/unlock/(.*?)', DeviceUnlockHandler),
         (r'^/memstats$', TraceMallocHandler)
     ]
-    app = Application(urls, max_workers=args.worker, prometheus_buckets=[0.5, 1, 3, 5, 8, 13, 17, 21, 27, 34, 40, 55], debug=args.debug)
+    app = Application(
+        urls,
+        max_workers=args.worker,
+        prometheus_buckets=[0.5, 1, 3, 5, 8, 13, 17, 21, 27, 34, 40, 55],
+        debug=args.debug
+    )
     MAX_WORKERS = app.max_workers
     signal.signal(signal.SIGTERM, sig_handler)
     signal.signal(signal.SIGINT, sig_handler)
@@ -71,26 +75,29 @@ def app():
 
 
 def sig_handler(sig, frame):
+    global APP_LOGGER
     APP_LOGGER.info('Caught signal: {}'.format(sig))
     tornado.ioloop.IOLoop.current().add_callback_from_signal(shutdown)
 
 
 def shutdown():
     global SERVER, GLOBAL_GUARD, APP_LOGGER
-    GLOBAL_GUARD = True
+    GLOBAL_GUARD.acquire(True)
+    APP_LOGGER.info("Sleeping for 60s")
+    time.sleep(60)
     APP_LOGGER.warning('Stopping http server')
     for hostname, data in CONNECTION_POOL.items():
         try:
-            data.lock.acquire()
+            data.lock.acquire(True)
             data.disconnect()
-        except:
-            pass
-        APP_LOGGER.info("{} :: Connection State {}".format(
-            hostname, "Disconnected" if (
-                not data or
-                not data.is_connected()) else "Connected"))
+        except Exception as e:
+            APP_LOGGER.error(f"{hostname} :: Shutting down got {e}")
+            APP_LOGGER.error(f"{hostname} :: {e.__traceback__}")
+        finally:
+            data.lock.release()
+        APP_LOGGER.info(f"{hostname} :: Disconnected")
     SERVER.stop()
-    GLOBAL_GUARD = False
+    GLOBAL_GUARD.release()
     sys.exit(0)
 
 

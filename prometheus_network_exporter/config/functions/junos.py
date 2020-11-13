@@ -5,6 +5,8 @@ from ..configuration import LabelConfiguration, MetricConfiguration
 
 
 def default(value) -> float:
+    if isinstance(value, list):
+        return default(value[0])
     return 0 if value is None else float(value)
 
 
@@ -95,6 +97,7 @@ def temp_celsius(prometheus: MetricConfiguration, data: dict):
 
 
 def reboot(prometheus: MetricConfiguration, data: dict):
+    data = data['0']
     label_config = LabelConfiguration(
         config={
             "label": "reboot_reason",
@@ -129,7 +132,7 @@ def cpu_usage(prometheus: MetricConfiguration, data: dict):
     for perf in data_list:
         prometheus.metric.add_metric(
             labels=[label.get_label(perf) for label in prometheus.labels],
-            value=(100 - int(perf['cpu-idle'] or 0))
+            value=(100 - int(perf['cpu_idle'] or 0))
         )
     return prometheus.metric
 
@@ -147,7 +150,7 @@ def cpu_idle(prometheus: MetricConfiguration, data: dict):
     for perf in data_list:
         prometheus.metric.add_metric(
             labels=[label.get_label(perf) for label in prometheus.labels],
-            value=int(perf['cpu-idle'])
+            value=int(perf['cpu_idle'])
         )
     return prometheus.metric
 
@@ -163,10 +166,10 @@ def ram_usage(prometheus: MetricConfiguration, data: dict):
     ]
     data_list = create_list_from_dict(data, "ram", format_str="ram_{}")
     for perf in data_list:
-        memory_complete = perf['memory-dram-size'].lower().replace("mb",
+        memory_complete = perf['memory_dram_size'].lower().replace("mb",
                                                                    "").strip()
         memory_complete = int(memory_complete)
-        memory_usage = int(perf['memory-buffer-utilization'])
+        memory_usage = int(perf['memory_buffer_utilization'])
         memory_bytes_usage = (memory_complete * memory_usage / 100) * 1049000
         prometheus.metric.add_metric(
             labels=[label.get_label(perf) for label in prometheus.labels],
@@ -185,7 +188,7 @@ def ram(prometheus: MetricConfiguration, data: dict):
     prometheus.labels = [label_config]
     data_list = create_list_from_dict(data, "ram", format_str="ram_{}")
     for perf in data_list:
-        memory_complete = perf['memory-dram-size'].lower().replace("mb",
+        memory_complete = perf['memory_dram_size'].lower().replace("mb",
                                                                    "").strip()
         memory_complete = int(memory_complete)
         memory_bytes = memory_complete * 1049000
