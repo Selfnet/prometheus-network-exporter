@@ -3,9 +3,8 @@ from concurrent.futures import ThreadPoolExecutor
 
 import tornado
 from fqdn import FQDN
-
 from prometheus_network_exporter import (APP_LOGGER, CONNECTION_POOL,
-                                         MAX_WORKERS, GLOBAL_GUARD)
+                                         GLOBAL_GUARD, MAX_WORKERS)
 from prometheus_network_exporter.devices.junosdevice import \
     JuniperNetworkDevice
 

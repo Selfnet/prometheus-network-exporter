@@ -1,11 +1,10 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Union
 from typing import List, Union
 
-
-from prometheus_client.core import CounterMetricFamily, GaugeMetricFamily, InfoMetricFamily
+from prometheus_client.core import (CounterMetricFamily, GaugeMetricFamily,
+                                    InfoMetricFamily)
 from prometheus_client.core import Metric as PrometheusMetric
 
 

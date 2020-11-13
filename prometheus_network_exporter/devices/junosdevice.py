@@ -74,8 +74,7 @@ class JuniperNetworkDevice(basedevice.Device):
     def get_bgp(self):
         try:
             bgp = dict(BGPNeighborTable(self.device).get())
-        except RpcError as e:
-            print(e)
+        except RpcError:
             return {}
         bgp = {k: dict(v) for k, v in bgp.items()}
         for information in bgp.values():
