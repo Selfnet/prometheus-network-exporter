@@ -33,5 +33,5 @@ LABELS:
   - label: neighbor
     key: peerid
 
-  - label: peeraddress
-    key: peeraddr
+  - label: description
+    key: description
