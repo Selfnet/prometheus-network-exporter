@@ -29,7 +29,7 @@ def create_list_from_dict(dictionary: dict, key: str, format_str="{}") -> list:
 
 def remove_empty(dictionary: dict) -> dict:
     return {
-        key: value for key, value in dictionary.items() if value is not None
+        key: value for key, value in dictionary.items() if value is not None and value != str(None)
     }
 
 

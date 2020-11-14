@@ -7,9 +7,26 @@ RoutingEngineTable:
 
 RoutingEngineView:
   fields:
-    cpu-idle: { cpu-idle: int }
-    memory-dram-size: memory-dram-size
-    memory-buffer-utilization : { memory-buffer-utilization: int }
+    model: model
+    last_reboot_reason: last-reboot-reason
+    uptime: { up-time/@seconds: int }
+    cpu_idle: { cpu-idle: int }
+    memory_dram_size: memory-dram-size
+    memory_buffer_utilization : { memory-buffer-utilization: int }
+
+SoftwareTable:
+  rpc: get-software-information
+  args:
+  item: multi-routing-engine-item
+  key: re-name
+  view: SoftwareView
+
+SoftwareView:
+  fields:
+    hostname: software-information/host-name
+    model: software-information/product-model
+    version: software-information/junos-version
+
 
 EnvironmentTable:
   rpc: get-environment-information

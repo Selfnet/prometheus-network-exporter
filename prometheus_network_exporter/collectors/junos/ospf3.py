@@ -33,7 +33,7 @@ class OSPF3Collector(Collector):
         config = self.default
         if config_path is not None:
             with open(config_path, 'r') as file:
-                config = yaml.load(file, loader=yaml.SafeLoader)
+                config = yaml.load(file, Loader=yaml.SafeLoader)
         super(OSPF3Collector, self).__init__(self.base_name, device, config)
         self._init_prometheus_metrics(metric_configuration=JunosMetricConfiguration)
 

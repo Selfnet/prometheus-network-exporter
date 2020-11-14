@@ -36,6 +36,8 @@ MetricsView:
 
   fields_rxerrs:
     input_errors: { input-errors: int }
+    input_drops: { input-drops: int }
 
   fields_txerrs:
     output_errors: { output-errors: int }
+    output_drops: { output-drops: int }

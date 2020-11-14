@@ -3,9 +3,8 @@ from concurrent.futures import ThreadPoolExecutor
 
 import tornado
 from fqdn import FQDN
-
 from prometheus_network_exporter import (APP_LOGGER, CONNECTION_POOL,
-                                         MAX_WORKERS, GLOBAL_GUARD)
+                                         GLOBAL_GUARD, MAX_WORKERS)
 from prometheus_network_exporter.devices.junosdevice import \
     JuniperNetworkDevice
 
@@ -62,27 +61,27 @@ class ExporterHandler(tornado.web.RequestHandler):
                         )
                 except KeyError as e:
                     raise e
-                    APP_LOGGER.info(e)
                     return 500, 'ConfigError', "You must specify a password.".encode('utf8')
             CONNECTION_POOL[hostname] = dev
         dev = CONNECTION_POOL[hostname]
-        if dev.lock.locked():
-            APP_LOGGER.info("Device is locked")
-            return 500, "Ressource Locked", f"{hostname} is currently locked".encode('utf8')
         if not dev or not dev.device:
             del CONNECTION_POOL[hostname]
             return 500, 'ConnectionError', f'No Connection for {hostname}, have done cleanup!'.encode('utf8')
 
         # get metrics from file
-        return dev.collect()
+        try:
+            return dev.collect()
+        except Exception as e:
+            raise e
 
     async def get(self):
         global CONNECTION_POOL, GLOBAL_GUARD
         self.set_header('Content-type', 'text/plain')
+
         hostname = self.get_argument('target')
-        if GLOBAL_GUARD:
-            self.set_status(503, reason="Service Unavailable Ressource blocked")
-            self.write(bytes(f"{hostname} is not a valid FQDN!".encode('utf8')))
+        if GLOBAL_GUARD.locked():
+            self.set_status(503, reason="Service Unavailable Service blocked")
+            self.write(bytes(f"{hostname} GLOBAL_GUARD active Shutdown!".encode('utf8')))
             return
         if not FQDN(hostname).is_valid:
             self.set_status(409, reason="FQDN is invalid!")
@@ -96,7 +95,7 @@ class ExporterHandler(tornado.web.RequestHandler):
                 code, status, data = await self.get_device_information(
                     hostname=hostname)
             except Exception as e:
-                APP_LOGGER.info(f"{hostname} :: {e}")
+                APP_LOGGER.info(f"{hostname} :: {e} {e.__traceback__}")
             finally:
                 self.application.used_workers.dec()
 

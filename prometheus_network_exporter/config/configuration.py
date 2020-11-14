@@ -3,8 +3,8 @@ from __future__ import annotations
 from enum import Enum
 from typing import List, Union
 
-
-from prometheus_client.core import CounterMetricFamily, GaugeMetricFamily, InfoMetricFamily
+from prometheus_client.core import (CounterMetricFamily, GaugeMetricFamily,
+                                    InfoMetricFamily)
 from prometheus_client.core import Metric as PrometheusMetric
 
 
@@ -33,7 +33,7 @@ class LabelConfiguration(_Configuration):
     def json_key(self) -> str:
         return self.config['key']
 
-    def get_label(self, data: dict) -> str:
+    def get_label(self, data: dict) -> Union[str, None]:
         return str(data.get(self.json_key))
 
     def __repr__(self):

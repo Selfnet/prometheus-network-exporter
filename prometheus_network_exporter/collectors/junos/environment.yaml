@@ -36,7 +36,7 @@ METRICS:
 
     - metric: reboot
       type: status
-      key: RE0
+      key: re_loads
       description: Last Reboot REASON (0(WRACKED)/1(OK))
       function: reboot
       complex: yes

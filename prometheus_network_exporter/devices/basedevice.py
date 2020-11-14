@@ -30,7 +30,9 @@ class Device():
 
     # cache two times as long as the dns default ttl
     @timed_cache(seconds=600)
-    def lookup(self, ip):
+    def lookup(self, ip) -> str:
+        if ip is None or ip == 'None':
+            return ""
         try:
             return socket.gethostbyaddr(ip)[0]
         except (socket.herror):
