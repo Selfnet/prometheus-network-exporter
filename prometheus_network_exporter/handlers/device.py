@@ -96,6 +96,7 @@ class ExporterHandler(tornado.web.RequestHandler):
                     hostname=hostname)
             except Exception as e:
                 APP_LOGGER.info(f"{hostname} :: {e} {e.__traceback__}")
+                raise e
             finally:
                 self.application.used_workers.dec()
 
