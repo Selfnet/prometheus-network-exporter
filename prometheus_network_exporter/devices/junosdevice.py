@@ -78,7 +78,7 @@ class JuniperNetworkDevice(basedevice.Device):
             return {}
         bgp = {k: dict(v) for k, v in bgp.items()}
         for information in bgp.values():
-            information['peername'] = self.lookup(information['peerid'])
+            information['peername'] = self.lookup(information['peeraddr'])
         return bgp
 
     def get_interfaces(self, interface_regex=None) -> list:

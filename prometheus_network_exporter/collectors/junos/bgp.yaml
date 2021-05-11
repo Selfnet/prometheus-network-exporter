@@ -13,12 +13,6 @@ METRICS:
       description: Accepted Prefixes from Peer
       function: none_to_zero
 
-    - metric: prefixes_sent
-      type: total
-      key: pfx_tx
-      description: Sent Prefixes to Peer
-      function: none_to_zero
-
   Gauge:
     - metric: is_up
       type: status
@@ -31,7 +25,7 @@ LABELS:
     key: peername
 
   - label: neighbor
-    key: peerid
+    key: peeraddr
 
   - label: description
     key: description

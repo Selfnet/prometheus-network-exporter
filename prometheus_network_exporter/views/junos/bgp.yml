@@ -1,6 +1,6 @@
 # Tables locate the data you want
 BGPNeighborTable:
-  rpc: get-bgp-neighbor-information # This is the NETCONF RPC command sent to the router
+  rpc: get-bgp-summary-information # This is the NETCONF RPC command sent to the router
   item: bgp-peer # Tag of information you want
   key: peer-address # Unique identifier _within_ that tag
   view: BGPNeighborView # View name (in this file) to apply to this information
@@ -11,11 +11,9 @@ BGPNeighborView:
   # Key is the name of the variable you want to "register" with PyEZ
   # Value is the location of data within the above defined table for that variable
   fields:
-    peerid: peer-id
     peeraddr: peer-address
     description: description
     elapsed_time: { elapsed-time/@seconds: int }
     peerstate: { peer-state: True=Established }
     pfx_rx: { bgp-rib/received-prefix-count: int }
     pfx_rx_accepted: { bgp-rib/accepted-prefix-count: int }
-    pfx_tx: { bgp-rib/advertised-prefix-count: int }
