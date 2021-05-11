@@ -4,7 +4,7 @@ MetricsTable:
   args:
     statistics: True
     detail: True
-    interface_name: '[afgxe][et]-*' 
+    interface_name: '[afgxe][et]*'
   args_key: interface_name
   item: physical-interface
   view: MetricsView
@@ -20,7 +20,6 @@ MetricsView:
     oper : { oper-status: True=up }
     admin : { admin-status: True=up }
     description: description
-    mtu: { mtu : int }
     link_mode: link-mode
     speed: speed
     macaddr: current-physical-address
