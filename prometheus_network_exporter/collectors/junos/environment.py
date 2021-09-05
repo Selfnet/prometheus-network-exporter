@@ -43,7 +43,7 @@ class EnvironmentCollector(Collector):
             elif prometheus.metric_type is Metric.Info:
                 prometheus.metric.add_metric(
                     labels=self.get_labels(environment),
-                    value={prometheus.name: environment.get(prometheus.json_key)},
+                    value={prometheus.name: environment.get(prometheus.json_key, "")},
                 )
                 yield prometheus.metric
             else:

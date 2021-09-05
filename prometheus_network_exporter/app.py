@@ -100,7 +100,7 @@ def shutdown():
     global SERVER, GLOBAL_GUARD, APP_LOGGER
     GLOBAL_GUARD.acquire(True)
     APP_LOGGER.info("Sleeping for 60s")
-    time.sleep(30)
+    time.sleep(5)
     APP_LOGGER.warning("Stopping http server")
     for hostname, data in CONNECTION_POOL.items():
         try:
