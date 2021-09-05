@@ -106,7 +106,8 @@ class JuniperNetworkDevice(basedevice.Device):
                 {
                     k: v
                     for value in {k: dict(v) for k, v in software.items()}.values()
-                    for k, v in value.items() if v is not None
+                    for k, v in value.items()
+                    if v is not None
                 }
                 if software
                 else {}
