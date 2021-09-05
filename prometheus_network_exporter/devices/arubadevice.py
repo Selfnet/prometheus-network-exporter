@@ -124,17 +124,24 @@ STATS_JSON = """
 
 class ArubaNetworkDevice(basedevice.Device):
     def __init__(
-            self,
-            hostname,
-            username=None,
-            password=None,
-            port=4343,
-            proxy=None,
-            verify=False,
-            protocol='https'):
+        self,
+        hostname,
+        username=None,
+        password=None,
+        port=4343,
+        proxy=None,
+        verify=False,
+        protocol="https",
+    ):
         device = MobilityControllerAPIClient(
-            username=username, password=password, url='{protocol}://{hostname}:{port}'.format(
-                protocol=protocol, hostname=hostname, port=port), proxy=proxy, verify=verify)
+            username=username,
+            password=password,
+            url="{protocol}://{hostname}:{port}".format(
+                protocol=protocol, hostname=hostname, port=port
+            ),
+            proxy=proxy,
+            verify=verify,
+        )
         super().__init__(hostname, device)
 
     def connect(self):

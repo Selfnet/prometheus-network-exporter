@@ -1,7 +1,6 @@
-
-'''
+"""
     General Device
-'''
+"""
 import socket
 import threading
 
@@ -9,13 +8,13 @@ from ..utitlities import timed_cache
 from prometheus_client import CollectorRegistry
 
 
-class Device():
+class Device:
     def __init__(self, hostname: str, device, **kwargs):
         self.hostname = hostname
         self.device = device
         self.lock = threading.Lock()
         self.exception_counter = kwargs.pop("exception_counter", None)
-        self.types = kwargs.pop('types')
+        self.types = kwargs.pop("types")
         self.registry = CollectorRegistry()
 
     def is_connected(self):
@@ -31,7 +30,7 @@ class Device():
     # cache two times as long as the dns default ttl
     @timed_cache(seconds=600)
     def lookup(self, ip) -> str:
-        if ip is None or ip == 'None':
+        if ip is None or ip == "None":
             return ""
         try:
             return socket.gethostbyaddr(ip)[0]

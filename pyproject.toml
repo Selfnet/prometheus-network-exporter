@@ -1,0 +1,29 @@
+[tool.poetry]
+name = "prometheus-network-exporter"
+version = "1.1.2"
+description = "A Prometheus Network Exporter which connects via netconf ssh to the devices"
+authors = ["Cellebyte <marcel.fest@live.de>"]
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = "^3.6.2"
+junos-eznc = "*" 
+PyYAML = "*"
+tornado = "*"
+arubaos_client = "*"
+unifi_client = "*"
+prometheus_client = "*"
+fqdn = "*"
+voluptuous = "*"
+cached-property = "*"
+
+[tool.poetry.dev-dependencies]
+flake8 = "*"
+PySocks = "*"
+pyinstaller = "*"
+mypy = "*"
+black = "^21.8b0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

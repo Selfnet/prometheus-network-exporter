@@ -1,19 +1,39 @@
-
-'''
+"""
     General Device 
-'''
+"""
 
 from unifi_client import AirMaxAPIClient
 from prometheus_network_exporter.config.definitions.unifi import wrapping
 from prometheus_network_exporter.devices import basedevice
-from prometheus_network_exporter.utitlities import create_metric, create_metric_params, FUNCTIONS, METRICS, flatten
+from prometheus_network_exporter.utitlities import (
+    create_metric,
+    create_metric_params,
+    FUNCTIONS,
+    METRICS,
+    flatten,
+)
 
 
 class AirMaxDevice(basedevice.Device):
-    def __init__(self, hostname, username=None, password=None, port=443, proxy=None, verify=False, protocol='https'):
+    def __init__(
+        self,
+        hostname,
+        username=None,
+        password=None,
+        port=443,
+        proxy=None,
+        verify=False,
+        protocol="https",
+    ):
         device = AirMaxAPIClient(
-            username=username, password=password, url='{protocol}://{hostname}:{port}'.format(
-                protocol=protocol, hostname=hostname, port=port), proxy=proxy, verify=verify)
+            username=username,
+            password=password,
+            url="{protocol}://{hostname}:{port}".format(
+                protocol=protocol, hostname=hostname, port=port
+            ),
+            proxy=proxy,
+            verify=verify,
+        )
         super().__init__(hostname, device)
         self.statistics = None
 

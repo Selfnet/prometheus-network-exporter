@@ -7,7 +7,7 @@ __version__ = "1.1.2"
 
 GLOBAL_GUARD: Lock = Lock()
 CONNECTION_POOL: Dict[str, Device] = {}
-COUNTER_DIR = '.tmp'
+COUNTER_DIR = ".tmp"
 MAX_WAIT_SECONDS_BEFORE_SHUTDOWN = 60
 MAX_WORKERS = 90
 

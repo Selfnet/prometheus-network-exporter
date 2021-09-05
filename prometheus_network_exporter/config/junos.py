@@ -6,23 +6,23 @@ from .functions import junos
 
 
 class OSPFType(Enum):
-    OSPF3 = 'ospf3'
-    OSPF = 'ospf'
+    OSPF3 = "ospf3"
+    OSPF = "ospf"
 
 
 class Function(Enum):
-    IS_OK = 'is_ok'
-    FLOATIFY = 'floatify'
-    NONE_TO_ZERO = 'none_to_zero'
-    NONE_TO_MINUS_INF = 'none_to_minus_inf'
-    NONE_TO_PLUS_INF = 'none_to_plus_inf'
-    FAN_POWER_TEMP_STATUS = 'fan_power_temp_status'
-    TEMP_CELSIUS = 'temp_celsius'
-    REBOOT = 'reboot'
-    CPU_IDLE = 'cpu_idle'
-    CPU_USAGE = 'cpu_usage'
-    RAM = 'ram'
-    RAM_USAGE = 'ram_usage'
+    IS_OK = "is_ok"
+    FLOATIFY = "floatify"
+    NONE_TO_ZERO = "none_to_zero"
+    NONE_TO_MINUS_INF = "none_to_minus_inf"
+    NONE_TO_PLUS_INF = "none_to_plus_inf"
+    FAN_POWER_TEMP_STATUS = "fan_power_temp_status"
+    TEMP_CELSIUS = "temp_celsius"
+    REBOOT = "reboot"
+    CPU_IDLE = "cpu_idle"
+    CPU_USAGE = "cpu_usage"
+    RAM = "ram"
+    RAM_USAGE = "ram_usage"
     DEFAULT = None
 
 
@@ -44,15 +44,13 @@ class JunosMetricConfiguration(MetricConfiguration):
         Function.RAM: junos.ram,
         Function.RAM_USAGE: junos.ram_usage,
         # The default function
-        Function.DEFAULT: junos.default
+        Function.DEFAULT: junos.default,
     }
 
     @property
     def function(self) -> Callable:
-        return self.function_mapping[
-            Function(self.config.get('function'))
-        ]
+        return self.function_mapping[Function(self.config.get("function"))]
 
     @property
     def complex(self) -> bool:
-        return self.config.get('complex', False)
+        return self.config.get("complex", False)
