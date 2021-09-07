@@ -130,7 +130,6 @@ def ram_usage(prometheus: MetricConfiguration, data: dict):
     prometheus.metric = prometheus.build_metric()
     data_list = create_list_from_dict(data, "routing_engine")
     for perf in data_list:
-        print([label.get_label(perf) for label in prometheus.labels])
         memory_complete = perf["memory_dram_size"].lower().replace("mb", "").strip()
         memory_complete = int(memory_complete)
         memory_usage = int(perf["memory_buffer_utilization"])
