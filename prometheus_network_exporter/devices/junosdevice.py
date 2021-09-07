@@ -3,6 +3,7 @@
 """
 
 from __future__ import annotations
+from functools import reduce
 
 from jnpr.junos import Device
 from jnpr.junos.exception import RpcError, ConnectAuthError, RpcTimeoutError
@@ -97,11 +98,9 @@ class JuniperNetworkDevice(basedevice.Device):
     def get_environment(self):
         software = SoftwareTable(self.device).get()
         rengine = RoutingEngineTable(self.device).get()
-        rengine_dict = {k: dict(v) for k, v in rengine.items()}
-        uptime = list(rengine_dict.values())[0]["uptime"]
+        rengine_dict = {available_key: dict(v) for k, v in rengine.items() for available_key in k if available_key is not None}
         temperatures = EnvironmentTable(self.device).get()
         return {
-            **{"uptime": uptime},
             **(
                 {
                     k: v

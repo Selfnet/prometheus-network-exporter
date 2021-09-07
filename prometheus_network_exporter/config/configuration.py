@@ -26,7 +26,7 @@ class Metric(Enum):
 
 class LabelConfiguration(_Configuration):
     def __init__(self, config: dict):
-        super(LabelConfiguration, self).__init__(config=config)
+        super().__init__(config=config)
 
     @property
     def label(self) -> str:
@@ -68,7 +68,7 @@ class MetricConfiguration(_Configuration):
         )
         self.__base_name = base_name
         self.labels = labels
-        super(MetricConfiguration, self).__init__(config=config)
+        super().__init__(config=config)
         self.metric = self.build_metric()
 
     @property

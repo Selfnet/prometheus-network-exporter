@@ -102,7 +102,7 @@ def reboot(prometheus: MetricConfiguration, data: dict):
 def cpu_usage(prometheus: MetricConfiguration, data: dict):
     prometheus.labels = [LabelConfiguration(config={"label": "cpu", "key": "cpu"})]
     prometheus.metric = prometheus.build_metric()
-    data_list = create_list_from_dict(data, "cpu", format_str="cpu_{}")
+    data_list = create_list_from_dict(data, "cpu")
     for perf in data_list:
         prometheus.metric.add_metric(
             labels=[label.get_label(perf) for label in prometheus.labels],
@@ -113,7 +113,8 @@ def cpu_usage(prometheus: MetricConfiguration, data: dict):
 
 def cpu_idle(prometheus: MetricConfiguration, data: dict):
     prometheus.labels = [LabelConfiguration(config={"label": "cpu", "key": "cpu"})]
-    data_list = create_list_from_dict(data, "cpu", format_str="cpu_{}")
+    prometheus.metric = prometheus.build_metric()
+    data_list = create_list_from_dict(data, "cpu")
     for perf in data_list:
         prometheus.metric.add_metric(
             labels=[label.get_label(perf) for label in prometheus.labels],
@@ -123,36 +124,44 @@ def cpu_idle(prometheus: MetricConfiguration, data: dict):
 
 
 def ram_usage(prometheus: MetricConfiguration, data: dict):
-    prometheus.labels = [LabelConfiguration(config={"label": "ram", "key": "ram"})]
-    data_list = create_list_from_dict(data, "ram", format_str="ram_{}")
+    prometheus.labels = [LabelConfiguration(config={"label": "routing_engine", "key": "routing_engine"})]
+    prometheus.metric = prometheus.build_metric()
+    data_list = create_list_from_dict(data, "routing_engine")
     for perf in data_list:
-        try:
-            memory_complete = perf["memory_dram_size"].lower().replace("mb", "").strip()
-            memory_complete = int(memory_complete)
-            memory_usage = int(perf["memory_buffer_utilization"])
-            memory_bytes_usage = (memory_complete * memory_usage / 100) * 1049000
-            prometheus.metric.add_metric(
-                labels=[label.get_label(perf) for label in prometheus.labels],
-                value=memory_bytes_usage,
-            )
-        except AttributeError:
-            pass
+        print([label.get_label(perf) for label in prometheus.labels])
+        memory_complete = perf["memory_dram_size"].lower().replace("mb", "").strip()
+        memory_complete = int(memory_complete)
+        memory_usage = int(perf["memory_buffer_utilization"])
+        memory_bytes_usage = (memory_complete * memory_usage / 100) * 1049000
+        prometheus.metric.add_metric(
+            labels=[label.get_label(perf) for label in prometheus.labels],
+            value=memory_bytes_usage,
+        )
+    return prometheus.metric
+
+
+def uptime(prometheus: MetricConfiguration, data: dict):
+    prometheus.labels = [LabelConfiguration(config={"label": "routing_engine", "key": "routing_engine"})]
+    prometheus.metric = prometheus.build_metric()
+    data_list = create_list_from_dict(data, "routing_engine")
+    for perf in data_list:
+        prometheus.metric.add_metric(
+            labels=[label.get_label(perf) for label in prometheus.labels],
+            value=perf["uptime"],
+        )
     return prometheus.metric
 
 
 def ram(prometheus: MetricConfiguration, data: dict):
-    label_config = LabelConfiguration(config={"label": "ram", "key": "ram"})
-    prometheus.labels = [label_config]
-    data_list = create_list_from_dict(data, "ram", format_str="ram_{}")
+    prometheus.labels = [LabelConfiguration(config={"label": "routing_engine", "key": "routing_engine"})]
+    prometheus.metric = prometheus.build_metric()
+    data_list = create_list_from_dict(data, "routing_engine")
     for perf in data_list:
-        try:
-            memory_complete = perf["memory_dram_size"].lower().replace("mb", "").strip()
-            memory_complete = int(memory_complete)
-            memory_bytes = memory_complete * 1049000
-            prometheus.metric.add_metric(
-                labels=[label.get_label(perf) for label in prometheus.labels],
-                value=memory_bytes,
-            )
-        except AttributeError:
-            pass
+        memory_complete = perf["memory_dram_size"].lower().replace("mb", "").strip()
+        memory_complete = int(memory_complete)
+        memory_bytes = memory_complete * 1049000
+        prometheus.metric.add_metric(
+            labels=[label.get_label(perf) for label in prometheus.labels],
+            value=memory_bytes,
+        )
     return prometheus.metric

@@ -23,6 +23,7 @@ class Function(Enum):
     CPU_USAGE = "cpu_usage"
     RAM = "ram"
     RAM_USAGE = "ram_usage"
+    UPTIME = "uptime"
     DEFAULT = None
 
 
@@ -41,6 +42,7 @@ class JunosMetricConfiguration(MetricConfiguration):
         Function.REBOOT: junos.reboot,
         Function.CPU_IDLE: junos.cpu_idle,
         Function.CPU_USAGE: junos.cpu_usage,
+        Function.UPTIME: junos.uptime,
         Function.RAM: junos.ram,
         Function.RAM_USAGE: junos.ram_usage,
         # The default function

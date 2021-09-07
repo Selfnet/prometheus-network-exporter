@@ -1,18 +1,21 @@
 RoutingEngineTable:
   rpc: get-route-engine-information
   args:
-  item: route-engine
-  key: slot | model
+  item: route-engine | multi-routing-engine-item
+  key:
+    - slot
+    - model
+    - re-name
   view: RoutingEngineView
 
 RoutingEngineView:
   fields:
-    model: model
-    last_reboot_reason: last-reboot-reason
-    uptime: { up-time/@seconds: int }
-    cpu_idle: { cpu-idle: int }
-    memory_dram_size: memory-dram-size
-    memory_buffer_utilization : { memory-buffer-utilization: int }
+    model: model | route-engine-information/route-engine/model
+    last_reboot_reason: last_reboot_reason | route-engine-information/route-engine/last-reboot-reason
+    uptime: { up-time/@seconds | route-engine-information/route-engine/up-time/@seconds: int }
+    cpu_idle: { cpu-idle | route-engine-information/route-engine/cpu-idle: int }
+    memory_dram_size: memory-dram-size | route-engine-information/route-engine/memory-system-total
+    memory_buffer_utilization: { memory-buffer-utilization | route-engine-information/route-engine/memory-system-total-util: int }
 
 SoftwareTable:
   rpc: get-software-information

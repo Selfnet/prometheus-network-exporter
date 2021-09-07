@@ -2,9 +2,11 @@
 METRICS:
   Gauge:
     - metric: uptime
-      key: uptime
+      key: re_loads
+      function: uptime
       description: Uptime of the host.
       type: seconds
+      complex: yes
 
     - metric: fan
       type: status
