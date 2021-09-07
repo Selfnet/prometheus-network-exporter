@@ -124,7 +124,9 @@ def cpu_idle(prometheus: MetricConfiguration, data: dict):
 
 
 def ram_usage(prometheus: MetricConfiguration, data: dict):
-    prometheus.labels = [LabelConfiguration(config={"label": "routing_engine", "key": "routing_engine"})]
+    prometheus.labels = [
+        LabelConfiguration(config={"label": "routing_engine", "key": "routing_engine"})
+    ]
     prometheus.metric = prometheus.build_metric()
     data_list = create_list_from_dict(data, "routing_engine")
     for perf in data_list:
@@ -141,7 +143,9 @@ def ram_usage(prometheus: MetricConfiguration, data: dict):
 
 
 def uptime(prometheus: MetricConfiguration, data: dict):
-    prometheus.labels = [LabelConfiguration(config={"label": "routing_engine", "key": "routing_engine"})]
+    prometheus.labels = [
+        LabelConfiguration(config={"label": "routing_engine", "key": "routing_engine"})
+    ]
     prometheus.metric = prometheus.build_metric()
     data_list = create_list_from_dict(data, "routing_engine")
     for perf in data_list:
@@ -153,7 +157,9 @@ def uptime(prometheus: MetricConfiguration, data: dict):
 
 
 def ram(prometheus: MetricConfiguration, data: dict):
-    prometheus.labels = [LabelConfiguration(config={"label": "routing_engine", "key": "routing_engine"})]
+    prometheus.labels = [
+        LabelConfiguration(config={"label": "routing_engine", "key": "routing_engine"})
+    ]
     prometheus.metric = prometheus.build_metric()
     data_list = create_list_from_dict(data, "routing_engine")
     for perf in data_list:

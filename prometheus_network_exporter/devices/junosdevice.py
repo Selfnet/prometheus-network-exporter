@@ -98,7 +98,12 @@ class JuniperNetworkDevice(basedevice.Device):
     def get_environment(self):
         software = SoftwareTable(self.device).get()
         rengine = RoutingEngineTable(self.device).get()
-        rengine_dict = {available_key: dict(v) for k, v in rengine.items() for available_key in k if available_key is not None}
+        rengine_dict = {
+            available_key: dict(v)
+            for k, v in rengine.items()
+            for available_key in k
+            if available_key is not None
+        }
         temperatures = EnvironmentTable(self.device).get()
         return {
             **(
