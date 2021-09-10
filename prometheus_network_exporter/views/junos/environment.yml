@@ -11,11 +11,11 @@ RoutingEngineTable:
 RoutingEngineView:
   fields:
     model: model | route-engine-information/route-engine/model
-    last_reboot_reason: last_reboot_reason | route-engine-information/route-engine/last-reboot-reason
+    last_reboot_reason: last_reboot_reason | route-engine-information/route-engine/last-reboot-reason | last-reboot-reason
     uptime: { up-time/@seconds | route-engine-information/route-engine/up-time/@seconds: int }
     cpu_idle: { cpu-idle | route-engine-information/route-engine/cpu-idle: int }
-    memory_dram_size: memory-dram-size | route-engine-information/route-engine/memory-system-total
-    memory_buffer_utilization: { memory-buffer-utilization | route-engine-information/route-engine/memory-system-total-util: int }
+    memory_dram_size: memory-dram-size | route-engine-information/route-engine/memory-system-total | memory-system-total
+    memory_buffer_utilization: { memory-buffer-utilization | route-engine-information/route-engine/memory-system-total-util | memory-system-total-util: int }
 
 SoftwareTable:
   rpc: get-software-information

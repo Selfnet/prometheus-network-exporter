@@ -1,7 +1,7 @@
 OspfNeighborTable:
   rpc: get-ospf-neighbor-information
   args:
-    interface: '[efgx][et]-*'
+    interface: '*[afgxe][et]*'
   args_key: interface
   key: interface-name
   item: ospf-neighbor
@@ -10,7 +10,7 @@ OspfNeighborTable:
 Ospf3NeighborTable:
   rpc: get-ospf3-neighbor-information
   args:
-    interface: '[efgx][et]-*'
+    interface: '*[afgxe][et]*'
   args_key: interface
   key: interface-name
   item: ospf3-neighbor

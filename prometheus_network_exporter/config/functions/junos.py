@@ -1,5 +1,5 @@
 from typing import Union
-
+import logging
 from ...utitlities import create_list_from_dict
 from ..configuration import LabelConfiguration, MetricConfiguration
 

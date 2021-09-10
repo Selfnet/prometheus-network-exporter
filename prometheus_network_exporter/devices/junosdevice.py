@@ -3,8 +3,7 @@
 """
 
 from __future__ import annotations
-from functools import reduce
-
+import logging
 from jnpr.junos import Device
 from jnpr.junos.exception import RpcError, ConnectAuthError, RpcTimeoutError
 from ncclient.transport.errors import AuthenticationError
