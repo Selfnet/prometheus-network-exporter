@@ -32,6 +32,8 @@ MetricsView:
   fields_ts:
     rx_bytes: { input-bytes: int }
     tx_bytes: { output-bytes: int }
+    rx_packets: { input-packets: int }
+    tx_packets: { output-packets: int }
 
   fields_rxerrs:
     input_errors: { input-errors: int }

@@ -39,6 +39,16 @@ METRICS:
       key: tx_bytes
       description: Total transmitted Bytes of Port
       type: bytes_total
+      
+    - metric: received
+      key: rx_packets
+      description: Total received Packets by Port
+      type: packets_total
+
+    - metric: transmitted
+      key: tx_packets
+      description: Total transmitted Packets of Port
+      type: packets_total
 
   ## Error Counters
     - metric: transmit_error_output
