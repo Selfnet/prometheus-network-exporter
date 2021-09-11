@@ -40,12 +40,12 @@ METRICS:
       description: Total transmitted Bytes of Port
       type: bytes_total
       
-    - metric: packets_received
+    - metric: received
       key: rx_packets
       description: Total received Packets by Port
       type: packets_total
 
-    - metric: packets_transmitted
+    - metric: transmitted
       key: tx_packets
       description: Total transmitted Packets of Port
       type: packets_total
