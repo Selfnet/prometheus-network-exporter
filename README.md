@@ -1,4 +1,8 @@
 # prometheus_network_exporter
+** THIS PROJECT IS INSECURE AND NOT MAINTAINED !!! **
+
+** DO NOT USE !!! **
+
 
 ## Install Requirements
 
