@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "prometheus-network-exporter"
-version = "1.2.3"
+version = "1.2.4"
 description = "A Prometheus Network Exporter which connects via netconf ssh to the devices"
 authors = ["Cellebyte <marcel.fest@live.de>"]
 license = "MIT"
