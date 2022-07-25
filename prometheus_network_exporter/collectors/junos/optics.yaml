@@ -33,7 +33,7 @@ METRICS:
       key: laser_bias_current
       description: Laser Bias Current
       type: dbm
-      function: none_to_minus_inf
+      function: floatify
   # Thresholds for alarms
   # temperature
     - metric: module_temperature_high_alarm_threshold
@@ -64,74 +64,74 @@ METRICS:
       key: rx_optic_power_high_alarm
       description: Threshold for alarms
       type: dbm
-      function: none_to_plus_inf
+      function: floatify
 
     - metric: receiving_optic_power_low_alarm_threshold
       key: rx_optic_power_low_alarm
       description: Threshold for alarms
       type: 
-      function: none_to_minus_inf
+      function: floatify
 
     - metric: receiving_optic_power_high_warn_threshold
       key: rx_optic_power_high_warn
       description: Threshold for alarms
       type: dbm
-      function: none_to_plus_inf
+      function: floatify
 
     - metric: receiving_optic_power_low_warn_threshold
       key: rx_optic_power_low_warn
       description: Threshold for alarms
       type: dbm
-      function: none_to_minus_inf
+      function: floatify
   # sending
     - metric: sending_optic_power_high_alarm_threshold
       key: tx_optic_power_high_alarm
       description: Threshold for alarms
       type: dbm
-      function: none_to_plus_inf
+      function: floatify
 
     - metric: sending_optic_power_low_alarm_threshold
       key: tx_optic_power_low_alarm
       description: Threshold for alarms
       type: dbm
-      function: none_to_minus_inf
+      function: floatify
 
     - metric: sending_optic_power_high_warn_threshold
       key: tx_optic_power_high_warn
       description: Threshold for alarms
       type: dbm
-      function: none_to_plus_inf
+      function: floatify
 
     - metric: sending_optic_power_low_warn_threshold
       key: tx_optic_power_low_warn
       description: Threshold for alarms
       type: dbm
-      function: none_to_minus_inf
+      function: floatify
 
   # laser bias
     - metric: laser_bias_high_alarm_threshold
       key: laser_bias_high_alarm
       description: Threshold for alarms
       type: dbm
-      function: none_to_plus_inf
+      function: floatify
 
     - metric: laser_bias_low_alarm_threshold
       key: laser_bias_low_alarm
       description: Threshold for alarms
       type: dbm
-      function: none_to_minus_inf
+      function: floatify
 
     - metric: laser_bias_high_warn_threshold
       key: laser_bias_high_warn
       description: Threshold for alarms
       type: dbm
-      function: none_to_plus_inf
+      function: floatify
 
     - metric: laser_bias_low_warn_threshold
       key: laser_bias_low_warn
       description: Threshold for alarms
       type: dbm
-      function: none_to_minus_inf
+      function: floatify
 
 LABELS:
   - label: description

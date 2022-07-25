@@ -28,18 +28,18 @@ PhyPortDiagView:
 # Laser Fault Alarm
     tx_laser_fault_alarm : {tx-laser-fault-alarm: flag}
 # Threshold Laser Bias Current
-    laser_bias_high_alarm : { laser-bias-current-high-alarm-threshold : float }
-    laser_bias_low_alarm : { laser-bias-current-low-alarm-threshold : float }
-    laser_bias_high_warn : { laser-bias-current-high-warn-threshold : float }
-    laser_bias_low_warn : { laser-bias-current-low-warn-threshold : float }
+    laser_bias_high_alarm : { laser-bias-current-high-alarm-threshold : str }
+    laser_bias_low_alarm : { laser-bias-current-low-alarm-threshold : str }
+    laser_bias_high_warn : { laser-bias-current-high-warn-threshold : str }
+    laser_bias_low_warn : { laser-bias-current-low-warn-threshold : str }
 # Thresholds output power
-    tx_optic_power_high_alarm : { laser-tx-power-high-alarm-threshold-dbm : float }
-    tx_optic_power_low_alarm : { laser-tx-power-low-alarm-threshold-dbm : float }
-    tx_optic_power_high_warn : { laser-tx-power-high-warn-threshold-dbm : float }
-    tx_optic_power_low_warn : { laser-tx-power-low-warn-threshold-dbm : float }
+    tx_optic_power_high_alarm : { laser-tx-power-high-alarm-threshold-dbm : str }
+    tx_optic_power_low_alarm : { laser-tx-power-low-alarm-threshold-dbm : str}
+    tx_optic_power_high_warn : { laser-tx-power-high-warn-threshold-dbm : str }
+    tx_optic_power_low_warn : { laser-tx-power-low-warn-threshold-dbm : str}
 # Thresholds input power
-    rx_optic_power_high_alarm : { laser-rx-power-high-alarm-threshold-dbm : float }
-    rx_optic_power_low_alarm : { laser-rx-power-low-alarm-threshold-dbm : float }
-    rx_optic_power_high_warn : { laser-rx-power-high-warn-threshold-dbm : float }
-    rx_optic_power_low_warn : { laser-rx-power-low-warn-threshold-dbm : float }
+    rx_optic_power_high_alarm : { laser-rx-power-high-alarm-threshold-dbm : str }
+    rx_optic_power_low_alarm : { laser-rx-power-low-alarm-threshold-dbm : str }
+    rx_optic_power_high_warn : { laser-rx-power-high-warn-threshold-dbm : str }
+    rx_optic_power_low_warn : { laser-rx-power-low-warn-threshold-dbm : str }
 
