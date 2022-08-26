@@ -27,7 +27,7 @@ setup(
     # https://packaging.python.org/en/latest/single_source_version.html
     version='{}'.format(VERSION),
 
-    description='A Junos Exporter',
+    description='A Network Exporter',
     long_description=LONG_DESCRIPTION,
 
     # The project's main homepage.
@@ -80,9 +80,8 @@ setup(
         'PyYAML',
         'tornado',
         'junos-eznc',
-        'arubaos_client',
-        'unifi_client',
         'voluptuous',
+        'cached-property',
         'fqdn',
         'prometheus-client'],
 

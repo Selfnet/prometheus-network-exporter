@@ -1,5 +1,6 @@
 import getpass
 from concurrent.futures import ThreadPoolExecutor
+from paramiko import RSAKey
 
 import tornado
 from fqdn import FQDN

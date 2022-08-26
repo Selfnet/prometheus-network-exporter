@@ -1,8 +1,7 @@
 """
 Pythonifier for environment Views/Tabls
 """
-from jnpr.junos.factory import loadyaml
-from os.path import splitext
+from ..loader import loadyaml
 
-_YAML_ = splitext(__file__)[0] + ".yml"
-globals().update(loadyaml(_YAML_))
+globals().update(loadyaml(__name__))
+

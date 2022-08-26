@@ -12,7 +12,7 @@ class Configuration(object):
                     Required("auth"): {
                         Required("method"): Any("password", "ssh_key"),
                         "username": str,
-                        Any("password", "ssh_key", "proxy", "ssh_config"): str,
+                        Any("password", "ssh_key", "proxy"): str,
                         "port": int,
                         Any("http_secure", "verify"): bool,
                     },

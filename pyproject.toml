@@ -10,8 +10,6 @@ python = "^3.6.2"
 junos-eznc = "*" 
 PyYAML = "*"
 tornado = "*"
-arubaos_client = "*"
-unifi_client = "*"
 prometheus_client = "*"
 fqdn = "*"
 voluptuous = "*"
@@ -23,6 +21,7 @@ PySocks = "*"
 pyinstaller = "*"
 mypy = "*"
 black = "^21.8b0"
+pyoxidizer = "^0.22.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
