@@ -13,7 +13,7 @@ tornado = "*"
 prometheus_client = "*"
 fqdn = "*"
 voluptuous = "*"
-paramiko = "~2.5"
+paramiko = "~2.8"
 cached-property = "*"
 
 [tool.poetry.dev-dependencies]
