@@ -7,12 +7,13 @@ license = "MIT"
 
 [tool.poetry.dependencies]
 python = "^3.6.2"
-junos-eznc = "*" 
+junos-eznc = "*"
 PyYAML = "*"
 tornado = "*"
 prometheus_client = "*"
 fqdn = "*"
 voluptuous = "*"
+paramiko = "~2.5"
 cached-property = "*"
 
 [tool.poetry.dev-dependencies]
