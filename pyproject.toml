@@ -6,17 +6,18 @@ authors = ["Cellebyte <marcel.fest@live.de>"]
 license = "MIT"
 
 [tool.poetry.dependencies]
-python = "^3.6.2"
-junos-eznc = "*"
+# pinned due to telnetlib being removed
+python = "^3.12"
+junos-eznc = "2.7.3"
 PyYAML = "*"
 tornado = "*"
 prometheus_client = "*"
 fqdn = "*"
 voluptuous = "*"
-paramiko = "~2.8"
+paramiko = "*"
 cached-property = "*"
 
-[tool.poetry.dev-dependencies]
+[poetry.group.dev.dependencies]
 flake8 = "*"
 PySocks = "*"
 pyinstaller = "*"
