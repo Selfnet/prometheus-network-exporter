@@ -1,6 +1,7 @@
 """
-    General Device
+General Device
 """
+
 import socket
 import threading
 
@@ -34,7 +35,7 @@ class Device:
             return ""
         try:
             return socket.gethostbyaddr(ip)[0]
-        except (socket.herror):
+        except socket.herror:
             return ip
 
     def register_collectors(self, types: list):

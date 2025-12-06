@@ -1,5 +1,5 @@
 """
-    General Device 
+General Device
 """
 
 from unifi_client import AirMaxAPIClient

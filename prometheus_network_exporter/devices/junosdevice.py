@@ -1,5 +1,5 @@
 """
-    General Device
+General Device
 """
 
 from __future__ import annotations
