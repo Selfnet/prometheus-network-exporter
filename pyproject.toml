@@ -8,7 +8,7 @@ license = "MIT"
 [tool.poetry.dependencies]
 # pinned due to telnetlib being removed
 python = "^3.12"
-junos-eznc = "2.7.3"
+junos-eznc = "2.7.5"
 PyYAML = "*"
 tornado = "*"
 prometheus_client = "*"
