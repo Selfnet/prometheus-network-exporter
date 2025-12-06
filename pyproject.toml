@@ -16,6 +16,7 @@ fqdn = "*"
 voluptuous = "*"
 paramiko = "*"
 cached-property = "*"
+pygnmi = "^0.8.15"
 
 [poetry.group.dev.dependencies]
 flake8 = "*"

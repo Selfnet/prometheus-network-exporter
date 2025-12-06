@@ -87,7 +87,7 @@ class JuniperNetworkDevice(basedevice.Device):
             information["peername"] = self.lookup(information["peeraddr"])
         return bgp
 
-    def get_interfaces(self, interface_regex=None) -> list:
+    def get_interfaces(self, interface_regex=None) -> dict:
         return dict(
             MetricsTable(self.device).get(interface_name=interface_regex)
             if interface_regex
