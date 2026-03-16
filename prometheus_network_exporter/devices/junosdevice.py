@@ -42,8 +42,8 @@ class JuniperNetworkDevice(basedevice.Device):
         port=22,
         ssh_private_key_file=None,
         ssh_config=None,
-        **kwargs
-    ) -> JuniperNetworkDevice:
+        **kwargs,
+    ):
         device = Device(
             host=hostname,
             user=user,
