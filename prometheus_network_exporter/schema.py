@@ -25,6 +25,8 @@ class Configuration(object):
                         "igmp",
                         "environment",
                         "bgp",
+                        "bgp_details",
+                        "ospf_details",
                         "routes",
                         "bfd",
                         "route_watch",
@@ -76,6 +78,10 @@ class Configuration(object):
                         # Share one session slot per switch with the other modules.
                         Optional("exclusive_session"): bool,
                         Optional("session_wait_seconds"): int,
+                        # Seconds an RPC Junos rejected is not asked again.
+                        Optional("rpc_retry_seconds"): int,
+                        # Reverse DNS of peers and neighbours is cached this long.
+                        Optional("dns_ttl_seconds"): int,
                         Optional("processes"): [str],
                         Optional("process_top"): int,
                         Optional("extensive_interfaces"): str,

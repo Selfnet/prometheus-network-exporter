@@ -197,7 +197,9 @@ class LDPCollector(Collector):
         reply = self.device.rpc_reply(command, **args)
         if reply is not None:
             count = 0
-            for session in iter_items(reply, ("ldp-session",)):
+            sessions_seen = list(iter_items(reply, ("ldp-session",)))
+            self.device.prefetch(text(s, "ldp-neighbor-address") for s in sessions_seen)
+            for session in sessions_seen:
                 address = label(read.text(session, "ldp-neighbor-address"))
                 labels = [address, label(self.device.lookup(address))]
                 current = read.text(session, "ldp-session-state")

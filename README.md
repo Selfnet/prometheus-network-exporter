@@ -48,12 +48,16 @@ Those are backbone ports on our access switches. So access defines if it is a ba
 ## Routing metrics for Junos (BGP, OSPF, route tables, BFD)
 
 The metric types `bgp`, `ospf`, `routes` and `bfd` export the state of the
-control plane. Everything is prefixed with `pyez_junos_`:
+control plane. `bgp` and `ospf` are the cheap views of 1.2.5; the detail
+types cost ten more RPCs per scrape, among them `show bgp neighbor` and the
+LSDB, and belong into a slow module. Everything is prefixed with `pyez_junos_`:
 
 | Type | Collectors | Highlights |
 |---|---|---|
-| `bgp` | legacy summary, `bgp_peer_*`, `bgp_rib_*`, `bgp_group_*` | peer state as a state set, flap counter, per RIB prefix counts, message and error counters, uptime |
-| `ospf` | statistics, `ospf_neighbor_*`, `ospf_interface_*`, `ospf_*` overview, `ospf_database_*`, `ospf_routes`; the same for `ospf3_` | neighbour state set and timers, interface cost and state, full SPF run counter, LSA counts, routes per next-hop interface |
+| `bgp` | legacy summary (`bgp_is_up_status`, prefix counters) | one `show bgp summary`, as before 1.4 |
+| `bgp_details` | `bgp_peer_*`, `bgp_rib_*`, `bgp_group_*` | peer state as a state set, flap counter, per RIB prefix counts, message and error counters, uptime |
+| `ospf` | legacy neighbour state and uptime per interface | two neighbour tables, as before 1.4 |
+| `ospf_details` | statistics, `ospf_neighbor_*`, `ospf_interface_*`, `ospf_*` overview, `ospf_database_*`, `ospf_routes`; the same for `ospf3_` | neighbour state set and timers, interface cost and state, full SPF run counter, LSA counts, routes per next-hop interface |
 | `routes` | `route_table_*`, `route_newest_age_seconds`, `route_young_routes`, `route_watch_*` | counts per table and protocol, time since the table changed, details for watched prefixes |
 | `bfd` | `bfd_session_*` | session state, timers, diagnostics |
 
@@ -121,6 +125,8 @@ An optional `junos` block in the module tunes these collectors:
     keep_session: false                      # reuse the NETCONF session between scrapes (probe)
     exclusive_session: true                  # one session slot per switch across modules
     session_wait_seconds: 30                 # wait this long for the slot, else fail the scrape
+    rpc_retry_seconds: 900                   # an RPC Junos rejected is not asked again for this long
+    dns_ttl_seconds: 3600                    # reverse DNS of peers and neighbours, cached per device
     processes: [rpd, mgd, fxpc]              # always exported, default: common daemons
     process_top: 10                          # plus the N busiest processes
     extensive_interfaces: "[ex][et]-*"       # interface pattern for show interfaces extensive

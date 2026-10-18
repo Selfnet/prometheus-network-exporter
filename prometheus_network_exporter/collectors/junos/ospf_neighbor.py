@@ -7,7 +7,7 @@ from prometheus_client.core import GaugeMetricFamily, InfoMetricFamily
 from ..base import Collector
 from . import base
 from .rpcs import OSPF_PROTOCOLS
-from .xmlutil import Reader, add, iter_items, label, state_set
+from .xmlutil import Reader, add, iter_items, label, state_set, text
 
 NEIGHBOR_STATES = (
     "Down",
@@ -63,7 +63,9 @@ class OSPFNeighborCollector(Collector):
             labels=LABELS,
         )
 
-        for neighbor in iter_items(reply, ITEMS):
+        neighbors = list(iter_items(reply, ITEMS))
+        self.device.prefetch(text(neighbor, "neighbor-id") for neighbor in neighbors)
+        for neighbor in neighbors:
             neighbor_id = read.text(neighbor, "neighbor-id")
             labels = [
                 label(read.text(neighbor, "interface-name")),

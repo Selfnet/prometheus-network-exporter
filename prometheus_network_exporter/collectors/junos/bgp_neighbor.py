@@ -65,6 +65,8 @@ class BGPNeighborCollector(Collector):
             return
         read = self.reader
         uptimes = self._uptimes()
+        peers = list(iter_items(reply, ("bgp-peer",)))
+        self.device.prefetch(strip_port(text(peer, "peer-address")) for peer in peers)
 
         state = self._gauge(
             "state",
@@ -110,7 +112,7 @@ class BGPNeighborCollector(Collector):
             labels=PEER_LABELS,
         )
 
-        for peer in iter_items(reply, ("bgp-peer",)):
+        for peer in peers:
             address = strip_port(read.text(peer, "peer-address"))
             if not address:
                 continue

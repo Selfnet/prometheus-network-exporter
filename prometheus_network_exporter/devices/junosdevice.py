@@ -125,6 +125,9 @@ DEFAULT_ROUTE_TABLES = ("inet.0", "inet6.0")
 DEFAULT_YOUNG_ROUTE_SECONDS = 300
 DEFAULT_RPC_TIMEOUT = 60
 DEFAULT_SESSION_WAIT_SECONDS = 30
+# An RPC Junos rejected (no permission, protocol not configured) is not
+# asked again for this long; every attempt costs a round trip.
+DEFAULT_RPC_RETRY_SECONDS = 900
 
 # One "heavy" NETCONF session per switch at a time, across all modules of
 # this exporter process. Without it a fast, a slow and the legacy module
@@ -289,6 +292,8 @@ class JuniperNetworkDevice(basedevice.Device):
         self.connect_duration = None
         self.session_reused = False
         self.aborted = None
+        # RPC name -> monotonic time until which it is not asked again.
+        self._rpc_denied = {}
         super(JuniperNetworkDevice, self).__init__(hostname, device, **kwargs)
         self.register_collectors(self.types)
 
@@ -328,6 +333,10 @@ class JuniperNetworkDevice(basedevice.Device):
     @property
     def session_wait_seconds(self) -> float:
         return float(self.options.get("session_wait_seconds", DEFAULT_SESSION_WAIT_SECONDS))
+
+    @property
+    def rpc_retry_seconds(self) -> float:
+        return float(self.options.get("rpc_retry_seconds", DEFAULT_RPC_RETRY_SECONDS))
 
     def _register(self, collector):
         self.registry.register(IsolatedCollector(collector, self))
@@ -390,13 +399,18 @@ class JuniperNetworkDevice(basedevice.Device):
             self._register(StandaloneOpticsCollector(self))
         if "environment" in types:
             self._register(EnvironmentCollector(self))
+        # bgp and ospf are the cheap legacy views of 1.2.5: one show bgp
+        # summary, the neighbour tables inside the interface collector. The
+        # detail types cost ten more RPCs per scrape, among them show bgp
+        # neighbor and the LSDB, and belong into a slow module.
         if "bgp" in types:
             self._register(BGPCollector(self))
+        if "bgp_details" in types:
             self._register(BGPNeighborCollector(self))
             self._register(BGPOverviewCollector(self))
         if "igmp" in types:
             self._register(IGMPCollector(self))
-        if "ospf" in types:
+        if "ospf_details" in types:
             for protocol in OSPF_PROTOCOLS:
                 self._register(OSPFStatisticsCollector(self, protocol=protocol))
                 self._register(OSPFNeighborCollector(self, protocol))
@@ -448,6 +462,12 @@ class JuniperNetworkDevice(basedevice.Device):
         if key in self._rpc_cache:
             return self._rpc_cache[key]
         name = fixture_name(rpc, args)
+        denied_until = self._rpc_denied.get(name)
+        if denied_until is not None and denied_until > time.monotonic():
+            # Rejected a moment ago; still reported as failed, not asked.
+            self.rpc_failed.add(name)
+            self._rpc_cache[key] = None
+            return None
         started = time.monotonic()
         try:
             reply = getattr(self.device.rpc, rpc)(**args)
@@ -458,9 +478,15 @@ class JuniperNetworkDevice(basedevice.Device):
             self.rpc_durations[name] = time.monotonic() - started
             raise
         except RpcError as error:
-            LOGGER.info("%s :: %s failed: %s", self.hostname, name, error)
+            LOGGER.info(
+                "%s :: %s failed, not asked again for %ds: %s",
+                self.hostname, name, self.rpc_retry_seconds, error,
+            )
             self.rpc_failed.add(name)
+            self._rpc_denied[name] = time.monotonic() + self.rpc_retry_seconds
             reply = None
+        else:
+            self._rpc_denied.pop(name, None)
         self.rpc_durations[name] = time.monotonic() - started
         self._rpc_cache[key] = reply
         return reply
@@ -491,6 +517,7 @@ class JuniperNetworkDevice(basedevice.Device):
         except RpcError:
             return {}
         bgp = {k: dict(v) for k, v in bgp.items()}
+        self.prefetch(information.get("peeraddr") for information in bgp.values())
         for information in bgp.values():
             information["peername"] = self.lookup(information["peeraddr"])
         return bgp
@@ -567,6 +594,7 @@ class JuniperNetworkDevice(basedevice.Device):
         neighbours on one broadcast segment do not overwrite each other.
         """
         result = {}
+        self.prefetch(dict(values).get("neighbor_id") for values in ospf.values())
         for key, values in ospf.items():
             interface_name = key[0] if isinstance(key, tuple) else key
             if interface_name is None:

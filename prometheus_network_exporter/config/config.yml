@@ -26,11 +26,12 @@ default:
     young_route_seconds: 300
 
 # Control plane and routing monitoring of a core switch, split by cost.
-# Scrape core_probe every 15s, core_fast every 60s and core_slow every 300s,
-# each as its own Prometheus job. The fast and slow modules share one session
-# slot per switch, so a switch never has more than one of their NETCONF
-# sessions open at a time. The probe keeps its session open between scrapes
-# instead of logging in every 15s.
+# Scrape core_probe every 15s, core_fast every 60s and core_slow, core_ospf
+# and core_bgp every 300s, each as its own Prometheus job. Small modules keep
+# every scrape short; the modules of one switch share a session slot, so a
+# switch never has more than one of their NETCONF sessions open at a time.
+# The probe keeps its session open between scrapes instead of logging in
+# every 15s.
 core_probe:
   device: junos
   auth:
@@ -67,8 +68,6 @@ core_slow:
     method: ssh_key
     username: pyez
   metrics:
-    - ospf
-    - bgp
     - routes
     - route_watch
     - fib
@@ -101,6 +100,36 @@ core_slow:
     logical_interfaces:
       - lo0
       - irb
+
+# Ten OSPF RPCs per protocol including the LSDB and show ospf route detail.
+core_ospf:
+  device: junos
+  auth:
+    method: ssh_key
+    username: pyez
+  metrics:
+    - ospf_details
+  routing:
+    watch:
+      - 0.0.0.0/0
+      - ::/0
+  junos:
+    rpc_timeout: 120
+    session_wait_seconds: 60
+
+# show bgp neighbor lists every peer; on a route reflector this is the most
+# expensive reply of all, so it gets a module of its own.
+core_bgp:
+  device: junos
+  auth:
+    method: ssh_key
+    username: pyez
+  metrics:
+    - bgp
+    - bgp_details
+  junos:
+    rpc_timeout: 120
+    session_wait_seconds: 60
 
 aruba_ac:
   device: arubaos
