@@ -16,6 +16,8 @@ class Device:
         self.lock = threading.Lock()
         self.exception_counter = kwargs.pop("exception_counter", None)
         self.types = kwargs.pop("types")
+        # Free-form per module options, e.g. the "routing" block of the config.
+        self.options = kwargs.pop("options", None) or {}
         self.registry = CollectorRegistry()
 
     def is_connected(self):

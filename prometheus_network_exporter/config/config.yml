@@ -13,6 +13,18 @@ default:
     - inteface
     - interface_specifics
     - environment
+    - bgp
+    - routes
+    - bfd
+  # Only used by the routes and ospf metrics of junos devices.
+  routing:
+    tables:
+      - inet.0
+      - inet6.0
+    watch:
+      - 0.0.0.0/0
+      - ::/0
+    young_route_seconds: 300
 
 aruba_ac:
   device: arubaos

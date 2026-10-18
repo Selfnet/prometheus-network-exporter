@@ -1,4 +1,4 @@
-from voluptuous import Schema, Required, Any
+from voluptuous import Schema, Required, Optional, Any
 
 import yaml
 
@@ -25,6 +25,8 @@ class Configuration(object):
                         "igmp",
                         "environment",
                         "bgp",
+                        "routes",
+                        "bfd",
                         # AirMax Metrics
                         "wireless statistics",
                         # ArubaOS Metrics
@@ -35,6 +37,13 @@ class Configuration(object):
                         "access point statistics",
                         "access point state",
                     ],
+                    # Junos only: route tables to dump, prefixes to watch and
+                    # the age below which a route counts as young.
+                    Optional("routing"): {
+                        Optional("tables"): [str],
+                        Optional("watch"): [str],
+                        Optional("young_route_seconds"): int,
+                    },
                 }
             }
         )

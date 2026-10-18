@@ -1,23 +1,58 @@
 """
-General Device
+Juniper device: opens a NETCONF session per scrape and runs the collectors.
 """
 
 from __future__ import annotations
+
 import logging
+import time
+
 from jnpr.junos import Device
 from jnpr.junos.exception import RpcError, ConnectAuthError, RpcTimeoutError
 from ncclient.transport.errors import AuthenticationError
 from prometheus_client import generate_latest
 
+from prometheus_network_exporter.collectors.junos.bfd import BFDCollector
 from prometheus_network_exporter.collectors.junos.bgp import BGPCollector
+from prometheus_network_exporter.collectors.junos.bgp_neighbor import (
+    BGPNeighborCollector,
+)
+from prometheus_network_exporter.collectors.junos.bgp_overview import (
+    BGPOverviewCollector,
+)
 from prometheus_network_exporter.collectors.junos.environment import (
     EnvironmentCollector,
 )
 from prometheus_network_exporter.collectors.junos.igmp import IGMPCollector
 from prometheus_network_exporter.collectors.junos.interface import InterfaceCollector
+from prometheus_network_exporter.collectors.junos.ospf_database import (
+    OSPFDatabaseCollector,
+)
+from prometheus_network_exporter.collectors.junos.ospf_interface import (
+    OSPFInterfaceCollector,
+)
+from prometheus_network_exporter.collectors.junos.ospf_neighbor import (
+    OSPFNeighborCollector,
+)
+from prometheus_network_exporter.collectors.junos.ospf_overview import (
+    OSPFOverviewCollector,
+)
+from prometheus_network_exporter.collectors.junos.ospf_route import (
+    OSPFRouteCollector,
+)
 from prometheus_network_exporter.collectors.junos.ospf_statistics import (
     OSPFStatisticsCollector,
 )
+from prometheus_network_exporter.collectors.junos.route import (
+    RouteSummaryCollector,
+    RouteTableCollector,
+)
+from prometheus_network_exporter.collectors.junos.rpcs import (
+    OSPF_PROTOCOLS,
+    fixture_name,
+)
+from prometheus_network_exporter.collectors.junos.status import StatusCollector
+from prometheus_network_exporter.collectors.junos.xmlutil import SchemaWatch
 from prometheus_network_exporter.devices import basedevice
 from prometheus_network_exporter.views.junos.bgp import BGPNeighborTable
 from prometheus_network_exporter.views.junos.environment import (
@@ -34,6 +69,11 @@ from prometheus_network_exporter.views.junos.ospf import (
 )
 
 from ..config.junos import OSPFType
+
+LOGGER = logging.getLogger("network_exporter")
+
+DEFAULT_ROUTE_TABLES = ("inet.0", "inet6.0")
+DEFAULT_YOUNG_ROUTE_SECONDS = 300
 
 
 class JuniperNetworkDevice(basedevice.Device):
@@ -57,8 +97,28 @@ class JuniperNetworkDevice(basedevice.Device):
             gather_facts=False,
             fact_style="old",
         )
+        # Per scrape bookkeeping, reset by begin_scrape().
+        self.schema = SchemaWatch()
+        self._rpc_cache = {}
+        self.rpc_failed = set()
+        self.rpc_durations = {}
         super(JuniperNetworkDevice, self).__init__(hostname, device, **kwargs)
         self.register_collectors(self.types)
+
+    # ------------------------------------------------------------------
+    # configuration helpers
+    # ------------------------------------------------------------------
+    @property
+    def route_tables(self) -> list:
+        return list(self.options.get("tables", DEFAULT_ROUTE_TABLES))
+
+    @property
+    def watch_prefixes(self) -> list:
+        return list(self.options.get("watch", []))
+
+    @property
+    def young_route_seconds(self) -> float:
+        return float(self.options.get("young_route_seconds", DEFAULT_YOUNG_ROUTE_SECONDS))
 
     def register_collectors(self, types: list):
         ospf = True
@@ -77,25 +137,85 @@ class JuniperNetworkDevice(basedevice.Device):
             self.registry.register(EnvironmentCollector(self))
         if "bgp" in types:
             self.registry.register(BGPCollector(self))
+            self.registry.register(BGPNeighborCollector(self))
+            self.registry.register(BGPOverviewCollector(self))
         if "igmp" in types:
             self.registry.register(IGMPCollector(self))
         if "ospf" in types:
-            self.registry.register(OSPFStatisticsCollector(self, protocol="ospf"))
-            self.registry.register(OSPFStatisticsCollector(self, protocol="ospf3"))
+            for protocol in OSPF_PROTOCOLS:
+                self.registry.register(OSPFStatisticsCollector(self, protocol=protocol))
+                self.registry.register(OSPFNeighborCollector(self, protocol))
+                self.registry.register(OSPFInterfaceCollector(self, protocol))
+                self.registry.register(OSPFOverviewCollector(self, protocol))
+                self.registry.register(OSPFDatabaseCollector(self, protocol))
+                self.registry.register(
+                    OSPFRouteCollector(self, protocol, watch=self.watch_prefixes)
+                )
+        if "routes" in types:
+            self.registry.register(RouteSummaryCollector(self))
+            self.registry.register(
+                RouteTableCollector(
+                    self,
+                    tables=self.route_tables,
+                    watch=self.watch_prefixes,
+                    young_seconds=self.young_route_seconds,
+                )
+            )
+        if "bfd" in types:
+            self.registry.register(BFDCollector(self))
+        # Last on purpose: it reports what the collectors above recorded.
+        self.registry.register(StatusCollector(self))
 
-    def get_ospf_statistics(self):
+    # ------------------------------------------------------------------
+    # RPC access for the lxml based collectors
+    # ------------------------------------------------------------------
+    def begin_scrape(self):
+        self._rpc_cache.clear()
+        self.rpc_failed.clear()
+        self.rpc_durations.clear()
+        self.schema.reset()
+
+    def rpc_reply(self, rpc: str, **args):
+        """Run one RPC and return the reply element, None when Junos rejects it.
+
+        Replies are cached for the current scrape so that collectors sharing
+        an RPC, such as the BGP neighbour and overview collectors, cost one
+        round trip.
+        """
+        key = (rpc, tuple(sorted(args.items())))
+        if key in self._rpc_cache:
+            return self._rpc_cache[key]
+        name = fixture_name(rpc, args)
+        started = time.monotonic()
         try:
-            reply = self.device.rpc.get_ospf_statistics_information()
-        except RpcError:
-            return None
-        return reply.find(".//{*}ospf-statistics")
+            reply = getattr(self.device.rpc, rpc)(**args)
+        except RpcError as error:
+            LOGGER.info("%s :: %s failed: %s", self.hostname, name, error)
+            self.rpc_failed.add(name)
+            reply = None
+        self.rpc_durations[name] = time.monotonic() - started
+        self._rpc_cache[key] = reply
+        return reply
+
+    def _count_exception(self, exception):
+        if self.exception_counter is None:
+            return
+        self.exception_counter.labels(
+            exception=type(exception).__name__,
+            collector=type(self).__name__,
+            hostname=self.device.hostname,
+        ).inc()
+
+    # ------------------------------------------------------------------
+    # legacy PyEZ table access
+    # ------------------------------------------------------------------
+    def get_ospf_statistics(self):
+        reply = self.rpc_reply("get_ospf_statistics_information")
+        return None if reply is None else reply.find(".//{*}ospf-statistics")
 
     def get_ospf3_statistics(self):
-        try:
-            reply = self.device.rpc.get_ospf3_statistics_information()
-        except RpcError:
-            return None
-        return reply.find(".//{*}ospf-statistics")
+        reply = self.rpc_reply("get_ospf3_statistics_information")
+        return None if reply is None else reply.find(".//{*}ospf-statistics")
 
     def get_bgp(self):
         try:
@@ -172,15 +292,6 @@ class JuniperNetworkDevice(basedevice.Device):
             ospf["neighbor_id"] = self.lookup(ospf["neighbor_id"])
         return ospf
 
-    def _count_exception(self, exception):
-        if self.exception_counter is None:
-            return
-        self.exception_counter.labels(
-            exception=type(exception).__name__,
-            collector=type(self).__name__,
-            hostname=self.device.hostname,
-        ).inc()
-
     def manipulate_ospf(self, ospf, ospf_type: OSPFType = OSPFType.OSPF):
         """Group neighbours by physical interface.
 
@@ -247,6 +358,7 @@ class JuniperNetworkDevice(basedevice.Device):
         try:
             if not self.lock.acquire(False):
                 raise Exception("{} is locked.".format(self.device.hostname))
+            self.begin_scrape()
             self.connect()
             self.device.timeout = 60
             return 200, "OK", generate_latest(self.registry)
@@ -256,12 +368,7 @@ class JuniperNetworkDevice(basedevice.Device):
             AuthenticationError,
             RpcTimeoutError,
         ) as exception:
-            exception_name = type(exception).__name__
-            self.exception_counter.labels(
-                exception=exception_name,
-                collector=type(self).__name__,
-                hostname=self.device.hostname,
-            ).inc()
+            self._count_exception(exception)
             raise exception
         finally:
             # fix the memory consumption problem?

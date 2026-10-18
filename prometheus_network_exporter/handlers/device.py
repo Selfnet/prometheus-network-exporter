@@ -57,6 +57,7 @@ class ExporterHandler(tornado.web.RequestHandler):
                         password=module["auth"].get("password", None),
                         types=module["metrics"],
                         exception_counter=self.application.exception_counter,
+                        options=module.get("routing", {}),
                     )
             elif module["auth"]["method"] == "password":
                 try:
@@ -68,6 +69,7 @@ class ExporterHandler(tornado.web.RequestHandler):
                             port=module["auth"].get("port", 22),
                             types=module["metrics"],
                             exception_counter=self.application.exception_counter,
+                            options=module.get("routing", {}),
                         )
                 except KeyError as e:
                     raise e
