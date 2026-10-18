@@ -6,7 +6,11 @@ groups:
   - name: junos-bgp
     rules:
       - alert: JunosBgpPeerNotEstablished
-        expr: pyez_junos_bgp_peer_state{state="Established"} == 0
+        # Only peers that were Established within the last hour: a route
+        # reflector carries hundreds of configured peers that never came up.
+        expr: |
+          pyez_junos_bgp_peer_state{state="Established"} == 0
+          and max_over_time(pyez_junos_bgp_peer_state{state="Established"}[1h]) == 1
         for: 5m
         labels:
           severity: critical
@@ -94,12 +98,13 @@ groups:
           summary: "{{ $labels.instance }}: route lookup {{ $labels.rpc }} fails, watched prefixes are unknown"
 
       - alert: JunosHiddenRoutes
-        expr: pyez_junos_route_table_hidden_routes > 0
-        for: 30m
+        # Some hidden routes are permanent (policy, unresolvable next hops);
+        # what matters is a jump.
+        expr: delta(pyez_junos_route_table_hidden_routes[30m]) > 10
         labels:
           severity: warning
         annotations:
-          summary: "{{ $labels.instance }} hides {{ $value }} routes in {{ $labels.table }}"
+          summary: "{{ $labels.instance }} hides {{ printf `%.0f` $value }} more routes in {{ $labels.table }} than 30 minutes ago"
 
       - alert: JunosRoutingChurn
         expr: sum by (instance, table) (pyez_junos_route_young_routes) > 20

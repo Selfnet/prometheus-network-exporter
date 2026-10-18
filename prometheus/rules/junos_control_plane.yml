@@ -22,7 +22,11 @@ groups:
           description: "Control plane stall or session limit; compare with the routing engine CPU and the switch syslog."
 
       - alert: JunosControlPlaneSlow
-        expr: pyez_junos_probe_rpc_seconds > 5 or pyez_junos_netconf_connect_seconds > 10
+        # The login threshold only where the probe runs: the SRX gateways
+        # need more than 10s for every login and are no control plane stall.
+        expr: |
+          pyez_junos_probe_rpc_seconds > 5
+          or (pyez_junos_netconf_connect_seconds > 10 and on (instance, job) pyez_junos_probe_success)
         for: 1m
         labels:
           severity: warning
@@ -90,7 +94,9 @@ groups:
           summary: "{{ $labels.instance }} has {{ $value }} major {{ $labels.source }} alarms"
 
       - alert: JunosStorageFull
-        expr: pyez_junos_storage_used_ratio > 0.9
+        # / is the Junos image partition and sits at about 90% by design;
+        # the file systems that fill up are /var and friends.
+        expr: pyez_junos_storage_used_ratio{mount!="/"} > 0.9 or pyez_junos_storage_used_ratio{mount="/"} > 0.97
         for: 30m
         labels:
           severity: warning
@@ -150,7 +156,12 @@ groups:
           summary: "{{ $labels.interface }} is not distributing in {{ $labels.lag }} on {{ $labels.instance }}"
 
       - alert: JunosOpticsAlarm
-        expr: pyez_junos_interface_optics_alarm{alarm=~".*_alarm"} == 1
+        # Only on ports that are up, and not for transceivers without
+        # diagnostics, which raise every alarm flag at once.
+        expr: |
+          pyez_junos_interface_optics_alarm{alarm=~".*_alarm"} == 1
+          and on (instance, interface) pyez_junos_interface_is_operational == 1
+          and on (instance, interface) (count by (instance, interface) (pyez_junos_interface_optics_alarm{alarm=~".*_alarm"} == 1) < 4)
         for: 10m
         labels:
           severity: warning
