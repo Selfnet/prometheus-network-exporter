@@ -3,6 +3,7 @@ import yaml
 from logging import getLogger
 from prometheus_client import Histogram, Gauge, Counter, multiprocess, CollectorRegistry
 from tornado.web import Application as _Application
+from prometheus_network_exporter import COUNTER_DIR
 from prometheus_network_exporter.schema import Configuration
 
 log = getLogger("tornado_prometheus_exporter")
@@ -28,7 +29,7 @@ class Application(_Application):
             self.CONFIG = yaml.safe_load(f)
         Configuration().validate(self.CONFIG)
         multiprocess.MultiProcessCollector(
-            registry=self.multiprocess_registry, path=".tmp"
+            registry=self.multiprocess_registry, path=COUNTER_DIR
         )
         self.max_workers = kwargs.pop("max_workers", 10)
         self.debug = kwargs.pop("debug", False)
@@ -43,15 +44,18 @@ class Application(_Application):
             ["exception", "collector", "hostname"],
             registry=self.multiprocess_registry,
         )
-        # Counter initialization
+        # Counter initialization. livesum: one value over all worker
+        # processes instead of one series per pid.
         self.used_workers = Gauge(
             "network_exporter_used_workers",
             "The amount of workers being busy scraping Devices.",
+            multiprocess_mode="livesum",
             registry=self.multiprocess_registry,
         )
         self.total_workers = Gauge(
             "network_exporter_workers",
             "The total amount of workers",
+            multiprocess_mode="livesum",
             registry=self.multiprocess_registry,
         )
         self.total_workers.set(self.max_workers)
@@ -60,6 +64,7 @@ class Application(_Application):
             "network_exporter_tcp_states",
             "The count per tcp state and protocol",
             ["state", "protocol"],
+            multiprocess_mode="livesum",
             registry=self.multiprocess_registry,
         )
         if buckets is not None:

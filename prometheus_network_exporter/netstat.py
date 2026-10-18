@@ -32,18 +32,27 @@ def lookup(ip):
         return ip
 
 
+def _read(path):
+    """Lines of a /proc table without its header; empty without /proc.
+
+    Hosts without procfs (macOS, some containers) then simply report no
+    connection states instead of failing the whole /metrics page.
+    """
+    try:
+        with open(path, "r") as f:
+            content = f.readlines()
+    except FileNotFoundError:
+        return []
+    content.pop(0)
+    return content
+
+
 def _load(v4=None, v6=None):
     """Read the table of tcp connections & remove header"""
     if not v4 and v6:
-        with open(PROC_TCP6, "r") as f:
-            content = f.readlines()
-            content.pop(0)
-        return content
+        return _read(PROC_TCP6)
     elif v4 and not v6:
-        with open(PROC_TCP, "r") as f:
-            content = f.readlines()
-            content.pop(0)
-        return content
+        return _read(PROC_TCP)
     elif v4 and v6:
         raise Exception("Only IPv4 or IPv6 not both!")
     else:

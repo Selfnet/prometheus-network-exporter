@@ -152,6 +152,16 @@ probe costs one small RPC instead of an SSH login and a new mgd process.
 `--config` selects another config file, which allows a second exporter
 instance next to the production one.
 
+`--processes N` starts N worker processes behind the one port. A Python
+process runs its collectors on one CPU core, however many threads it has;
+with the control plane modules of several cores one process is not enough
+and every other scrape waits behind them. Each target always lands in the
+same worker (hash of the hostname), so the connection pool, the session slot
+and a kept NETCONF session of a switch stay in one process. `/metrics` is
+served by the main process from the counters of every worker. When a worker
+dies the exporter exits and systemd restarts it. Use one process per CPU
+core the exporter may have, for example `--processes 4`.
+
 ## Look for prometheus config
 
 Example config for your prometheus can be found under `prometheus/*`.
