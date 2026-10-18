@@ -80,7 +80,7 @@ FPC_CPU_WINDOWS = (
 
 ALARM_CLASSES = ("Major", "Minor")
 LS_LINE = re.compile(r"^\s*[-l][rwxsStT-]{9}\S*\s+\d+\s+.*\s(?P<path>/\S+)\s*$")
-DEFAULT_STORAGE_MOUNTS = r"^(/\.mount)?(/var|/var/log|/tmp|/config)?$"
+DEFAULT_STORAGE_MOUNTS = r"^(/|(/\.mount)?(/var|/var/log|/tmp|/config)?)$"
 
 
 def _ratio(value: Optional[float]) -> Optional[float]:

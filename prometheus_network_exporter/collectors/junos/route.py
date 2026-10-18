@@ -16,7 +16,7 @@ from prometheus_client.core import GaugeMetricFamily, InfoMetricFamily
 from ..base import Collector
 from . import base
 from .rpcs import ROUTE_TABLE_RPC, route_destination_args, route_table_args
-from .xmlutil import Reader, add, family_matches, find, findall, iter_items, label, text
+from .xmlutil import Reader, add, family_matches, find, findall, is_ipv6, iter_items, label, text
 
 TABLE_GAUGES = (
     ("destinations", "destination-count", "Destinations in the table"),
@@ -250,10 +250,12 @@ class RouteTableCollector(Collector):
 class RouteWatchCollector(Collector):
     """Watched prefixes looked up one by one with ``show route <prefix> exact``.
 
-    Costs one small RPC per prefix instead of a full table dump, which makes
-    it usable on border routers with large tables. Exports the same
-    ``route_watch_*`` metrics as ``RouteTableCollector``; the device disables
-    the watch list there when this collector is enabled.
+    Costs one small RPC per prefix and table instead of a full table dump,
+    which makes it usable on border routers with large tables. Every
+    configured table of the prefix's address family is asked, as the table
+    dump does. Exports the same ``route_watch_*`` metrics as
+    ``RouteTableCollector``; the device disables the watch list there when
+    this collector is enabled.
     """
 
     name = "route_watch"
@@ -264,34 +266,36 @@ class RouteWatchCollector(Collector):
         super().__init__(f"{base}_route", device, config={})
         self.reader = Reader(device.schema, self.name)
 
-    def _table_for(self, prefix: str) -> str:
-        for table in self.tables:
-            if family_matches(prefix, table):
-                return table
-        return "inet6.0" if ":" in prefix else "inet.0"
+    def _tables_for(self, prefix: str) -> list:
+        """The configured tables of the prefix's family, else its default table."""
+        tables = [table for table in self.tables if family_matches(prefix, table)]
+        return tables or ["inet6.0" if is_ipv6(prefix) else "inet.0"]
+
+    def _lookup(self, families: WatchFamilies, table: str, prefix: str):
+        read = self.reader
+        reply = self.device.rpc_reply(ROUTE_TABLE_RPC, **route_destination_args(prefix, table))
+        if reply is None:
+            # Unknown, not absent: no sample. pyez_junos_rpc_failed reports
+            # it and JunosWatchedRouteUnknown alerts on that.
+            return
+        labels = [table, prefix]
+        for route in iter_items(reply, ("rt",)):
+            if read.text(route, "rt-destination") != prefix:
+                continue
+            entry = active_entry(read, route)
+            if entry is None:
+                continue
+            emit_watch(
+                read, families, labels, entry,
+                label(read.text(entry, "protocol-name")),
+                read.seconds(entry, "age"),
+            )
+            return
+        families.present.add_metric(labels, 0.0)
 
     def collect(self):
-        read = self.reader
         families = watch_families(self.base_name)
         for prefix in self.watch:
-            table = self._table_for(prefix)
-            reply = self.device.rpc_reply(ROUTE_TABLE_RPC, **route_destination_args(prefix, table))
-            if reply is None:
-                # Unknown, not absent: no sample, rpc_failed reports it.
-                continue
-            labels = [table, prefix]
-            for route in iter_items(reply, ("rt",)):
-                if read.text(route, "rt-destination") != prefix:
-                    continue
-                entry = active_entry(read, route)
-                if entry is None:
-                    continue
-                emit_watch(
-                    read, families, labels, entry,
-                    label(read.text(entry, "protocol-name")),
-                    read.seconds(entry, "age"),
-                )
-                break
-            else:
-                families.present.add_metric(labels, 0.0)
-        yield from read.unique(families)
+            for table in self._tables_for(prefix):
+                self._lookup(families, table, prefix)
+        yield from self.reader.unique(families)

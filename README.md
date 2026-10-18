@@ -99,7 +99,7 @@ into a fast and a slow scrape job (see `config/config.yml`, modules
 | `krt` | `krt_queue_entries{queue}`, `krt_state{field}` | `show krt queue`, `show krt state` |
 | `rpd_memory` | `rpd_task_memory{field}` | `show task memory` |
 | `fib` | `fib_routes{table,family,type}` | `show route forwarding-table summary` |
-| `route_watch` | `route_watch_*` as with `routes`, one `show route <prefix> exact` per watched prefix | replaces the watch list of the table dump |
+| `route_watch` | `route_watch_*` as with `routes`, one `show route <prefix> exact` per watched prefix and table of its address family | replaces the watch list of the table dump |
 | `ldp` | `ldp_session_state`, `ldp_session_up_seconds`, `ldp_neighbors`, `ldp_neighbor_hold_remaining_seconds` | `show ldp session detail`, `show ldp neighbor` |
 | `l2circuit` | `l2circuit_up`, `l2circuit_up_transitions_total`, `l2circuit_info` | `show l2circuit connections` |
 | `pim` | `pim_neighbors`, `pim_neighbor_up_seconds` | `show pim neighbors` |
@@ -126,7 +126,7 @@ An optional `junos` block in the module tunes these collectors:
     extensive_interfaces: "[ex][et]-*"       # interface pattern for show interfaces extensive
     extensive_description: "^(Core|Server)"  # regex on the description, "" for all
     logical_interfaces: [lo0, irb]
-    storage_mounts: "^(/\\.mount)?(/var|/tmp|/config)?$"
+    storage_mounts: "^(/|(/\\.mount)?(/var|/tmp|/config)?)$"
 ```
 
 Scrape health for every module: `pyez_junos_netconf_connect_seconds`,

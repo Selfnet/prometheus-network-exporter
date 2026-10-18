@@ -83,14 +83,15 @@ groups:
           summary: "{{ $labels.instance }} has no active route for {{ $labels.prefix }} in {{ $labels.table }}"
 
       - alert: JunosWatchedRouteUnknown
-        # The route table dump failed, so route_watch_present is absent rather
-        # than 0. Treat "unknown" as its own alert instead of staying silent.
-        expr: pyez_junos_rpc_failed{rpc=~"route_table_.+"} == 1
+        # The route table dump or the per prefix lookup failed, so
+        # route_watch_present is absent rather than 0. Treat "unknown" as its
+        # own alert instead of staying silent.
+        expr: pyez_junos_rpc_failed{rpc=~"route_(table|destination)_.+"} == 1
         for: 5m
         labels:
           severity: warning
         annotations:
-          summary: "{{ $labels.instance }}: route table dump {{ $labels.rpc }} fails, watched prefixes are unknown"
+          summary: "{{ $labels.instance }}: route lookup {{ $labels.rpc }} fails, watched prefixes are unknown"
 
       - alert: JunosHiddenRoutes
         expr: pyez_junos_route_table_hidden_routes > 0

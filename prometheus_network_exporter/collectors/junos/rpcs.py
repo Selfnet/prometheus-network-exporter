@@ -124,7 +124,7 @@ def fixture_name(rpc: str, args: dict) -> str:
     if rpc == ROUTE_TABLE_RPC:
         if "destination" in args:
             prefix = args["destination"].replace(":", "x").replace("/", "_")
-            return "route_destination_{}".format(_slug(prefix))
+            return "route_destination_{}_{}".format(args.get("table", "default"), _slug(prefix))
         return "route_table_{}".format(args.get("table", "default"))
     if _is_logical_interface_call(rpc, args):
         return "logical_interfaces_{}".format(_slug(args["interface_name"]))
