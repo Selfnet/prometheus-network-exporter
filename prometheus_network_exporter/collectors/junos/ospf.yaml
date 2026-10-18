@@ -5,6 +5,9 @@ METRICS:
     key: ospf_neighbor_state
     description: OSPF is (0(DOWN)/1(UP))
     function: is_ok
+  - metric: neighbor_uptime_seconds
+    key: neighbor_up_time
+    description: Seconds since the OSPF neighbor adjacency was established
 
 LABELS:
   - label: description

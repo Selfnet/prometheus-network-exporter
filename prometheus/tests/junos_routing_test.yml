@@ -1,0 +1,87 @@
+# promtool test rules prometheus/tests/junos_routing_test.yml
+rule_files:
+  - ../rules/junos_routing.yml
+
+evaluation_interval: 1m
+
+tests:
+  - interval: 1m
+    input_series:
+      - series: 'pyez_junos_bgp_peer_state{instance="core-1", peer="100.127.0.5", group="iBGP-RR", state="Established"}'
+        values: "1 1 0 0 0 0 0 0 0 0"
+      - series: 'pyez_junos_bgp_peer_flaps_total{instance="core-1", peer="100.127.0.5", group="iBGP-RR"}'
+        values: "7 7 8 8 8 8 8 8 8 8"
+      - series: 'pyez_junos_route_watch_present{instance="core-1", table="inet.0", prefix="0.0.0.0/0"}'
+        values: "1 1 1 0 0 0 0 0 0 0"
+      - series: 'pyez_junos_ospf_neighbor_state{instance="core-1", interface="irb.100", neighbor_id="100.127.0.9", state="Full"}'
+        values: "0 0 0 0 0 0 0 0 0 0"
+      - series: 'pyez_junos_ospf_neighbor_state{instance="core-1", interface="irb.100", neighbor_id="100.127.0.9", state="2Way"}'
+        values: "1 1 1 1 1 1 1 1 1 1"
+      - series: 'pyez_junos_ospf_neighbor_state{instance="core-1", interface="ae0.0", neighbor_id="100.127.0.2", state="Full"}'
+        values: "1 0 0 0 0 0 0 0 0 0"
+      - series: 'pyez_junos_ospf_neighbor_state{instance="core-1", interface="ae0.0", neighbor_id="100.127.0.2", state="2Way"}'
+        values: "0 0 0 0 0 0 0 0 0 0"
+      - series: 'pyez_junos_rpc_failed{instance="core-1", rpc="route_table_inet.0"}'
+        values: "1 1 1 1 1 1 1 1 1 1"
+      - series: 'pyez_junos_rpc_failed{instance="core-1", rpc="route_destination_inet.0_0.0.0.0_0"}'
+        values: "1 1 1 1 1 1 1 1 1 1"
+    alert_rule_test:
+      - eval_time: 8m
+        alertname: JunosBgpPeerNotEstablished
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              instance: core-1
+              peer: 100.127.0.5
+              group: iBGP-RR
+              state: Established
+            exp_annotations:
+              summary: "BGP peer 100.127.0.5 on core-1 is not Established"
+              description: "Group iBGP-RR; check pyez_junos_bgp_peer_last_event_info for the last error."
+      - eval_time: 5m
+        alertname: JunosBgpPeerFlapping
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              instance: core-1
+              peer: 100.127.0.5
+              group: iBGP-RR
+            exp_annotations:
+              summary: "BGP peer 100.127.0.5 on core-1 flapped 1 times in the last hour"
+      - eval_time: 6m
+        alertname: JunosWatchedRouteMissing
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              instance: core-1
+              table: inet.0
+              prefix: 0.0.0.0/0
+            exp_annotations:
+              summary: "core-1 has no active route for 0.0.0.0/0 in inet.0"
+      - eval_time: 6m
+        alertname: JunosWatchedRouteUnknown
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              instance: core-1
+              rpc: route_destination_inet.0_0.0.0.0_0
+            exp_annotations:
+              summary: "core-1: route lookup route_destination_inet.0_0.0.0.0_0 fails, watched prefixes are unknown"
+          - exp_labels:
+              severity: warning
+              instance: core-1
+              rpc: route_table_inet.0
+            exp_annotations:
+              summary: "core-1: route lookup route_table_inet.0 fails, watched prefixes are unknown"
+      # A DROther neighbour in 2Way must not alert, a dropped Full adjacency must.
+      - eval_time: 8m
+        alertname: JunosOspfNeighborNotFull
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              instance: core-1
+              interface: ae0.0
+              neighbor_id: 100.127.0.2
+              state: Full
+            exp_annotations:
+              summary: "OSPF neighbour 100.127.0.2 on core-1 ae0.0 is not Full"

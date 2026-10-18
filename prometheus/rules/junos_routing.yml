@@ -1,0 +1,136 @@
+# Alerting rules for the Junos routing metrics of prometheus-network-exporter.
+# Validate and unit test with:
+#   promtool check rules prometheus/rules/junos_routing.yml
+#   promtool test rules prometheus/tests/junos_routing_test.yml
+groups:
+  - name: junos-bgp
+    rules:
+      - alert: JunosBgpPeerNotEstablished
+        # Only peers that were Established within the last day: a route
+        # reflector carries hundreds of configured peers that never came up.
+        # A lost session stays visible for a day, then counts as known.
+        expr: |
+          pyez_junos_bgp_peer_state{state="Established"} == 0
+          and max_over_time(pyez_junos_bgp_peer_state{state="Established"}[24h]) == 1
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "BGP peer {{ $labels.peer }} on {{ $labels.instance }} is not Established"
+          description: "Group {{ $labels.group }}; check pyez_junos_bgp_peer_last_event_info for the last error."
+
+      - alert: JunosBgpPeerFlapping
+        expr: increase(pyez_junos_bgp_peer_flaps_total[1h]) > 0
+        labels:
+          severity: warning
+        annotations:
+          summary: "BGP peer {{ $labels.peer }} on {{ $labels.instance }} flapped {{ printf `%.0f` $value }} times in the last hour"
+
+      - alert: JunosBgpUpdateStorm
+        expr: rate(pyez_junos_bgp_peer_updates_total{direction="in"}[15m]) > 1
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "BGP peer {{ $labels.peer }} on {{ $labels.instance }} sends more than one UPDATE per second"
+
+      - alert: JunosBgpPrefixesDropped
+        expr: pyez_junos_bgp_peer_rib_received_prefixes < 0.5 * max_over_time(pyez_junos_bgp_peer_rib_received_prefixes[6h])
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "BGP peer {{ $labels.peer }} on {{ $labels.instance }} sends half of the prefixes it did in {{ $labels.rib }}"
+
+  - name: junos-ospf
+    rules:
+      - alert: JunosOspfNeighborNotFull
+        # 2Way between two DROther routers is normal and is excluded on purpose.
+        expr: |
+          pyez_junos_ospf_neighbor_state{state="Full"} == 0
+          and on (instance, interface, neighbor_id) pyez_junos_ospf_neighbor_state{state="2Way"} == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "OSPF neighbour {{ $labels.neighbor_id }} on {{ $labels.instance }} {{ $labels.interface }} is not Full"
+
+      - alert: JunosOspfAdjacencyReset
+        expr: pyez_junos_ospf_neighbor_up_seconds < 600
+        labels:
+          severity: warning
+        annotations:
+          summary: "OSPF adjacency to {{ $labels.neighbor_id }} on {{ $labels.instance }} came up {{ $value }} seconds ago"
+
+      - alert: JunosOspfSpfStorm
+        expr: rate(pyez_junos_ospf_full_spf_runs_total[15m]) * 60 > 2
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "{{ $labels.instance }} runs more than two full SPF calculations per minute"
+
+      - alert: JunosOspfInterfaceCostChanged
+        expr: changes(pyez_junos_ospf_interface_cost[1h]) > 0
+        labels:
+          severity: info
+        annotations:
+          summary: "OSPF cost of {{ $labels.interface }} on {{ $labels.instance }} changed"
+
+  - name: junos-routes
+    rules:
+      - alert: JunosWatchedRouteMissing
+        expr: pyez_junos_route_watch_present == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "{{ $labels.instance }} has no active route for {{ $labels.prefix }} in {{ $labels.table }}"
+
+      - alert: JunosWatchedRouteUnknown
+        # The route table dump or the per prefix lookup failed, so
+        # route_watch_present is absent rather than 0. Treat "unknown" as its
+        # own alert instead of staying silent.
+        expr: pyez_junos_rpc_failed{rpc=~"route_(table|destination)_.+"} == 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "{{ $labels.instance }}: route lookup {{ $labels.rpc }} fails, watched prefixes are unknown"
+
+      - alert: JunosHiddenRoutes
+        # Some hidden routes are permanent (policy, unresolvable next hops);
+        # what matters is a jump.
+        expr: delta(pyez_junos_route_table_hidden_routes[30m]) > 10
+        labels:
+          severity: warning
+        annotations:
+          summary: "{{ $labels.instance }} hides {{ printf `%.0f` $value }} more routes in {{ $labels.table }} than 30 minutes ago"
+
+      - alert: JunosRoutingChurn
+        expr: sum by (instance, table) (pyez_junos_route_young_routes) > 20
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "{{ $labels.table }} on {{ $labels.instance }} keeps changing: {{ $value }} routes younger than the scrape interval"
+
+  - name: junos-exporter
+    rules:
+      - alert: JunosXmlSchemaMismatch
+        expr: pyez_junos_xml_missing_fields > 0
+        for: 30m
+        labels:
+          severity: info
+        annotations:
+          summary: "Collector {{ $labels.collector }} misses field {{ $labels.field }} on {{ $labels.instance }}"
+          description: "The Junos release answers differently than the collector expects. Compare the reply with what the collector reads and adjust the collector."
+
+      - alert: JunosRpcFailing
+        expr: pyez_junos_rpc_failed == 1
+        for: 1h
+        labels:
+          severity: info
+        annotations:
+          summary: "RPC {{ $labels.rpc }} fails on {{ $labels.instance }}"
+          description: "Expected when the protocol is not configured; otherwise check the exporter log."

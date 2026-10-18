@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "prometheus-network-exporter"
-version = "1.2.5"
+version = "1.4.2"
 description = "A Prometheus Network Exporter which connects via netconf ssh to the devices"
 authors = ["Cellebyte <marcel.fest@live.de>"]
 license = "MIT"
@@ -18,7 +18,7 @@ paramiko = "*"
 cached-property = "*"
 pygnmi = "^0.8.15"
 
-[poetry.group.dev.dependencies]
+[tool.poetry.group.dev.dependencies]
 flake8 = "*"
 PySocks = "*"
 pyinstaller = "*"

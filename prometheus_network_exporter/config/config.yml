@@ -10,9 +10,126 @@ default:
     - ospf
     - igmp
     - optics
-    - inteface
     - interface_specifics
     - environment
+    - bgp
+    - routes
+    - bfd
+  # Only used by the routes and ospf metrics of junos devices.
+  routing:
+    tables:
+      - inet.0
+      - inet6.0
+    watch:
+      - 0.0.0.0/0
+      - ::/0
+    young_route_seconds: 300
+
+# Control plane and routing monitoring of a core switch, split by cost.
+# Scrape core_probe every 15s, core_fast every 60s and core_slow, core_ospf
+# and core_bgp every 300s, each as its own Prometheus job. Small modules keep
+# every scrape short; the modules of one switch share a session slot, so a
+# switch never has more than one of their NETCONF sessions open at a time.
+# The probe keeps its session open between scrapes instead of logging in
+# every 15s.
+core_probe:
+  device: junos
+  auth:
+    method: ssh_key
+    username: pyez
+  metrics:
+    - probe
+  junos:
+    rpc_timeout: 10
+    keep_session: true
+    exclusive_session: false
+
+core_fast:
+  device: junos
+  auth:
+    method: ssh_key
+    username: pyez
+  metrics:
+    - routing_engine
+    - processes
+    - fpc
+    - pfe
+    - krt
+    - bfd
+    - ldp
+    - l2circuit
+  junos:
+    rpc_timeout: 20
+    session_wait_seconds: 20
+
+core_slow:
+  device: junos
+  auth:
+    method: ssh_key
+    username: pyez
+  metrics:
+    - routes
+    - route_watch
+    - fib
+    - rpd_memory
+    - neighbor_tables
+    - interface_errors
+    - optics
+    - pfe_hw_tables
+    - ddos
+    - alarms
+    - core_dumps
+    - system
+    - logical_interfaces
+    - pim
+    - lldp
+    - vxlan
+  routing:
+    tables:
+      - inet.0
+      - inet6.0
+    watch:
+      - 0.0.0.0/0
+      - ::/0
+    young_route_seconds: 300
+  junos:
+    rpc_timeout: 120
+    session_wait_seconds: 60
+    extensive_interfaces: "[ex][et]-*"
+    extensive_description: "^(Core|Server|Uplink)"
+    logical_interfaces:
+      - lo0
+      - irb
+
+# Ten OSPF RPCs per protocol including the LSDB and show ospf route detail.
+core_ospf:
+  device: junos
+  auth:
+    method: ssh_key
+    username: pyez
+  metrics:
+    - ospf_details
+  routing:
+    watch:
+      - 0.0.0.0/0
+      - ::/0
+  junos:
+    rpc_timeout: 120
+    session_wait_seconds: 60
+
+# show bgp neighbor lists every peer; on a route reflector this is the most
+# expensive reply of all, so it gets a module of its own.
+core_bgp:
+  device: junos
+  auth:
+    method: ssh_key
+    username: pyez
+  metrics:
+    - bgp
+    - bgp_details
+  junos:
+    rpc_timeout: 120
+    session_wait_seconds: 60
 
 aruba_ac:
   device: arubaos

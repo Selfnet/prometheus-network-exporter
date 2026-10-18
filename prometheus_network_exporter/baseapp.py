@@ -3,6 +3,7 @@ import yaml
 from logging import getLogger
 from prometheus_client import Histogram, Gauge, Counter, multiprocess, CollectorRegistry
 from tornado.web import Application as _Application
+from prometheus_network_exporter import COUNTER_DIR
 from prometheus_network_exporter.schema import Configuration
 
 log = getLogger("tornado_prometheus_exporter")
@@ -20,14 +21,15 @@ class Application(_Application):
             given registry on given port.
         :param prometheus_buckets: Gets passed to prometheus_client.Histogram.
         """
+        config_path = kwargs.pop("config_path", None) or os.path.join(CONF_DIR, "config.yml")
         super(Application, self).__init__(*args, **kwargs)
         # self.registry = kwargs.pop('registry', REGISTRY)
         self.multiprocess_registry = CollectorRegistry(auto_describe=False)
-        with open(os.path.join(CONF_DIR, "config.yml"), "r") as f:
+        with open(config_path, "r") as f:
             self.CONFIG = yaml.safe_load(f)
         Configuration().validate(self.CONFIG)
         multiprocess.MultiProcessCollector(
-            registry=self.multiprocess_registry, path=".tmp"
+            registry=self.multiprocess_registry, path=COUNTER_DIR
         )
         self.max_workers = kwargs.pop("max_workers", 10)
         self.debug = kwargs.pop("debug", False)
@@ -42,15 +44,18 @@ class Application(_Application):
             ["exception", "collector", "hostname"],
             registry=self.multiprocess_registry,
         )
-        # Counter initialization
+        # Counter initialization. livesum: one value over all worker
+        # processes instead of one series per pid.
         self.used_workers = Gauge(
             "network_exporter_used_workers",
             "The amount of workers being busy scraping Devices.",
+            multiprocess_mode="livesum",
             registry=self.multiprocess_registry,
         )
         self.total_workers = Gauge(
             "network_exporter_workers",
             "The total amount of workers",
+            multiprocess_mode="livesum",
             registry=self.multiprocess_registry,
         )
         self.total_workers.set(self.max_workers)
@@ -59,6 +64,7 @@ class Application(_Application):
             "network_exporter_tcp_states",
             "The count per tcp state and protocol",
             ["state", "protocol"],
+            multiprocess_mode="livesum",
             registry=self.multiprocess_registry,
         )
         if buckets is not None:

@@ -13,3 +13,4 @@ junos_exporter.
 **/*.rs.bk
 dist/
 build/
+.venv/
