@@ -80,11 +80,19 @@ class JuniperNetworkDevice(basedevice.Device):
         if "igmp" in types:
             self.registry.register(IGMPCollector(self))
         if "ospf" in types:
-            self.registry.register(OSPFStatisticsCollector(self))
+            self.registry.register(OSPFStatisticsCollector(self, protocol="ospf"))
+            self.registry.register(OSPFStatisticsCollector(self, protocol="ospf3"))
 
     def get_ospf_statistics(self):
         try:
             reply = self.device.rpc.get_ospf_statistics_information()
+        except RpcError:
+            return None
+        return reply.find(".//{*}ospf-statistics")
+
+    def get_ospf3_statistics(self):
+        try:
+            reply = self.device.rpc.get_ospf3_statistics_information()
         except RpcError:
             return None
         return reply.find(".//{*}ospf-statistics")

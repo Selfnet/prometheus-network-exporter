@@ -8,8 +8,6 @@ from . import base
 
 
 class OSPFStatisticsCollector(Collector):
-    base_name = f"{base}_ospf"
-
     counter_fields = {
         "dbds_retransmit": "dbds-retransmit",
         "lsas_flooded": "lsas-flooded",
@@ -26,7 +24,13 @@ class OSPFStatisticsCollector(Collector):
         "linkstate_request_queue_entries": "total-linkstate-request",
     }
 
-    def __init__(self, device: junosdevice.JuniperNetworkDevice):
+    def __init__(
+        self, device: junosdevice.JuniperNetworkDevice, protocol: str = "ospf"
+    ):
+        if protocol not in ("ospf", "ospf3"):
+            raise ValueError(f"Unsupported OSPF protocol: {protocol}")
+        self.protocol = protocol
+        self.base_name = f"{base}_{protocol}"
         super().__init__(self.base_name, device, config={})
 
     @staticmethod
@@ -35,18 +39,18 @@ class OSPFStatisticsCollector(Collector):
         return float(value) if value is not None else 0.0
 
     def collect(self):
-        statistics = self.device.get_ospf_statistics()
+        statistics = getattr(self.device, f"get_{self.protocol}_statistics")()
         if statistics is None:
             return
 
         packets_sent = CounterMetricFamily(
             f"{self.base_name}_packets_sent",
-            "Total number of OSPF packets sent",
+            f"Total number of {self.protocol.upper()} packets sent",
             labels=["packet_type"],
         )
         packets_received = CounterMetricFamily(
             f"{self.base_name}_packets_received",
-            "Total number of OSPF packets received",
+            f"Total number of {self.protocol.upper()} packets received",
             labels=["packet_type"],
         )
         for packet in statistics.findall("{*}packet-statistics"):
@@ -63,7 +67,7 @@ class OSPFStatisticsCollector(Collector):
         for metric_name, xml_field in self.counter_fields.items():
             metric = CounterMetricFamily(
                 f"{self.base_name}_{metric_name}",
-                f"Junos OSPF statistic {xml_field}",
+                f"Junos {self.protocol.upper()} statistic {xml_field}",
             )
             metric.add_metric([], self._number(statistics, xml_field))
             yield metric
@@ -71,7 +75,7 @@ class OSPFStatisticsCollector(Collector):
         for metric_name, xml_field in self.gauge_fields.items():
             metric = GaugeMetricFamily(
                 f"{self.base_name}_{metric_name}",
-                f"Junos OSPF statistic {xml_field}",
+                f"Junos {self.protocol.upper()} statistic {xml_field}",
             )
             metric.add_metric([], self._number(statistics, xml_field))
             yield metric
