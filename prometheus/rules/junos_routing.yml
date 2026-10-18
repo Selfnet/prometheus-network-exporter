@@ -6,11 +6,12 @@ groups:
   - name: junos-bgp
     rules:
       - alert: JunosBgpPeerNotEstablished
-        # Only peers that were Established within the last hour: a route
+        # Only peers that were Established within the last day: a route
         # reflector carries hundreds of configured peers that never came up.
+        # A lost session stays visible for a day, then counts as known.
         expr: |
           pyez_junos_bgp_peer_state{state="Established"} == 0
-          and max_over_time(pyez_junos_bgp_peer_state{state="Established"}[1h]) == 1
+          and max_over_time(pyez_junos_bgp_peer_state{state="Established"}[24h]) == 1
         for: 5m
         labels:
           severity: critical

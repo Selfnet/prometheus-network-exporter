@@ -156,12 +156,16 @@ groups:
           summary: "{{ $labels.interface }} is not distributing in {{ $labels.lag }} on {{ $labels.instance }}"
 
       - alert: JunosOpticsAlarm
-        # Only on ports that are up, and not for transceivers without
-        # diagnostics, which raise every alarm flag at once.
+        # Only on ports that are up. Transceivers without diagnostics raise
+        # every flag at once, including the impossible pair "receive power
+        # too high" and "too low"; that pair marks them, not the flag count.
         expr: |
           pyez_junos_interface_optics_alarm{alarm=~".*_alarm"} == 1
           and on (instance, interface) pyez_junos_interface_is_operational == 1
-          and on (instance, interface) (count by (instance, interface) (pyez_junos_interface_optics_alarm{alarm=~".*_alarm"} == 1) < 4)
+          unless on (instance, interface) (
+            pyez_junos_interface_optics_alarm{alarm="laser_rx_power_high_alarm"} == 1
+            and on (instance, interface) pyez_junos_interface_optics_alarm{alarm="laser_rx_power_low_alarm"} == 1
+          )
         for: 10m
         labels:
           severity: warning
