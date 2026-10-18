@@ -33,6 +33,13 @@ def none_to_zero(string) -> float:
     return default(string)
 
 
+def sum_values(value) -> float:
+    """Sum a list of values; PyEZ returns a list when an xpath matches several elements."""
+    if isinstance(value, list):
+        return float(sum(default(item) for item in value))
+    return default(value)
+
+
 def none_to_minus_inf(string) -> float:
     return -float("inf") if string is None else string
 

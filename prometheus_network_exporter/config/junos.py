@@ -14,6 +14,7 @@ class Function(Enum):
     IS_OK = "is_ok"
     FLOATIFY = "floatify"
     NONE_TO_ZERO = "none_to_zero"
+    SUM = "sum"
     NONE_TO_MINUS_INF = "none_to_minus_inf"
     NONE_TO_PLUS_INF = "none_to_plus_inf"
     FAN_POWER_TEMP_STATUS = "fan_power_temp_status"
@@ -34,6 +35,7 @@ class JunosMetricConfiguration(MetricConfiguration):
         Function.IS_OK: junos.is_ok,
         Function.FLOATIFY: junos.floatify,
         Function.NONE_TO_ZERO: junos.none_to_zero,
+        Function.SUM: junos.sum_values,
         Function.NONE_TO_MINUS_INF: junos.none_to_minus_inf,
         Function.NONE_TO_PLUS_INF: junos.none_to_plus_inf,
         # Functions for complex Metrics

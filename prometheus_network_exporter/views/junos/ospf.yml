@@ -2,8 +2,12 @@ OspfNeighborTable:
   rpc: get-ospf-neighbor-information
   args:
     interface: '*[afgxe][et]*'
+    extensive: True
   args_key: interface
-  key: interface-name
+  # Several neighbours can share one interface on a broadcast segment.
+  key:
+    - interface-name
+    - neighbor-id
   item: ospf-neighbor
   view: OspfNeighborView
 
@@ -11,8 +15,11 @@ Ospf3NeighborTable:
   rpc: get-ospf3-neighbor-information
   args:
     interface: '*[afgxe][et]*'
+    extensive: True
   args_key: interface
-  key: interface-name
+  key:
+    - interface-name
+    - neighbor-id
   item: ospf3-neighbor
   view: OspfNeighborView
 
@@ -20,5 +27,6 @@ OspfNeighborView:
   fields:
     interface_name: interface-name
     ospf_neighbor_state: { ospf-neighbor-state: True=Full }
+    # neighbor-up-time is only part of the detail/extensive output.
     neighbor_up_time: { neighbor-up-time/@seconds: int }
     neighbor_id: neighbor-id

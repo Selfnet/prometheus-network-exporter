@@ -4,14 +4,14 @@ METRICS:
     - metric: prefixes_received
       type: total
       key: pfx_rx
-      description: Received Prefixes from Peer
-      function: none_to_zero
+      description: Received Prefixes from Peer, summed over all RIBs. Deprecated, a gauge misdeclared as counter; use pyez_junos_bgp_peer_rib_received_prefixes
+      function: sum
 
     - metric: prefixes_received_accepted
       type: total
       key: pfx_rx_accepted
-      description: Accepted Prefixes from Peer
-      function: none_to_zero
+      description: Accepted Prefixes from Peer, summed over all RIBs. Deprecated, a gauge misdeclared as counter; use pyez_junos_bgp_peer_rib_accepted_prefixes
+      function: sum
 
   Gauge:
     - metric: is_up

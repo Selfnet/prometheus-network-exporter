@@ -172,27 +172,37 @@ class JuniperNetworkDevice(basedevice.Device):
             ospf["neighbor_id"] = self.lookup(ospf["neighbor_id"])
         return ospf
 
+    def _count_exception(self, exception):
+        if self.exception_counter is None:
+            return
+        self.exception_counter.labels(
+            exception=type(exception).__name__,
+            collector=type(self).__name__,
+            hostname=self.device.hostname,
+        ).inc()
+
     def manipulate_ospf(self, ospf, ospf_type: OSPFType = OSPFType.OSPF):
+        """Group neighbours by physical interface.
+
+        The tables are keyed by (interface-name, neighbor-id) so that several
+        neighbours on one broadcast segment do not overwrite each other.
+        """
         result = {}
-        for interface_name in ospf.keys():
+        for key, values in ospf.items():
+            interface_name = key[0] if isinstance(key, tuple) else key
+            if interface_name is None:
+                continue
             splitted_name = interface_name.split(".", 1)
             interface = splitted_name[0]
             try:
                 unit = int(splitted_name[1])
-                if interface not in result.keys():
-                    result[interface] = {ospf_type.value: []}
-                result[interface][ospf_type.value].append(
-                    {
-                        **{"unit": unit},
-                        **self.lookup_ospf(dict(ospf.get(interface_name, {}))),
-                    }
-                )
-            except IndexError as e:
-                self.exception_counter.labels(
-                    exception=type(e).__name__,
-                    collector=type(self).__name__,
-                    hostname=self.device.hostname,
-                ).inc()
+            except (IndexError, ValueError) as e:
+                self._count_exception(e)
+                continue
+            result.setdefault(interface, {ospf_type.value: []})
+            result[interface][ospf_type.value].append(
+                {**{"unit": unit}, **self.lookup_ospf(dict(values))}
+            )
         return result
 
     def get_ospf(self, interface_regex: str = None):
