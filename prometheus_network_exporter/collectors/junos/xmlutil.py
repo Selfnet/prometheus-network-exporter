@@ -8,12 +8,16 @@ have been stripped, so every lookup here matches on the local tag name only.
 from __future__ import annotations
 
 import collections
+import logging
+import math
 from typing import Dict, Iterable, Iterator, List, Optional, Sequence, Tuple
 
 from lxml import etree
 from prometheus_client.core import GaugeMetricFamily
 
 RPC_DECORATOR_ARGS = ("dev_timeout", "normalize", "ignore_warning", "filter_xml")
+UNKNOWN_STATE = "unknown"
+LOGGER = logging.getLogger("network_exporter")
 
 
 def _xpath(path: str) -> str:
@@ -62,10 +66,13 @@ def number(value: Optional[str]) -> Optional[float]:
     value = value.strip()
     try:
         if value.lower().startswith("0x"):
-            return float(int(value, 16))
-        return float(value)
-    except ValueError:
+            result = float(int(value, 16))
+        else:
+            result = float(value)
+    except (ValueError, OverflowError):
         return None
+    # "nan", "inf" and overflowing text parse as floats but are not measurements.
+    return result if math.isfinite(result) else None
 
 
 def seconds(element, path: str) -> Optional[float]:
@@ -126,6 +133,17 @@ class Reader:
     def _missing(self, path: str) -> None:
         self.watch.record(self.collector, path)
 
+    def record(self, field: str) -> None:
+        """Note an unexpected value under the given field name."""
+        self.watch.record(self.collector, field)
+
+    def unexpected_state(self, path: str, current: Optional[str]) -> None:
+        LOGGER.info("%s: unexpected %s %r", self.collector, path, current)
+        self.watch.record(self.collector, f"{path}:unexpected-value")
+
+    def unique(self, families: Iterable):
+        return unique(families, self.watch, self.collector)
+
     def text(self, element, path: str, required: bool = True) -> Optional[str]:
         value = text(element, path)
         if value is None and required:
@@ -165,11 +183,13 @@ def state_set(
     labels: Sequence[str],
     current: Optional[str],
     states: Sequence[str],
-) -> None:
-    """Emit one sample per known state, 1 for the current one.
+) -> bool:
+    """Emit one sample per known state plus ``unknown``, 1 for the current one.
 
-    An unknown current state is emitted as an additional sample so that it
-    stays visible instead of disappearing.
+    The label values are fixed: a state string the collector does not know
+    lights the ``unknown`` sample instead of becoming a new label value, so
+    the cardinality stays bounded whatever the device sends. Returns whether
+    the current state was one of the known ones.
     """
     labels = list(labels)
     matched = False
@@ -177,5 +197,29 @@ def state_set(
         hit = current is not None and current.lower() == state.lower()
         matched = matched or hit
         metric.add_metric(labels + [state], 1.0 if hit else 0.0)
-    if current is not None and not matched:
-        metric.add_metric(labels + [current], 1.0)
+    unknown = current is not None and not matched
+    metric.add_metric(labels + [UNKNOWN_STATE], 1.0 if unknown else 0.0)
+    return not unknown
+
+
+def unique(families: Iterable, watch: Optional["SchemaWatch"] = None, collector: str = ""):
+    """Drop samples that repeat a name and label set within a family.
+
+    Prometheus rejects a whole scrape over one duplicate series, which would
+    take every metric of the device down with it. Duplicates are counted in
+    the schema watch so that they remain visible.
+    """
+    for family in families:
+        seen = set()
+        kept = []
+        for sample in family.samples:
+            key = (sample.name, tuple(sorted(sample.labels.items())))
+            if key in seen:
+                if watch is not None:
+                    watch.record(collector, f"duplicate:{sample.name}")
+                LOGGER.info("%s: dropped duplicate series %s%s", collector, sample.name, sample.labels)
+                continue
+            seen.add(key)
+            kept.append(sample)
+        family.samples = kept
+        yield family

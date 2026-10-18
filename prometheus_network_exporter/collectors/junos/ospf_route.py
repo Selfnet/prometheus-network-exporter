@@ -72,5 +72,4 @@ class OSPFRouteCollector(Collector):
                     add(cost, [prefix, path_type, interface, address], route_cost)
         for key, count in sorted(counts.items()):
             routes.add_metric(list(key), float(count))
-        yield routes
-        yield cost
+        yield from read.unique((routes, cost))

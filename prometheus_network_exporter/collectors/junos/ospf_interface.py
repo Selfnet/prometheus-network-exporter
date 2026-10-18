@@ -55,9 +55,9 @@ class OSPFInterfaceCollector(Collector):
                 label(read.text(interface, "interface-name")),
                 label(read.text(interface, "ospf-area")),
             ]
-            state_set(
-                state, labels, read.text(interface, "ospf-interface-state"), INTERFACE_STATES
-            )
+            current = read.text(interface, "ospf-interface-state")
+            if not state_set(state, labels, current, INTERFACE_STATES):
+                read.unexpected_state("ospf-interface-state", current)
             for suffix, field, _ in GAUGES:
                 add(gauges[suffix], labels, read.number(interface, field))
             info.add_metric(
@@ -77,6 +77,4 @@ class OSPFInterfaceCollector(Collector):
                     ),
                 },
             )
-        yield state
-        yield from gauges.values()
-        yield info
+        yield from read.unique((state, *gauges.values(), info))

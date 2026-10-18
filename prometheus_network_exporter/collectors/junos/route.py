@@ -77,9 +77,7 @@ class RouteSummaryCollector(Collector):
                 labels = [name, label(read.text(protocol, "protocol-name"))]
                 add(protocol_routes, labels, read.number(protocol, "protocol-route-count"))
                 add(protocol_active, labels, read.number(protocol, "active-route-count"))
-        yield from gauges.values()
-        yield protocol_routes
-        yield protocol_active
+        yield from read.unique((*gauges.values(), protocol_routes, protocol_active))
 
 
 class RouteTableCollector(Collector):
@@ -98,15 +96,22 @@ class RouteTableCollector(Collector):
         super().__init__(f"{base}_route", device, config={})
         self.reader = Reader(device.schema, self.name)
 
-    @staticmethod
-    def _active_entry(route):
+    def _active_entry(self, route):
+        """The entry Junos marks as active, None when no entry is marked.
+
+        With ``active-path`` every returned entry carries a marker. An
+        unmarked entry is never treated as active: a prefix then counts as
+        not present and the missing marker is recorded as a schema gap.
+        """
         entries = findall(route, "rt-entry")
         for entry in entries:
             if find(entry, "current-active") is not None:
                 return entry
             if (text(entry, "active-tag") or "") == "*":
                 return entry
-        return entries[0] if entries else None
+        if entries:
+            self.reader.record("rt-entry/active-tag")
+        return None
 
     def collect(self):
         read = self.reader
@@ -161,6 +166,9 @@ class RouteTableCollector(Collector):
         for table in self.tables:
             reply = self.device.rpc_reply(ROUTE_TABLE_RPC, **route_table_args(table))
             if reply is None:
+                # Unknown is not "missing": no watch samples for this table.
+                # pyez_junos_rpc_failed{rpc="route_table_<name>"} reports it
+                # and the JunosWatchedRouteUnknown rule alerts on that.
                 continue
             watched = [prefix for prefix in self.watch if family_matches(prefix, table)]
             seen = set()
@@ -178,7 +186,7 @@ class RouteTableCollector(Collector):
                     newest_age[protocol] = min(newest_age.get(protocol, route_age), route_age)
                     if route_age < self.young_seconds:
                         young_count[protocol] += 1
-                if destination not in watched:
+                if destination not in watched or destination in seen:
                     continue
                 seen.add(destination)
                 labels = [table, destination]
@@ -217,4 +225,6 @@ class RouteTableCollector(Collector):
                 if prefix not in seen:
                     present.add_metric([table, prefix], 0.0)
 
-        yield from (threshold, newest, young, present, age, metric, preference, nexthops, info)
+        yield from read.unique(
+            (threshold, newest, young, present, age, metric, preference, nexthops, info)
+        )

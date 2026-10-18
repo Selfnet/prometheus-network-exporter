@@ -74,7 +74,8 @@ class OSPFNeighborCollector(Collector):
             ]
             current = read.text(neighbor, "ospf-neighbor-state")
             full = (current or "").lower() == "full"
-            state_set(state, labels, current, NEIGHBOR_STATES)
+            if not state_set(state, labels, current, NEIGHBOR_STATES):
+                read.unexpected_state("ospf-neighbor-state", current)
             add(up, labels, read.seconds(neighbor, "neighbor-up-time", required=full))
             add(
                 adjacency,
@@ -91,4 +92,4 @@ class OSPFNeighborCollector(Collector):
                     "options": label(read.text(neighbor, "options", required=False)),
                 },
             )
-        yield from (state, up, adjacency, dead, priority, info)
+        yield from read.unique((state, up, adjacency, dead, priority, info))

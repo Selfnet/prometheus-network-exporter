@@ -27,8 +27,7 @@ class BFDCollector(Collector):
         add(sessions, [], read.number(reply, "sessions"))
         clients = GaugeMetricFamily(f"{self.base_name}_clients", "BFD clients")
         add(clients, [], read.number(reply, "clients", required=False))
-        yield sessions
-        yield clients
+        yield from read.unique((sessions, clients))
 
         up = GaugeMetricFamily(
             f"{self.base_name}_session_up", "1 when the BFD session is Up", labels=LABELS
@@ -86,4 +85,4 @@ class BFDCollector(Collector):
                     ),
                 },
             )
-        yield from (up, detection, transmit, up_seconds, info)
+        yield from read.unique((up, detection, transmit, up_seconds, info))

@@ -23,7 +23,8 @@ from .xmlutil import (
 )
 
 BGP_STATES = ("Idle", "Connect", "Active", "OpenSent", "OpenConfirm", "Established")
-PEER_LABELS = ["peer", "peername", "group"]
+# routing_instance keeps peers apart that share an address across VRFs.
+PEER_LABELS = ["peer", "peername", "group", "routing_instance"]
 RIB_COUNTERS = ("active", "received", "accepted", "suppressed", "advertised")
 DIRECTIONS = (("in", "input"), ("out", "output"))
 
@@ -117,10 +118,12 @@ class BGPNeighborCollector(Collector):
                 address,
                 self.device.lookup(address),
                 label(read.text(peer, "peer-group")),
+                read.text(peer, "peer-cfg-rti", required=False) or "master",
             ]
             current = read.text(peer, "peer-state")
             established = (current or "").lower() == "established"
-            state_set(state, labels, current, BGP_STATES)
+            if not state_set(state, labels, current, BGP_STATES):
+                read.unexpected_state("peer-state", current)
             add(state_seconds, labels, uptimes.get(address))
             add(flaps, labels, read.number(peer, "flap-count"))
             for direction, prefix in DIRECTIONS:
@@ -195,19 +198,21 @@ class BGPNeighborCollector(Collector):
                 },
             )
 
-        yield from (
-            state,
-            state_seconds,
-            flaps,
-            messages,
-            updates,
-            refreshes,
-            octets,
-            errors,
-            hold_time,
-            keepalive,
-            queue,
-            *ribs.values(),
-            info,
-            last_event,
+        yield from read.unique(
+            (
+                state,
+                state_seconds,
+                flaps,
+                messages,
+                updates,
+                refreshes,
+                octets,
+                errors,
+                hold_time,
+                keepalive,
+                queue,
+                *ribs.values(),
+                info,
+                last_event,
+            )
         )

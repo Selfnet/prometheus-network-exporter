@@ -88,7 +88,7 @@ class OSPFDatabaseCollector(Collector):
             lsas.add_metric(list(key), float(count))
             own_lsas.add_metric(list(key), float(own[key]))
             add(age_min, list(key), youngest.get(key))
-        yield from (lsas, own_lsas, age_min)
+        yield from read.unique((lsas, own_lsas, age_min))
 
         sequence = GaugeMetricFamily(
             f"{self.base_name}_own_router_lsa_sequence",
@@ -103,5 +103,4 @@ class OSPFDatabaseCollector(Collector):
         for scope, (value, age) in sorted(own_router.items()):
             add(sequence, [scope], value)
             add(router_age, [scope], age)
-        yield sequence
-        yield router_age
+        yield from read.unique((sequence, router_age))

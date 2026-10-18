@@ -175,6 +175,10 @@ class JuniperNetworkDevice(basedevice.Device):
         self.rpc_durations.clear()
         self.schema.reset()
 
+    def end_scrape(self):
+        """Drop the cached replies; a route table dump is not worth keeping."""
+        self._rpc_cache.clear()
+
     def rpc_reply(self, rpc: str, **args):
         """Run one RPC and return the reply element, None when Junos rejects it.
 
@@ -355,9 +359,14 @@ class JuniperNetworkDevice(basedevice.Device):
         return self.is_connected()
 
     def collect(self):
+        # The lock serialises scrapes of one device. It must only be released,
+        # and the session only closed, by the thread that acquired it;
+        # otherwise a second scrape request would tear down the running one.
+        if not self.lock.acquire(False):
+            locked = Exception("{} is locked.".format(self.device.hostname))
+            self._count_exception(locked)
+            raise locked
         try:
-            if not self.lock.acquire(False):
-                raise Exception("{} is locked.".format(self.device.hostname))
             self.begin_scrape()
             self.connect()
             self.device.timeout = 60
@@ -371,6 +380,7 @@ class JuniperNetworkDevice(basedevice.Device):
             self._count_exception(exception)
             raise exception
         finally:
+            self.end_scrape()
             # fix the memory consumption problem?
             self.disconnect()
             self.lock.release()

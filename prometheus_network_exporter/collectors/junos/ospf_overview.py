@@ -43,6 +43,10 @@ class OSPFOverviewCollector(Collector):
         info.add_metric(
             [], {"router_id": label(read.text(reply, ".//ospf-router-id"))}
         )
+        yield from read.unique(self._families(reply, info))
+
+    def _families(self, reply, info):
+        read = self.reader
         yield info
 
         spf_runs = CounterMetricFamily(

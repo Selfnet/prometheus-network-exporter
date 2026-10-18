@@ -30,10 +30,10 @@ class BGPOverviewCollector(Collector):
     def collect(self):
         summary = self.device.rpc_reply("get_bgp_summary_information")
         if summary is not None:
-            yield from self._summary(summary)
+            yield from self.reader.unique(self._summary(summary))
         groups = self.device.rpc_reply("get_bgp_group_information")
         if groups is not None:
-            yield from self._groups(groups)
+            yield from self.reader.unique(self._groups(groups))
 
     def _summary(self, summary):
         read = self.reader
