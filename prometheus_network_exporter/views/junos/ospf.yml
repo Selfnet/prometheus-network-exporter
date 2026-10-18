@@ -20,4 +20,5 @@ OspfNeighborView:
   fields:
     interface_name: interface-name
     ospf_neighbor_state: { ospf-neighbor-state: True=Full }
+    neighbor_up_time: { neighbor-up-time/@seconds: int }
     neighbor_id: neighbor-id
