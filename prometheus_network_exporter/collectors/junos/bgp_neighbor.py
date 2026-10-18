@@ -126,15 +126,20 @@ class BGPNeighborCollector(Collector):
                 read.unexpected_state("peer-state", current)
             add(state_seconds, labels, uptimes.get(address))
             add(flaps, labels, read.number(peer, "flap-count"))
+            # Junos reports the message counters only while a session exists;
+            # a peer that never came up has none, which is not a schema gap.
             for direction, prefix in DIRECTIONS:
-                add(messages, labels + [direction], read.number(peer, f"{prefix}-messages"))
-                add(updates, labels + [direction], read.number(peer, f"{prefix}-updates"))
-                add(
-                    refreshes,
-                    labels + [direction],
-                    read.number(peer, f"{prefix}-refreshes"),
-                )
-                add(octets, labels + [direction], read.number(peer, f"{prefix}-octets"))
+                for family, field in (
+                    (messages, "messages"),
+                    (updates, "updates"),
+                    (refreshes, "refreshes"),
+                    (octets, "octets"),
+                ):
+                    add(
+                        family,
+                        labels + [direction],
+                        read.number(peer, f"{prefix}-{field}", required=established),
+                    )
             for error in findall(peer, "bgp-error"):
                 name = label(read.text(error, "name")) or "unknown"
                 add(errors, labels + [name, "in"], read.number(error, "receive-count"))

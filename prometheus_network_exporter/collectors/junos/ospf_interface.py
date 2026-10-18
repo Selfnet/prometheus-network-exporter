@@ -10,7 +10,9 @@ from .rpcs import OSPF_PROTOCOLS
 from .xmlutil import Reader, add, find, iter_items, label, state_set
 
 INTERFACE_STATES = ("Down", "Loop", "Waiting", "PtToPt", "DRother", "BDR", "DR")
-LABELS = ["interface", "area"]
+# One entry per interface address: a loopback with two addresses appears
+# twice in the reply (seen with two addresses on lo0.0).
+LABELS = ["interface", "area", "address"]
 ITEMS = ("ospf-interface", "ospf3-interface")
 GAUGES = (
     ("cost", "interface-cost", "OSPF metric of the interface"),
@@ -54,6 +56,8 @@ class OSPFInterfaceCollector(Collector):
             labels = [
                 label(read.text(interface, "interface-name")),
                 label(read.text(interface, "ospf-area")),
+                # OSPFv3 replies carry no interface-address; the label stays empty.
+                label(read.text(interface, "interface-address", required=False)),
             ]
             current = read.text(interface, "ospf-interface-state")
             if not state_set(state, labels, current, INTERFACE_STATES):

@@ -10,6 +10,7 @@ from __future__ import annotations
 import collections
 import logging
 import math
+import re
 from typing import Dict, Iterable, Iterator, List, Optional, Sequence, Tuple
 
 from lxml import etree
@@ -86,6 +87,30 @@ def seconds(element, path: str) -> Optional[float]:
     return number(found.text)
 
 
+def slug(value: str) -> str:
+    """``Software input control plane drops`` becomes ``software_input_control_plane_drops``."""
+    return re.sub(r"[^a-z0-9]+", "_", (value or "").lower()).strip("_")
+
+
+def all_text(element) -> str:
+    """Every text node below the element, for replies Junos only renders as text.
+
+    Junos answers a CLI command without an XML schema with a single
+    ``<output>`` element; reading all text covers that and odd wrappers alike.
+    """
+    return "\n".join(part for part in element.itertext())
+
+
+def numeric_leaves(element) -> Iterator[Tuple[str, float]]:
+    """``(tag, value)`` for every direct child without children and with a numeric text."""
+    for child in element:
+        if not isinstance(child.tag, str) or len(child):
+            continue
+        value = number(child.text)
+        if value is not None:
+            yield localname(child), value
+
+
 def strip_port(address: Optional[str]) -> str:
     """``10.0.0.1+179`` becomes ``10.0.0.1``."""
     if address is None:
@@ -153,6 +178,15 @@ class Reader:
     def first_text(self, element, paths: Sequence[str], required: bool = True):
         for path in paths:
             value = text(element, path)
+            if value is not None:
+                return value
+        if required:
+            self._missing("|".join(paths))
+        return None
+
+    def first_seconds(self, element, paths: Sequence[str], required: bool = False):
+        for path in paths:
+            value = seconds(element, path)
             if value is not None:
                 return value
         if required:

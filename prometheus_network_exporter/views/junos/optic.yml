@@ -42,4 +42,26 @@ PhyPortDiagView:
     rx_optic_power_low_alarm : { laser-rx-power-low-alarm-threshold-dbm : str }
     rx_optic_power_high_warn : { laser-rx-power-high-warn-threshold-dbm : str }
     rx_optic_power_low_warn : { laser-rx-power-low-warn-threshold-dbm : str }
-
+# Alarm and warning flags, 'on' or 'off'; exported as
+# pyez_junos_interface_optics_alarm{alarm=...}
+    flag_module_temperature_high_alarm : { module-temperature-high-alarm : str }
+    flag_module_temperature_low_alarm : { module-temperature-low-alarm : str }
+    flag_module_temperature_high_warn : { module-temperature-high-warn : str }
+    flag_module_temperature_low_warn : { module-temperature-low-warn : str }
+    flag_module_voltage_high_alarm : { module-voltage-high-alarm : str }
+    flag_module_voltage_low_alarm : { module-voltage-low-alarm : str }
+    flag_module_voltage_high_warn : { module-voltage-high-warn : str }
+    flag_module_voltage_low_warn : { module-voltage-low-warn : str }
+    flag_laser_bias_current_high_alarm : { laser-bias-current-high-alarm : str }
+    flag_laser_bias_current_low_alarm : { laser-bias-current-low-alarm : str }
+    flag_laser_bias_current_high_warn : { laser-bias-current-high-warn : str }
+    flag_laser_bias_current_low_warn : { laser-bias-current-low-warn : str }
+    flag_laser_tx_power_high_alarm : { laser-tx-power-high-alarm : str }
+    flag_laser_tx_power_low_alarm : { laser-tx-power-low-alarm : str }
+    flag_laser_tx_power_high_warn : { laser-tx-power-high-warn : str }
+    flag_laser_tx_power_low_warn : { laser-tx-power-low-warn : str }
+    flag_laser_rx_power_high_alarm : { laser-rx-power-high-alarm : str }
+    flag_laser_rx_power_low_alarm : { laser-rx-power-low-alarm : str }
+    flag_laser_rx_power_high_warn : { laser-rx-power-high-warn : str }
+    flag_laser_rx_power_low_warn : { laser-rx-power-low-warn : str }
+    flag_laser_rx_loss_of_signal_alarm : { laser-rx-loss-of-signal-alarm : str }

@@ -22,7 +22,7 @@ The SSH config is also used.
 
 ## HowTo: Query for junos_devices
 
-    http://localhost:9332/metrics?target=device.example.com&module=default
+    http://localhost:9332/device?target=device.example.com&module=default
 
 If access is True only the interfaces for the ports specified in
 `config/metrics_definitions.yml` are queried and if access is False everything is queried.
@@ -75,6 +75,76 @@ Deprecated: `pyez_junos_bgp_prefixes_received_total` and
 `pyez_junos_bgp_prefixes_received_accepted_total` are gauges declared as
 counters. They now sum over all RIBs of a peer; use
 `pyez_junos_bgp_peer_rib_received_prefixes` instead.
+
+## Control plane, forwarding plane and link metrics for Junos
+
+These types exist to locate control plane stalls and packet loss on core
+switches. Every type has its own collector, so a module can be split by cost
+into a fast and a slow scrape job (see `config/config.yml`, modules
+`core_probe`, `core_fast` and `core_slow`).
+
+| Type | Metrics (prefix `pyez_junos_`) | Source |
+|---|---|---|
+| `probe` | `probe_success`, `probe_rpc_seconds` | `show version`; one cheap RPC for a 15s responsiveness job |
+| `routing_engine` | `re_cpu_ratio{mode,window}`, `re_load_average`, `re_memory_utilization_ratio`, `re_temperature_celsius`, `re_up_seconds`, `re_info` | `show chassis routing-engine` |
+| `processes` | `process_cpu_ratio`, `process_resident_bytes`, `process_threads`, `processes` | `show system processes extensive`, a fixed daemon list plus the top N |
+| `fpc` | `fpc_state`, `fpc_cpu_ratio`, `fpc_cpu_interrupt_ratio`, `fpc_memory_utilization_ratio`, `fpc_temperature_celsius` | `show chassis fpc` |
+| `alarms` | `alarms_active{source,class}`, `alarm_info`, `alarm_since_timestamp_seconds` | `show chassis alarms`, `show system alarms` |
+| `core_dumps` | `core_dumps{process}`, `core_dump_newest_timestamp_seconds` | `show system core-dumps` |
+| `system` | `system_time_seconds`, `system_booted_timestamp_seconds`, `last_commit_timestamp_seconds`, `last_commit_info{user}`, `storage_used_ratio`, `ntp_synced`, `ntp_offset_seconds` | `show system uptime`, `show system storage`, `show ntp status` |
+| `pfe` | `pfe_statistics_total{section,counter}`, `pfe_statistics_rate` | `show pfe statistics traffic` |
+| `pfe_exceptions` | `pfe_exceptions_total{type}` | `show pfe statistics exceptions` (not on every platform) |
+| `pfe_hw_tables` | `pfe_hw_table_max_entries`, `pfe_hw_table_used_entries` | `show pfe route summary hw` |
+| `ddos` | `ddos_packets_total`, `ddos_rate_pps`, `ddos_violations`, `ddos_violation_active` | `show ddos-protection protocols statistics terse` and `violations` |
+| `krt` | `krt_queue_entries{queue}`, `krt_state{field}` | `show krt queue`, `show krt state` |
+| `rpd_memory` | `rpd_task_memory{field}` | `show task memory` |
+| `fib` | `fib_routes{table,family,type}` | `show route forwarding-table summary` |
+| `route_watch` | `route_watch_*` as with `routes`, one `show route <prefix> exact` per watched prefix | replaces the watch list of the table dump |
+| `ldp` | `ldp_session_state`, `ldp_session_up_seconds`, `ldp_neighbors`, `ldp_neighbor_hold_remaining_seconds` | `show ldp session detail`, `show ldp neighbor` |
+| `l2circuit` | `l2circuit_up`, `l2circuit_up_transitions_total`, `l2circuit_info` | `show l2circuit connections` |
+| `pim` | `pim_neighbors`, `pim_neighbor_up_seconds` | `show pim neighbors` |
+| `neighbor_tables` | `arp_entries`, `nd_entries{state}` | `show arp no-resolve`, `show ipv6 neighbors` |
+| `interface_errors` | `interface_errors_total{list,counter}` (CRC, carrier transitions, MTU errors, resource errors, pause frames, ...), `interface_queue_packets_total{queue,forwarding_class,kind}` | `show interfaces extensive`, only ports whose description matches |
+| `logical_interfaces` | `logical_interface_{received,transmitted}_{bytes,packets}_total` | `show interfaces lo0`/`irb` |
+| `lacp` | `lacp_member_mux_state`, `lacp_member_receive_state`, `lacp_member_distributing` | `show lacp interfaces` |
+| `lldp` | `lldp_neighbors`, `lldp_neighbor_info` | `show lldp neighbors` |
+| `vxlan` | `vxlan_remote_vteps`, `vxlan_remote_vtep_vnis`, `mac_table` | `show ethernet-switching vxlan-tunnel-end-point remote`, `table summary` |
+
+The `optics` type now also exports `interface_optics_alarm{interface,alarm}`
+from the same RPC as the optic values, so the transceivers are not polled twice.
+
+An optional `junos` block in the module tunes these collectors:
+
+```yml
+  junos:
+    rpc_timeout: 20                          # seconds per RPC, default 60
+    keep_session: false                      # reuse the NETCONF session between scrapes (probe)
+    exclusive_session: true                  # one session slot per switch across modules
+    session_wait_seconds: 30                 # wait this long for the slot, else fail the scrape
+    processes: [rpd, mgd, fxpc]              # always exported, default: common daemons
+    process_top: 10                          # plus the N busiest processes
+    extensive_interfaces: "[ex][et]-*"       # interface pattern for show interfaces extensive
+    extensive_description: "^(Core|Server)"  # regex on the description, "" for all
+    logical_interfaces: [lo0, irb]
+    storage_mounts: "^(/\\.mount)?(/var|/tmp|/config)?$"
+```
+
+Scrape health for every module: `pyez_junos_netconf_connect_seconds`,
+`pyez_junos_collector_duration_seconds{collector}` and
+`pyez_junos_collector_failed{collector}`. A collector that raises an error
+no longer fails the whole scrape; only its own metrics are missing. Errors
+that mean the NETCONF session is gone still abort the scrape.
+
+Device objects are cached per target and module, so one target can be
+scraped with several modules. To protect the routing engine, modules with
+`exclusive_session` (the default) share one session slot per switch: while
+one of them is connected, the others wait up to `session_wait_seconds` and
+then fail with `DeviceBusy` instead of opening a parallel session. The probe
+module opts out and keeps one long lived session (`keep_session`), so a 15s
+probe costs one small RPC instead of an SSH login and a new mgd process.
+
+`--config` selects another config file, which allows a second exporter
+instance next to the production one.
 
 ## Look for prometheus config
 

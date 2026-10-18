@@ -20,10 +20,11 @@ class Application(_Application):
             given registry on given port.
         :param prometheus_buckets: Gets passed to prometheus_client.Histogram.
         """
+        config_path = kwargs.pop("config_path", None) or os.path.join(CONF_DIR, "config.yml")
         super(Application, self).__init__(*args, **kwargs)
         # self.registry = kwargs.pop('registry', REGISTRY)
         self.multiprocess_registry = CollectorRegistry(auto_describe=False)
-        with open(os.path.join(CONF_DIR, "config.yml"), "r") as f:
+        with open(config_path, "r") as f:
             self.CONFIG = yaml.safe_load(f)
         Configuration().validate(self.CONFIG)
         multiprocess.MultiProcessCollector(

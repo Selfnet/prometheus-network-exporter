@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import collections
+
 from prometheus_client.core import GaugeMetricFamily
 
 from ..base import Collector
@@ -73,12 +75,20 @@ class BGPOverviewCollector(Collector):
             "Peers of the BGP group in state Established",
             labels=["group", "type"],
         )
+        # Junos splits one configured group into several entries (one per
+        # option set, told apart by group-index); sum them per name and type.
+        counts = collections.defaultdict(lambda: [None, None])
         for group in iter_items(reply, ("bgp-group",)):
-            labels = [
+            key = (
                 label(read.text(group, "name")),
-                label(read.text(group, "group-type")),
-            ]
-            add(peers, labels, read.number(group, "peer-count"))
-            add(established, labels, read.number(group, "established-count"))
+                label(read.first_text(group, ("type", "group-type"))),
+            )
+            for index, field in enumerate(("peer-count", "established-count")):
+                value = read.number(group, field)
+                if value is not None:
+                    counts[key][index] = (counts[key][index] or 0.0) + value
+        for key, (configured, up) in sorted(counts.items()):
+            add(peers, list(key), configured)
+            add(established, list(key), up)
         yield peers
         yield established

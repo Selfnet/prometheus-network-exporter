@@ -15,7 +15,7 @@ from prometheus_client.core import GaugeMetricFamily, InfoMetricFamily
 
 from ..base import Collector
 from . import base
-from .rpcs import ROUTE_TABLE_RPC, route_table_args
+from .rpcs import ROUTE_TABLE_RPC, route_destination_args, route_table_args
 from .xmlutil import Reader, add, family_matches, find, findall, iter_items, label, text
 
 TABLE_GAUGES = (
@@ -80,6 +80,93 @@ class RouteSummaryCollector(Collector):
         yield from read.unique((*gauges.values(), protocol_routes, protocol_active))
 
 
+class WatchFamilies(collections.namedtuple(
+    "WatchFamilies", "present age metric preference nexthops info"
+)):
+    """The metric families a watched prefix is exported into."""
+
+
+def watch_families(base_name: str) -> WatchFamilies:
+    labels = ["table", "prefix"]
+    return WatchFamilies(
+        GaugeMetricFamily(
+            f"{base_name}_watch_present",
+            "1 when the watched prefix has an active route in the table",
+            labels=labels,
+        ),
+        GaugeMetricFamily(
+            f"{base_name}_watch_age_seconds",
+            "Age of the active route for the watched prefix",
+            labels=labels,
+        ),
+        GaugeMetricFamily(
+            f"{base_name}_watch_metric",
+            "Metric of the active route for the watched prefix",
+            labels=labels,
+        ),
+        GaugeMetricFamily(
+            f"{base_name}_watch_preference",
+            "Route preference of the active route for the watched prefix",
+            labels=labels,
+        ),
+        GaugeMetricFamily(
+            f"{base_name}_watch_nexthops",
+            "Next hops of the active route for the watched prefix",
+            labels=labels,
+        ),
+        InfoMetricFamily(
+            f"{base_name}_watch",
+            "Protocol and next hops of the active route for the watched prefix",
+            labels=labels,
+        ),
+    )
+
+
+def active_entry(reader: Reader, route):
+    """The entry Junos marks as active, None when no entry is marked.
+
+    With ``active-path`` every returned entry carries a marker. An unmarked
+    entry is never treated as active: a prefix then counts as not present
+    and the missing marker is recorded as a schema gap.
+    """
+    entries = findall(route, "rt-entry")
+    for entry in entries:
+        if find(entry, "current-active") is not None:
+            return entry
+        if (text(entry, "active-tag") or "") == "*":
+            return entry
+    if entries:
+        reader.record("rt-entry/active-tag")
+    return None
+
+
+def emit_watch(read: Reader, families: WatchFamilies, labels, entry, protocol, route_age):
+    """Export the active route of one watched prefix."""
+    families.present.add_metric(labels, 1.0)
+    add(families.age, labels, route_age)
+    add(families.metric, labels, read.number(entry, "metric", required=False))
+    add(families.preference, labels, read.number(entry, "preference"))
+    hops = findall(entry, "nh")
+    families.nexthops.add_metric(labels, float(len(hops)))
+    families.info.add_metric(
+        labels,
+        {
+            "protocol": protocol,
+            "nexthop": ",".join(sorted(filter(None, (text(hop, "to") for hop in hops)))),
+            "via": ",".join(
+                sorted(
+                    filter(
+                        None,
+                        (text(hop, "via") or text(hop, "nh-local-interface") for hop in hops),
+                    )
+                )
+            ),
+            "learned_from": label(text(entry, "learned-from")),
+            "as_path": label(text(entry, "as-path")),
+        },
+    )
+
+
 class RouteTableCollector(Collector):
     name = "route_table"
 
@@ -97,21 +184,7 @@ class RouteTableCollector(Collector):
         self.reader = Reader(device.schema, self.name)
 
     def _active_entry(self, route):
-        """The entry Junos marks as active, None when no entry is marked.
-
-        With ``active-path`` every returned entry carries a marker. An
-        unmarked entry is never treated as active: a prefix then counts as
-        not present and the missing marker is recorded as a schema gap.
-        """
-        entries = findall(route, "rt-entry")
-        for entry in entries:
-            if find(entry, "current-active") is not None:
-                return entry
-            if (text(entry, "active-tag") or "") == "*":
-                return entry
-        if entries:
-            self.reader.record("rt-entry/active-tag")
-        return None
+        return active_entry(self.reader, route)
 
     def collect(self):
         read = self.reader
@@ -131,37 +204,7 @@ class RouteTableCollector(Collector):
             "Active routes younger than the young threshold",
             labels=["table", "protocol"],
         )
-        watch_labels = ["table", "prefix"]
-        present = GaugeMetricFamily(
-            f"{self.base_name}_watch_present",
-            "1 when the watched prefix has an active route in the table",
-            labels=watch_labels,
-        )
-        age = GaugeMetricFamily(
-            f"{self.base_name}_watch_age_seconds",
-            "Age of the active route for the watched prefix",
-            labels=watch_labels,
-        )
-        metric = GaugeMetricFamily(
-            f"{self.base_name}_watch_metric",
-            "Metric of the active route for the watched prefix",
-            labels=watch_labels,
-        )
-        preference = GaugeMetricFamily(
-            f"{self.base_name}_watch_preference",
-            "Route preference of the active route for the watched prefix",
-            labels=watch_labels,
-        )
-        nexthops = GaugeMetricFamily(
-            f"{self.base_name}_watch_nexthops",
-            "Next hops of the active route for the watched prefix",
-            labels=watch_labels,
-        )
-        info = InfoMetricFamily(
-            f"{self.base_name}_watch",
-            "Protocol and next hops of the active route for the watched prefix",
-            labels=watch_labels,
-        )
+        families = watch_families(self.base_name)
 
         for table in self.tables:
             reply = self.device.rpc_reply(ROUTE_TABLE_RPC, **route_table_args(table))
@@ -189,42 +232,66 @@ class RouteTableCollector(Collector):
                 if destination not in watched or destination in seen:
                     continue
                 seen.add(destination)
-                labels = [table, destination]
-                present.add_metric(labels, 1.0)
-                add(age, labels, route_age)
-                add(metric, labels, read.number(entry, "metric", required=False))
-                add(preference, labels, read.number(entry, "preference"))
-                hops = findall(entry, "nh")
-                nexthops.add_metric(labels, float(len(hops)))
-                info.add_metric(
-                    labels,
-                    {
-                        "protocol": protocol,
-                        "nexthop": ",".join(
-                            sorted(filter(None, (text(hop, "to") for hop in hops)))
-                        ),
-                        "via": ",".join(
-                            sorted(
-                                filter(
-                                    None,
-                                    (
-                                        text(hop, "via") or text(hop, "nh-local-interface")
-                                        for hop in hops
-                                    ),
-                                )
-                            )
-                        ),
-                        "learned_from": label(text(entry, "learned-from")),
-                        "as_path": label(text(entry, "as-path")),
-                    },
-                )
+                emit_watch(read, families, [table, destination], entry, protocol, route_age)
             for protocol, count in sorted(young_count.items()):
                 add(newest, [table, protocol], newest_age.get(protocol))
                 young.add_metric([table, protocol], float(count))
             for prefix in watched:
                 if prefix not in seen:
-                    present.add_metric([table, prefix], 0.0)
+                    families.present.add_metric([table, prefix], 0.0)
 
+        # Without a watch list the families stay out of the output, so that
+        # RouteWatchCollector can own them without duplicate metadata.
         yield from read.unique(
-            (threshold, newest, young, present, age, metric, preference, nexthops, info)
+            (threshold, newest, young, *(families if self.watch else ()))
         )
+
+
+class RouteWatchCollector(Collector):
+    """Watched prefixes looked up one by one with ``show route <prefix> exact``.
+
+    Costs one small RPC per prefix instead of a full table dump, which makes
+    it usable on border routers with large tables. Exports the same
+    ``route_watch_*`` metrics as ``RouteTableCollector``; the device disables
+    the watch list there when this collector is enabled.
+    """
+
+    name = "route_watch"
+
+    def __init__(self, device, watch: Iterable[str], tables: Iterable[str] = ("inet.0", "inet6.0")):
+        self.watch = list(watch)
+        self.tables = list(tables)
+        super().__init__(f"{base}_route", device, config={})
+        self.reader = Reader(device.schema, self.name)
+
+    def _table_for(self, prefix: str) -> str:
+        for table in self.tables:
+            if family_matches(prefix, table):
+                return table
+        return "inet6.0" if ":" in prefix else "inet.0"
+
+    def collect(self):
+        read = self.reader
+        families = watch_families(self.base_name)
+        for prefix in self.watch:
+            table = self._table_for(prefix)
+            reply = self.device.rpc_reply(ROUTE_TABLE_RPC, **route_destination_args(prefix, table))
+            if reply is None:
+                # Unknown, not absent: no sample, rpc_failed reports it.
+                continue
+            labels = [table, prefix]
+            for route in iter_items(reply, ("rt",)):
+                if read.text(route, "rt-destination") != prefix:
+                    continue
+                entry = active_entry(read, route)
+                if entry is None:
+                    continue
+                emit_watch(
+                    read, families, labels, entry,
+                    label(read.text(entry, "protocol-name")),
+                    read.seconds(entry, "age"),
+                )
+                break
+            else:
+                families.present.add_metric(labels, 0.0)
+        yield from read.unique(families)

@@ -1,0 +1,100 @@
+rule_files:
+  - ../rules/junos_control_plane.yml
+
+evaluation_interval: 15s
+
+tests:
+  # Four failed probes in a row (45s) fire, three or a single one do not.
+  - interval: 15s
+    input_series:
+      - series: 'pyez_junos_probe_success{instance="a",job="junos_probe"}'
+        values: '1 1 1 0 0 0 0 0 0 0 1 1 1'
+      - series: 'pyez_junos_probe_success{instance="b",job="junos_probe"}'
+        values: '1 1 1 0 1 1 1 1 1 1 1 1 1'
+    alert_rule_test:
+      - eval_time: 1m15s
+        alertname: JunosControlPlaneUnresponsive
+        exp_alerts: []
+      - eval_time: 1m30s
+        alertname: JunosControlPlaneUnresponsive
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              instance: a
+              job: junos_probe
+            exp_annotations:
+              summary: "a does not answer NETCONF"
+              description: "Control plane stall or session limit; compare with the routing engine CPU and the switch syslog."
+
+  # Interrupt load above 30 % for two minutes.
+  - interval: 30s
+    input_series:
+      - series: 'pyez_junos_re_cpu_ratio{instance="a",slot="0",mode="interrupt",window="current"}'
+        values: '0.05 0.4 0.4 0.4 0.4 0.4 0.4'
+    alert_rule_test:
+      - eval_time: 3m
+        alertname: JunosRoutingEngineInterruptLoad
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              instance: a
+              slot: "0"
+              mode: interrupt
+              window: current
+            exp_annotations:
+              summary: "a spends 40% of the RE CPU in interrupts"
+              description: "Usually host bound traffic; check pyez_junos_pfe_statistics_total and pyez_junos_ddos_packets_total."
+
+  # KRT backlog only after five minutes of a non-empty queue.
+  - interval: 30s
+    input_series:
+      - series: 'pyez_junos_krt_queue_entries{instance="a",queue="normal_priority_add_queue"}'
+        values: '0 17 17 17 17 17 17 17 17 17 17 17 17 17'
+      - series: 'pyez_junos_krt_queue_entries{instance="b",queue="normal_priority_add_queue"}'
+        values: '0 17 0 17 0 17 0 17 0 17 0 17 0 17'
+    alert_rule_test:
+      - eval_time: 6m
+        alertname: JunosKrtQueueBacklog
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              instance: a
+            exp_annotations:
+              summary: "a has 17 routes waiting to be installed in the kernel for 5 minutes"
+
+  # A carrier transition between two scrapes is still seen through the counter.
+  - interval: 30s
+    input_series:
+      - series: 'pyez_junos_interface_errors_total{instance="a",interface="et-0/0/26",description="Core: x",list="output",counter="carrier_transitions"}'
+        values: '4 4 4 5 5 5'
+    alert_rule_test:
+      - eval_time: 2m
+        alertname: JunosLinkCarrierTransitions
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              instance: a
+              interface: et-0/0/26
+              description: "Core: x"
+              list: output
+              counter: carrier_transitions
+            exp_annotations:
+              summary: "et-0/0/26 (Core: x) on a lost carrier 1 times in 15 minutes"
+
+  # A core dump written in the last 30 minutes fires, also for a new series.
+  - interval: 5m
+    input_series:
+      - series: 'pyez_junos_core_dump_newest_timestamp_seconds{instance="a",process="rpd"}'
+        values: '_ _ 300 300'
+      - series: 'pyez_junos_core_dump_newest_timestamp_seconds{instance="a",process="fxpc"}'
+        values: '-5000 -5000 -5000 -5000'
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: JunosCoreDump
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              instance: a
+              process: rpd
+            exp_annotations:
+              summary: "rpd on a wrote a core dump"

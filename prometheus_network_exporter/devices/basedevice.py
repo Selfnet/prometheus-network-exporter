@@ -37,7 +37,9 @@ class Device:
             return ""
         try:
             return socket.gethostbyaddr(ip)[0]
-        except socket.herror:
+        except (OSError, UnicodeError):
+            # herror, gaierror (resolver down, scoped link-local addresses)
+            # and timeouts: a missing name must not cost the metrics.
             return ip
 
     def register_collectors(self, types: list):

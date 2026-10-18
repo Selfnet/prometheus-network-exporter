@@ -63,6 +63,12 @@ def app():
         default=False,
         help="Enables the Debug Tracemalloc interface.",
     )
+    parser.add_argument(
+        "--config",
+        type=str,
+        default=None,
+        help="Path of the config file. (Default=/etc/prometheus-network-exporter/config.yml)",
+    )
     os.makedirs(COUNTER_DIR, mode=0o755, exist_ok=True)
     args = parser.parse_args()
     if args.debug:
@@ -78,6 +84,7 @@ def app():
         max_workers=args.worker,
         prometheus_buckets=[0.5, 1, 3, 5, 8, 13, 17, 21, 27, 34, 40, 55],
         debug=args.debug,
+        config_path=args.config,
     )
     MAX_WORKERS = app.max_workers
     signal.signal(signal.SIGTERM, sig_handler)
@@ -102,16 +109,20 @@ def shutdown():
     APP_LOGGER.info("Sleeping for 60s")
     time.sleep(5)
     APP_LOGGER.warning("Stopping http server")
-    for hostname, data in CONNECTION_POOL.items():
+    for key, data in list(CONNECTION_POOL.items()):
+        if data is None:
+            continue
+        if not data.lock.acquire(timeout=5):
+            APP_LOGGER.error(f"{key} :: still scraping, not disconnected")
+            continue
         try:
-            data.lock.acquire()
             data.disconnect()
         except Exception as e:
-            APP_LOGGER.error(f"{hostname} :: Shutting down got {e}")
-            APP_LOGGER.error(f"{hostname} :: {e.__traceback__}")
+            APP_LOGGER.error(f"{key} :: Shutting down got {e}")
+            APP_LOGGER.error(f"{key} :: {e.__traceback__}")
         finally:
             data.lock.release()
-        APP_LOGGER.info(f"{hostname} :: Disconnected")
+        APP_LOGGER.info(f"{key} :: Disconnected")
     SERVER.stop()
     GLOBAL_GUARD.release()
     sys.exit(0)

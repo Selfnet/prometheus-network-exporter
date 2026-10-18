@@ -19,7 +19,7 @@ groups:
         labels:
           severity: warning
         annotations:
-          summary: "BGP peer {{ $labels.peer }} on {{ $labels.instance }} flapped {{ $value }} times in the last hour"
+          summary: "BGP peer {{ $labels.peer }} on {{ $labels.instance }} flapped {{ printf `%.0f` $value }} times in the last hour"
 
       - alert: JunosBgpUpdateStorm
         expr: rate(pyez_junos_bgp_peer_updates_total{direction="in"}[15m]) > 1

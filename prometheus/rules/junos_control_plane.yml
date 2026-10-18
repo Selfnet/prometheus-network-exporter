@@ -1,0 +1,186 @@
+# Alerting rules for the Junos control plane, forwarding plane and link metrics
+# of prometheus-network-exporter.
+# Validate and unit test with:
+#   promtool check rules prometheus/rules/junos_control_plane.yml
+#   promtool test rules prometheus/tests/junos_control_plane_test.yml
+# Thresholds are starting points; tune them after a week of data.
+groups:
+  - name: junos-control-plane
+    rules:
+      - alert: JunosControlPlaneUnresponsive
+        # The probe module runs one cheap RPC every 15s. Failed probes for
+        # 45s mean the routing engine did not answer four times in a row.
+        expr: |
+          pyez_junos_probe_success == 0
+          or pyez_junos_scrape_aborted{job=~".*probe.*"} == 1
+          or up{job=~".*probe.*"} == 0
+        for: 45s
+        labels:
+          severity: critical
+        annotations:
+          summary: "{{ $labels.instance }} does not answer NETCONF"
+          description: "Control plane stall or session limit; compare with the routing engine CPU and the switch syslog."
+
+      - alert: JunosControlPlaneSlow
+        expr: pyez_junos_probe_rpc_seconds > 5 or pyez_junos_netconf_connect_seconds > 10
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "{{ $labels.instance }} answers NETCONF slowly ({{ $value | humanizeDuration }})"
+
+      - alert: JunosRoutingEngineInterruptLoad
+        expr: pyez_junos_re_cpu_ratio{mode="interrupt",window="current"} > 0.3
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "{{ $labels.instance }} spends {{ $value | humanizePercentage }} of the RE CPU in interrupts"
+          description: "Usually host bound traffic; check pyez_junos_pfe_statistics_total and pyez_junos_ddos_packets_total."
+
+      - alert: JunosRoutingEngineBusy
+        expr: pyez_junos_re_cpu_ratio{mode="idle",window="current"} < 0.1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "{{ $labels.instance }} routing engine is more than 90 % busy"
+          description: "See pyez_junos_process_cpu_ratio for the process."
+
+      - alert: JunosKrtQueueBacklog
+        # A queue that stays non-empty means the kernel does not take the routes rpd hands it.
+        expr: sum by (instance) (pyez_junos_krt_queue_entries) > 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "{{ $labels.instance }} has {{ $value }} routes waiting to be installed in the kernel for 5 minutes"
+
+      - alert: JunosHostPathDrops
+        expr: |
+          rate(pyez_junos_pfe_statistics_total{counter="software-input-control-plane-drops"}[5m]) > 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "{{ $labels.instance }} drops control plane packets on the way to the CPU"
+
+      - alert: JunosDdosViolation
+        expr: pyez_junos_ddos_violations > 0
+        labels:
+          severity: warning
+        annotations:
+          summary: "{{ $labels.instance }} has {{ $value }} DDoS protection violations"
+
+      - alert: JunosCoreDump
+        # Compares with the clock instead of the previous sample, so the very
+        # first core dump of a process (a new series) fires as well.
+        expr: pyez_junos_core_dump_newest_timestamp_seconds > time() - 1800
+        labels:
+          severity: critical
+        annotations:
+          summary: "{{ $labels.process }} on {{ $labels.instance }} wrote a core dump"
+
+      - alert: JunosMajorAlarm
+        expr: pyez_junos_alarms_active{class="Major"} > 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "{{ $labels.instance }} has {{ $value }} major {{ $labels.source }} alarms"
+
+      - alert: JunosStorageFull
+        expr: pyez_junos_storage_used_ratio > 0.9
+        for: 30m
+        labels:
+          severity: warning
+        annotations:
+          summary: "{{ $labels.mount }} on {{ $labels.instance }} is {{ $value | humanizePercentage }} full"
+
+      - alert: JunosClockSkew
+        expr: abs(pyez_junos_system_time_seconds - timestamp(pyez_junos_system_time_seconds)) > 10
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "{{ $labels.instance }} clock is {{ $value | humanizeDuration }} off"
+          description: "Log and metric correlation needs correct clocks; check pyez_junos_ntp_synced."
+
+      - alert: JunosHardwareTableNearlyFull
+        expr: |
+          pyez_junos_pfe_hw_table_used_entries / (pyez_junos_pfe_hw_table_max_entries > 0) > 0.85
+        for: 30m
+        labels:
+          severity: warning
+        annotations:
+          summary: "{{ $labels.table }} on {{ $labels.instance }} is {{ $value | humanizePercentage }} full"
+
+  - name: junos-links
+    rules:
+      - alert: JunosLinkCarrierTransitions
+        expr: increase(pyez_junos_interface_errors_total{counter="carrier_transitions"}[15m]) > 0
+        labels:
+          severity: warning
+        annotations:
+          summary: "{{ $labels.interface }} ({{ $labels.description }}) on {{ $labels.instance }} lost carrier {{ printf `%.0f` $value }} times in 15 minutes"
+
+      - alert: JunosLinkErrors
+        expr: |
+          rate(pyez_junos_interface_errors_total{counter=~"input_crc_errors|framing_errors|mtu_errors|input_resource_errors|output_resource_errors"}[5m]) > 0
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "{{ $labels.interface }} ({{ $labels.description }}) on {{ $labels.instance }} counts {{ $labels.counter }}"
+
+      - alert: JunosQueueTailDrops
+        expr: rate(pyez_junos_interface_queue_packets_total{kind="tail_drop"}[5m]) > 100
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "{{ $labels.interface }} queue {{ $labels.forwarding_class }} on {{ $labels.instance }} drops {{ $value }} packets/s"
+
+      - alert: JunosLacpMemberNotDistributing
+        expr: pyez_junos_lacp_member_distributing == 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "{{ $labels.interface }} is not distributing in {{ $labels.lag }} on {{ $labels.instance }}"
+
+      - alert: JunosOpticsAlarm
+        expr: pyez_junos_interface_optics_alarm{alarm=~".*_alarm"} == 1
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "{{ $labels.interface }} on {{ $labels.instance }} raises {{ $labels.alarm }}"
+
+  - name: junos-underlay
+    rules:
+      - alert: JunosLdpSessionDown
+        expr: pyez_junos_ldp_session_state{state="Operational"} == 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "LDP session to {{ $labels.neighbor_name }} on {{ $labels.instance }} is not Operational"
+
+      - alert: JunosL2CircuitDown
+        expr: pyez_junos_l2circuit_up == 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "l2circuit {{ $labels.connection }} to {{ $labels.neighbor }} on {{ $labels.instance }} is down"
+
+  - name: junos-exporter-health
+    rules:
+      - alert: JunosCollectorFailing
+        expr: max_over_time(pyez_junos_collector_failed[30m]) == 1
+        labels:
+          severity: info
+        annotations:
+          summary: "Collector {{ $labels.collector }} fails on {{ $labels.instance }}"
+          description: "The other collectors still deliver; check the exporter log for the exception."

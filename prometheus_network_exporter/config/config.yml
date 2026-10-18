@@ -10,7 +10,6 @@ default:
     - ospf
     - igmp
     - optics
-    - inteface
     - interface_specifics
     - environment
     - bgp
@@ -25,6 +24,83 @@ default:
       - 0.0.0.0/0
       - ::/0
     young_route_seconds: 300
+
+# Control plane and routing monitoring of a core switch, split by cost.
+# Scrape core_probe every 15s, core_fast every 60s and core_slow every 300s,
+# each as its own Prometheus job. The fast and slow modules share one session
+# slot per switch, so a switch never has more than one of their NETCONF
+# sessions open at a time. The probe keeps its session open between scrapes
+# instead of logging in every 15s.
+core_probe:
+  device: junos
+  auth:
+    method: ssh_key
+    username: pyez
+  metrics:
+    - probe
+  junos:
+    rpc_timeout: 10
+    keep_session: true
+    exclusive_session: false
+
+core_fast:
+  device: junos
+  auth:
+    method: ssh_key
+    username: pyez
+  metrics:
+    - routing_engine
+    - processes
+    - fpc
+    - pfe
+    - krt
+    - bfd
+    - ldp
+    - l2circuit
+  junos:
+    rpc_timeout: 20
+    session_wait_seconds: 20
+
+core_slow:
+  device: junos
+  auth:
+    method: ssh_key
+    username: pyez
+  metrics:
+    - ospf
+    - bgp
+    - routes
+    - route_watch
+    - fib
+    - rpd_memory
+    - neighbor_tables
+    - interface_errors
+    - optics
+    - pfe_hw_tables
+    - ddos
+    - alarms
+    - core_dumps
+    - system
+    - logical_interfaces
+    - pim
+    - lldp
+    - vxlan
+  routing:
+    tables:
+      - inet.0
+      - inet6.0
+    watch:
+      - 0.0.0.0/0
+      - ::/0
+    young_route_seconds: 300
+  junos:
+    rpc_timeout: 120
+    session_wait_seconds: 60
+    extensive_interfaces: "[ex][et]-*"
+    extensive_description: "^(Core|Server|Uplink)"
+    logical_interfaces:
+      - lo0
+      - irb
 
 aruba_ac:
   device: arubaos
