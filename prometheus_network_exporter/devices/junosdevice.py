@@ -15,6 +15,9 @@ from prometheus_network_exporter.collectors.junos.environment import (
 )
 from prometheus_network_exporter.collectors.junos.igmp import IGMPCollector
 from prometheus_network_exporter.collectors.junos.interface import InterfaceCollector
+from prometheus_network_exporter.collectors.junos.ospf_statistics import (
+    OSPFStatisticsCollector,
+)
 from prometheus_network_exporter.devices import basedevice
 from prometheus_network_exporter.views.junos.bgp import BGPNeighborTable
 from prometheus_network_exporter.views.junos.environment import (
@@ -76,6 +79,15 @@ class JuniperNetworkDevice(basedevice.Device):
             self.registry.register(BGPCollector(self))
         if "igmp" in types:
             self.registry.register(IGMPCollector(self))
+        if "ospf" in types:
+            self.registry.register(OSPFStatisticsCollector(self))
+
+    def get_ospf_statistics(self):
+        try:
+            reply = self.device.rpc.get_ospf_statistics_information()
+        except RpcError:
+            return None
+        return reply.find(".//{*}ospf-statistics")
 
     def get_bgp(self):
         try:
