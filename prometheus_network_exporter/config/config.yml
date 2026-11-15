@@ -10,7 +10,10 @@ default:
     - ospf
     - igmp
     - optics
+    - transceivers
+    - interface_addresses
     - interface_specifics
+    - lldp
     - environment
     - bgp
     - routes
@@ -75,6 +78,8 @@ core_slow:
     - neighbor_tables
     - interface_errors
     - optics
+    - transceivers
+    - interface_addresses
     - pfe_hw_tables
     - ddos
     - alarms

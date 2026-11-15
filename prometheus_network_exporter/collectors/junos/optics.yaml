@@ -133,6 +133,66 @@ METRICS:
       type: dbm
       function: floatify
 
+    - metric: voltage
+      key: module_voltage
+      type: volts
+      description: Reported transceiver value in volts
+      function: floatify
+
+    - metric: laser_bias_current
+      key: laser_bias_current
+      type: milliamps
+      description: Reported transceiver value in milliamps
+      function: floatify
+
+    - metric: laser_bias_low_alarm_threshold
+      key: laser_bias_low_alarm
+      type: milliamps
+      description: Reported transceiver value in milliamps
+      function: floatify
+
+    - metric: laser_bias_low_warn_threshold
+      key: laser_bias_low_warn
+      type: milliamps
+      description: Reported transceiver value in milliamps
+      function: floatify
+
+    - metric: laser_bias_high_alarm_threshold
+      key: laser_bias_high_alarm
+      type: milliamps
+      description: Reported transceiver value in milliamps
+      function: floatify
+
+    - metric: laser_bias_high_warn_threshold
+      key: laser_bias_high_warn
+      type: milliamps
+      description: Reported transceiver value in milliamps
+      function: floatify
+
+    - metric: voltage_low_alarm_threshold
+      key: module_voltage_low_alarm
+      type: volts
+      description: Transceiver voltage low alarm threshold
+      function: floatify
+
+    - metric: voltage_low_warn_threshold
+      key: module_voltage_low_warn
+      type: volts
+      description: Transceiver voltage low warn threshold
+      function: floatify
+
+    - metric: voltage_high_alarm_threshold
+      key: module_voltage_high_alarm
+      type: volts
+      description: Transceiver voltage high alarm threshold
+      function: floatify
+
+    - metric: voltage_high_warn_threshold
+      key: module_voltage_high_warn
+      type: volts
+      description: Transceiver voltage high warn threshold
+      function: floatify
+
 LABELS:
   - label: description
     key: description

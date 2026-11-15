@@ -52,6 +52,8 @@ class Configuration(object):
                         "logical_interfaces",
                         "lacp",
                         "lldp",
+                        "transceivers",
+                        "interface_addresses",
                         "vxlan",
                         # AirMax Metrics
                         "wireless statistics",

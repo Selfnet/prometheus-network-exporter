@@ -63,6 +63,10 @@ RPCS: Dict[str, Tuple[str, dict]] = {
     "ddos_violations": cli("show ddos-protection protocols violations"),
     # interfaces and layer 2
     "interface_extensive": ("get_interface_information", {"extensive": True}),
+    "optics": ("get_interface_optics_diagnostics_information", {}),
+    "transceiver_pic": ("get_pic_detail", {}),
+    "transceivers": ("get_chassis_inventory", {}),
+    "interface_addresses": ("get_interface_information", {"terse": True}),
     "interfaces_brief": ("get_interface_information", {}),
     "lacp": ("get_lacp_interface_information", {}),
     "lldp": ("get_lldp_neighbors_information", {}),

@@ -19,6 +19,10 @@ PhyPortDiagView:
     module_temperature : { module-temperature/@celsius: float }
     module_voltage : { module-voltage : float}
     laser_bias_current : { laser-bias-current: float }
+    module_voltage_high_alarm : { module-voltage-high-alarm-threshold: float }
+    module_voltage_low_alarm : { module-voltage-low-alarm-threshold: float }
+    module_voltage_high_warn : { module-voltage-high-warn-threshold: float }
+    module_voltage_low_warn : { module-voltage-low-warn-threshold: float }
 
 # Module Temperature
     module_temperature_high_alarm : { module-temperature-high-alarm-threshold/@celsius : float }

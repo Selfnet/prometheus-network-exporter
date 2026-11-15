@@ -33,7 +33,9 @@ from prometheus_network_exporter.collectors.junos.environment import (
 )
 from prometheus_network_exporter.collectors.junos.igmp import IGMPCollector
 from prometheus_network_exporter.collectors.junos.interface import InterfaceCollector
+from prometheus_network_exporter.collectors.junos.interface_addresses import InterfaceAddressCollector
 from prometheus_network_exporter.collectors.junos.optics import StandaloneOpticsCollector
+from prometheus_network_exporter.collectors.junos.optics_xml import parse_optics
 from prometheus_network_exporter.collectors.junos.ospf_database import (
     OSPFDatabaseCollector,
 )
@@ -98,9 +100,11 @@ from prometheus_network_exporter.collectors.junos.system import (
 )
 from prometheus_network_exporter.collectors.junos.rpcs import (
     OSPF_PROTOCOLS,
+    RPCS,
     fixture_name,
 )
 from prometheus_network_exporter.collectors.junos.status import StatusCollector
+from prometheus_network_exporter.collectors.junos.transceivers import TransceiverCollector
 from prometheus_network_exporter.collectors.junos.xmlutil import SchemaWatch
 from prometheus_network_exporter.devices import basedevice
 from prometheus_network_exporter.views.junos.bgp import BGPNeighborTable
@@ -111,7 +115,6 @@ from prometheus_network_exporter.views.junos.environment import (
 )
 from prometheus_network_exporter.views.junos.igmp import IGMPGroupTable
 from prometheus_network_exporter.views.junos.interface_metrics import MetricsTable
-from prometheus_network_exporter.views.junos.optic import PhyPortDiagTable
 from prometheus_network_exporter.views.junos.ospf import (
     Ospf3NeighborTable,
     OspfNeighborTable,
@@ -179,6 +182,8 @@ SIMPLE_COLLECTORS = {
     "neighbor_tables": (NeighborTableCollector,),
     "lacp": (LACPCollector,),
     "lldp": (LLDPCollector,),
+    "transceivers": (TransceiverCollector,),
+    "interface_addresses": (InterfaceAddressCollector,),
     "vxlan": (VxlanCollector,),
 }
 
@@ -633,11 +638,11 @@ class JuniperNetworkDevice(basedevice.Device):
         )
 
     def get_optics(self, interface_regex=None):
-        return dict(
-            PhyPortDiagTable(self.device).get(interface_name=interface_regex)
-            if interface_regex
-            else PhyPortDiagTable(self.device).get()
+        command, args = RPCS["optics"]
+        reply = self.rpc_reply(
+            command, **args, interface_name=interface_regex or "[efgx][et]-*"
         )
+        return parse_optics(reply) if reply is not None else {}
 
     def is_connected(self):
         return self.device.connected

@@ -45,6 +45,93 @@ NETWORK_REGEXES:
 
 Those are backbone ports on our access switches. So access defines if it is a backbone switch/router or a access switch.
 
+## Optics, transceiver inventory and link endpoints
+
+The `optics` collector reads module diagnostics and every reported
+`optics-diagnostics-lane-values` record from one RPC reply. The lane IDs and
+count come from the reply, never from the interface speed. Breakout ports
+keep their interface names, such as `xe-0/1/1:2`, and the reported lane ID.
+A non-breakout interface can have one, four or another number of reported
+lanes. A scalar-only reply does not establish the number of optical lanes.
+
+Existing `pyez_junos_interface_*` optic metric names and labels remain.
+Missing readings, including explicit `N/A`, are no longer emitted as zero.
+A real zero remains zero; a reported `-Inf` remains `-Inf`. A single lane
+also supplies the legacy interface readings when the mapping is unambiguous
+(for breakout ports the suffix must match the lane ID). Multiple lanes are
+never averaged into one interface reading.
+
+Additional metrics (prefix `pyez_junos_interface_`):
+
+| Metric | Meaning |
+|---|---|
+| `optics_available{interface}` | 1 for reported diagnostics, 0 for explicit N/A; absent when no usable diagnostic structure was returned |
+| `optics_reported_lanes{interface}` | number of explicitly reported lane records on this interface; absent for scalar-only or unavailable diagnostics, not total module lane capacity |
+| `lane_receiving_optic_power_dbm`, `lane_sending_optic_power_dbm` | RX/TX per `interface` and `lane`, with the existing description, MAC and speed labels |
+| `lane_receiving_optic_power_*`, `lane_sending_optic_power_*` | reported alarm/warning thresholds; lane-specific thresholds override common module thresholds |
+| `lane_laser_bias_current_milliamps`, `lane_laser_bias_*_threshold_milliamps` | bias current and thresholds per lane |
+| `lane_optics_alarm{interface,lane,alarm}` | reported lane alarm and warning flags, 1=on and 0=off |
+| `voltage_volts`, `voltage_*_threshold_volts` | module voltage and its alarm/warning thresholds |
+| `laser_bias_current_milliamps`, `laser_bias_*_threshold_milliamps` | correctly named aliases for the legacy bias metrics |
+
+The old voltage/bias metric names ending in `_dbm` are retained for existing
+dashboards, but their values are volts/milliamps, not dBm. The historical
+`receiving_optic_power_low_alarm_threshold` name still has no `_dbm` suffix;
+the corresponding lane metric preserves that spelling. The legacy
+`sending_laser_fault_alarm` uses 1=OK, 0=fault. Generic `optics_alarm` flags
+use 1=alarm, 0=clear and include additional flags Junos reports.
+
+Two optional types add inventory and addressing:
+
+| Type | Metrics | Source and cost |
+|---|---|---|
+| `transceivers` | `pyez_junos_transceiver_info{module,manufacturer,part_number,serial_number,transceiver_type}` and `pyez_junos_interface_transceiver_info{interface,module}` | one chassis inventory RPC, one PIC detail RPC per PIC with transceivers, and one brief interface RPC |
+| `interface_addresses` | `pyez_junos_interface_address_info{interface,parent_interface,routing_instance,address,family,prefix_length,network}` | one terse interface RPC, including logical units and IPv4/IPv6 |
+
+`module` is the FPC/PIC/port location, e.g. `0/1/1`. Several breakout
+interfaces map to the same module; serial numbers are not treated as unique
+keys. PIC detail supplies vendor name and part number when available;
+chassis inventory supplies serial number and reported type. Missing fields
+are blank, not inferred from the switch vendor. Unresolvable chassis
+locations are skipped. A failed PIC RPC leaves the chassis inventory usable.
+
+Addresses without a known prefix retain a blank `prefix_length` and
+`network`. A peer address without a prefix is not interpreted as a subnet.
+An absent routing instance is unknown, not proof of the default instance.
+`parent_interface` is the containing physical interface from the XML;
+a LAG such as `ae0` is not assigned to an arbitrary member. These are inputs
+for endpoint comparisons, not a proof that a cable or subnet is correct.
+
+The existing `lldp` type now retains `remote_port_id`,
+`remote_port_description` and `remote_port_subtype` separately in
+`pyez_junos_lldp_neighbor_info`. Its existing `remote_port` label keeps the
+old description-first fallback. The extra labels create new LLDP series
+on upgrade; update joins that explicitly list all labels if needed.
+
+Enable `lldp`, `transceivers` and `interface_addresses` in the relevant
+module's `metrics` list. For split core scrapes, add inventory/addressing
+only to `core_slow`; do not collect the same type in multiple modules for
+the same target. Access and legacy backbone modules need their own entries.
+The example config includes these types. RPC replies with identical
+arguments are cached within each scrape, including brief interface replies
+shared by standalone optics and inventory. No additional optics RPC is
+issued per lane. The NETCONF login class must permit the new chassis/PIC
+and interface queries. Rejected RPCs remain visible in `pyez_junos_rpc_failed`.
+
+These collectors report device data; they do not infer a DAC from a hostname,
+SFP-T label, N/A response or zero measurement.
+
+Tests run without a switch:
+
+```bash
+python -m unittest discover -s tests -v
+```
+
+The recorded optics fixture covers four breakout lanes, scalar optics and
+explicit N/A replies. Synthetic tests cover other lane counts, missing
+fields, inventory and address replies. Inventory/PIC schemas and unbroken
+multi-lane modules still need validation on the deployed device models.
+
 ## Routing metrics for Junos (BGP, OSPF, route tables, BFD)
 
 The metric types `bgp`, `ospf`, `routes` and `bfd` export the state of the

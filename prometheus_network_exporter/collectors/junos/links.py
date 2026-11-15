@@ -243,6 +243,9 @@ class LLDPCollector(Collector):
                         text(neighbor, "lldp-local-parent-interface-name")
                     ),
                     "remote_system": label(read.text(neighbor, "lldp-remote-system-name", required=False)),
+                    "remote_port_id": label(text(neighbor, "lldp-remote-port-id")),
+                    "remote_port_description": label(text(neighbor, "lldp-remote-port-description")),
+                    "remote_port_subtype": label(text(neighbor, "lldp-remote-port-id-subtype")),
                     "remote_port": label(
                         read.first_text(
                             neighbor,
