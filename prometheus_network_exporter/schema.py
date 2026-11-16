@@ -1,4 +1,4 @@
-from voluptuous import Schema, Required, Optional, Any
+from voluptuous import Schema, Required, Optional, Any, All, Range
 
 import yaml
 
@@ -75,6 +75,7 @@ class Configuration(object):
                     # Junos only: knobs of the control plane and interface collectors.
                     Optional("junos"): {
                         Optional("rpc_timeout"): int,
+                        Optional("optics_interval_seconds"): All(int, Range(min=0)),
                         # Reuse the NETCONF session between scrapes (probe module).
                         Optional("keep_session"): bool,
                         # Share one session slot per switch with the other modules.

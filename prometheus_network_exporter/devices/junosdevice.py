@@ -36,6 +36,7 @@ from prometheus_network_exporter.collectors.junos.interface import InterfaceColl
 from prometheus_network_exporter.collectors.junos.interface_addresses import InterfaceAddressCollector
 from prometheus_network_exporter.collectors.junos.optics import StandaloneOpticsCollector
 from prometheus_network_exporter.collectors.junos.optics_xml import parse_optics
+from prometheus_network_exporter.collectors.junos.optics_cache import OpticsCache
 from prometheus_network_exporter.collectors.junos.ospf_database import (
     OSPFDatabaseCollector,
 )
@@ -300,6 +301,7 @@ class JuniperNetworkDevice(basedevice.Device):
         # RPC name -> monotonic time until which it is not asked again.
         self._rpc_denied = {}
         super(JuniperNetworkDevice, self).__init__(hostname, device, **kwargs)
+        self.optics_cache = OpticsCache(self.options.get("optics_interval_seconds", 300))
         self.register_collectors(self.types)
 
     # ------------------------------------------------------------------
@@ -457,6 +459,9 @@ class JuniperNetworkDevice(basedevice.Device):
         self._rpc_cache.clear()
 
     def rpc_reply(self, rpc: str, **args):
+        return self.optics_cache.reply(rpc, args, self._rpc_reply)
+
+    def _rpc_reply(self, rpc: str, **args):
         """Run one RPC and return the reply element, None when Junos rejects it.
 
         Replies are cached for the current scrape so that collectors sharing

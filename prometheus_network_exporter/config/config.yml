@@ -9,6 +9,8 @@ default:
   metrics:
     - ospf
     - igmp
+    - optics
+    - transceivers
     - interface_addresses
     - interface_specifics
     - lldp
@@ -16,6 +18,8 @@ default:
     - bgp
     - routes
     - bfd
+  junos:
+    optics_interval_seconds: 300
   # Only used by the routes and ospf metrics of junos devices.
   routing:
     tables:
@@ -25,20 +29,6 @@ default:
       - 0.0.0.0/0
       - ::/0
     young_route_seconds: 300
-
-# Pair with default/access targets that do not use the split core modules.
-# Scrape every 300s. Split core targets already collect optics in core_slow.
-optics_slow:
-  device: junos
-  auth:
-    method: ssh_key
-    username: pyez
-  metrics:
-    - optics
-    - transceivers
-  junos:
-    rpc_timeout: 120
-    session_wait_seconds: 60
 
 # Control plane and routing monitoring of a core switch, split by cost.
 # Scrape core_probe every 15s, core_fast every 60s and core_slow, core_ospf
@@ -114,6 +104,7 @@ core_slow:
     session_wait_seconds: 60
     extensive_interfaces: "[ex][et]-*"
     extensive_description: "^(Core|Server|Uplink)"
+    optics_interval_seconds: 300
     logical_interfaces:
       - lo0
       - irb

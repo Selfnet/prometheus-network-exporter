@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import time
+
 from prometheus_client.core import GaugeMetricFamily
 
 from ..base import Collector
@@ -15,6 +17,7 @@ class StatusCollector(Collector):
         super().__init__(base, device, config={})
 
     def collect(self):
+        yield from self.optics_freshness()
         failed = GaugeMetricFamily(
             f"{base}_rpc_failed",
             "1 when the RPC raised an error during this scrape",
@@ -89,3 +92,24 @@ class StatusCollector(Collector):
         for (collector, field), count in sorted(self.device.schema.missing.items()):
             missing.add_metric([collector, field], float(count))
         yield missing
+
+    def optics_freshness(self):
+        age = GaugeMetricFamily(
+            f"{base}_optics_cache_age_seconds", "Age of the cached optical RPC reply",
+            labels=["rpc", "interface", "fpc", "pic"],
+        )
+        stamp = GaugeMetricFamily(
+            f"{base}_optics_last_refresh_timestamp_seconds", "Unix time of the cached optical RPC reply",
+            labels=["rpc", "interface", "fpc", "pic"],
+        )
+        now = time.monotonic()
+        for (rpc, arguments), (started, timestamp, _) in self.device.optics_cache.entries.items():
+            if now - started >= self.device.optics_cache.interval:
+                continue
+            args = dict(arguments)
+            labels = [rpc, str(args.get("interface_name", "")),
+                      str(args.get("fpc_slot", "")), str(args.get("pic_slot", ""))]
+            age.add_metric(labels, max(0, now - started))
+            stamp.add_metric(labels, timestamp)
+        yield age
+        yield stamp

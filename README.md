@@ -121,13 +121,27 @@ and interface queries. Rejected RPCs remain visible in `pyez_junos_rpc_failed`.
 These collectors report device data; they do not infer a DAC from a hostname,
 SFP-T label, N/A response or zero measurement.
 
-Optical diagnostics and transceiver inventory are deliberately absent from
-`default`. For those targets, scrape the small `optics_slow` module every
-300 seconds in addition to the existing interface job; an example job is
-in `prometheus/optics-slow.yml`. For split core targets, keep using
-`core_slow`, which already includes both collectors; do not also enable
-`optics_slow` for the same target. Changing exporter modules alone does not
-schedule another scrape: Prometheus must select the slow module explicitly.
+Optical RPC replies are cached inside the exporter for 300 seconds by default.
+Existing Prometheus jobs and scrape intervals can stay unchanged: `optics`
+and `transceivers` remain in the modules already being scraped, while
+interface counters continue to refresh on every scrape. Split core targets
+continue to use `core_slow`; no additional optical job is needed.
+
+`junos.optics_interval_seconds` changes this refresh interval (0 disables
+caching). Refresh happens on the first scrape after the interval expires,
+not on a background timer. The first scrape after an exporter restart also
+refreshes the data. Caches belong to the target/module's device object;
+do not enable the same optical collectors in multiple modules for a target.
+An expired reply is discarded before refresh. Failed queries do not extend
+its lifetime or return stale data; existing RPC failure metrics still apply.
+
+`pyez_junos_optics_cache_age_seconds` and
+`pyez_junos_optics_last_refresh_timestamp_seconds` expose the source data's
+age/time, with RPC, interface selection and FPC/PIC labels. Prometheus sample
+timestamps alone indicate scrape time, not a fresh optical measurement.
+Module swaps and optical alarms can take until the next refresh to appear.
+This only caches optical diagnostics, chassis inventory and PIC details;
+interface traffic, addresses, status and LLDP are not delayed by this cache.
 
 The existing interface collectors and their module assignments are
 unchanged. The `core_slow` logical-interface selection additionally includes
@@ -135,7 +149,7 @@ unchanged. The `core_slow` logical-interface selection additionally includes
 and packet counters. This selection only applies to targets scraping that
 module. For an access/legacy target using a different module, enable
 `logical_interfaces` and the same `junos.logical_interfaces` selection in
-its existing interface module. Do not add it to the optical-only job.
+its existing interface module. Its existing scrape frequency remains unchanged.
 
 Tests run without a switch:
 
