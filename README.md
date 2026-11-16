@@ -121,6 +121,22 @@ and interface queries. Rejected RPCs remain visible in `pyez_junos_rpc_failed`.
 These collectors report device data; they do not infer a DAC from a hostname,
 SFP-T label, N/A response or zero measurement.
 
+Optical diagnostics and transceiver inventory are deliberately absent from
+`default`. For those targets, scrape the small `optics_slow` module every
+300 seconds in addition to the existing interface job; an example job is
+in `prometheus/optics-slow.yml`. For split core targets, keep using
+`core_slow`, which already includes both collectors; do not also enable
+`optics_slow` for the same target. Changing exporter modules alone does not
+schedule another scrape: Prometheus must select the slow module explicitly.
+
+The existing interface collectors and their module assignments are
+unchanged. The `core_slow` logical-interface selection additionally includes
+`xe-0/0/16`, so all reported units on that port (including `.651`) have byte
+and packet counters. This selection only applies to targets scraping that
+module. For an access/legacy target using a different module, enable
+`logical_interfaces` and the same `junos.logical_interfaces` selection in
+its existing interface module. Do not add it to the optical-only job.
+
 Tests run without a switch:
 
 ```bash
