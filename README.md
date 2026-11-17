@@ -153,6 +153,11 @@ Module swaps and optical alarms can take until the next refresh to appear.
 This only caches optical diagnostics, chassis inventory and PIC details;
 interface traffic, addresses, status and LLDP are not delayed by this cache.
 
+The alert `JunosOpticsAlarm` covers the interface flags, which include the
+flags of a single reported lane. `JunosLaneOpticsAlarm` covers modules with
+several reported lanes, whose receive and bias alarms Junos only reports per
+lane.
+
 Tests run without a switch:
 
 ```bash

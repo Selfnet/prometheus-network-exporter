@@ -98,3 +98,37 @@ tests:
               process: rpd
             exp_annotations:
               summary: "rpd on a wrote a core dump"
+
+  # A lane alarm on a module with four reported lanes fires. A single
+  # reported lane is left to JunosOpticsAlarm, and a lane raising both
+  # receive power flags marks missing diagnostics.
+  - interval: 1m
+    input_series:
+      - series: 'pyez_junos_interface_lane_optics_alarm{instance="a",interface="et-0/0/0",lane="2",alarm="rx_loss_of_signal_alarm"}'
+        values: '1x15'
+      - series: 'pyez_junos_interface_lane_optics_alarm{instance="a",interface="et-0/0/0",lane="3",alarm="laser_rx_power_high_alarm"}'
+        values: '1x15'
+      - series: 'pyez_junos_interface_lane_optics_alarm{instance="a",interface="et-0/0/0",lane="3",alarm="laser_rx_power_low_alarm"}'
+        values: '1x15'
+      - series: 'pyez_junos_interface_optics_reported_lanes{instance="a",interface="et-0/0/0"}'
+        values: '4x15'
+      - series: 'pyez_junos_interface_is_operational{instance="a",interface="et-0/0/0"}'
+        values: '1x15'
+      - series: 'pyez_junos_interface_lane_optics_alarm{instance="a",interface="xe-0/1/1:0",lane="0",alarm="rx_loss_of_signal_alarm"}'
+        values: '1x15'
+      - series: 'pyez_junos_interface_optics_reported_lanes{instance="a",interface="xe-0/1/1:0"}'
+        values: '1x15'
+      - series: 'pyez_junos_interface_is_operational{instance="a",interface="xe-0/1/1:0"}'
+        values: '1x15'
+    alert_rule_test:
+      - eval_time: 12m
+        alertname: JunosLaneOpticsAlarm
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              instance: a
+              interface: et-0/0/0
+              lane: "2"
+              alarm: rx_loss_of_signal_alarm
+            exp_annotations:
+              summary: "et-0/0/0 lane 2 on a raises rx_loss_of_signal_alarm"

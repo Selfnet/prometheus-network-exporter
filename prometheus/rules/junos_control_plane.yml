@@ -172,6 +172,23 @@ groups:
         annotations:
           summary: "{{ $labels.interface }} on {{ $labels.instance }} raises {{ $labels.alarm }}"
 
+      - alert: JunosLaneOpticsAlarm
+        # Modules with several reported lanes. A single lane is already
+        # covered by JunosOpticsAlarm through the interface flags.
+        expr: |
+          pyez_junos_interface_lane_optics_alarm{alarm=~".*_alarm"} == 1
+          and on (instance, interface) pyez_junos_interface_optics_reported_lanes > 1
+          and on (instance, interface) pyez_junos_interface_is_operational == 1
+          unless on (instance, interface, lane) (
+            pyez_junos_interface_lane_optics_alarm{alarm="laser_rx_power_high_alarm"} == 1
+            and on (instance, interface, lane) pyez_junos_interface_lane_optics_alarm{alarm="laser_rx_power_low_alarm"} == 1
+          )
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "{{ $labels.interface }} lane {{ $labels.lane }} on {{ $labels.instance }} raises {{ $labels.alarm }}"
+
   - name: junos-underlay
     rules:
       - alert: JunosLdpSessionDown
