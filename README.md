@@ -164,7 +164,7 @@ Tests run without a switch:
 python -m unittest discover -s tests -v
 ```
 
-The recorded optics fixture covers four breakout lanes, scalar optics and
+The synthetic optics fixture covers four breakout lanes, scalar optics and
 explicit N/A replies. Synthetic tests cover other lane counts, missing
 fields, inventory and address replies. Inventory/PIC schemas and unbroken
 multi-lane modules still need validation on the deployed device models.

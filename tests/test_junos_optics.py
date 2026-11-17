@@ -44,24 +44,24 @@ class OpticsTests(unittest.TestCase):
                       for name in values}
         return OpticsCollector(device), interfaces
 
-    def test_recorded_breakout_values_and_missing_diagnostics(self):
+    def test_breakout_values_and_missing_diagnostics(self):
         values = parse_optics(etree.parse(str(FIXTURE)).getroot())
         collector, interfaces = self.collector(values)
         data = samples(collector, interfaces)
-        for lane, rx in [("0", -5.58), ("1", -3.74), ("2", -0.99), ("3", -1.07)]:
+        for lane, rx in [("0", -5.0), ("1", -4.0), ("2", -3.0), ("3", -2.0)]:
             interface = "xe-0/1/1:" + lane
             self.assertEqual(select(data, "pyez_junos_interface_lane_receiving_optic_power_dbm",
                                     interface=interface, lane=lane), [rx])
             self.assertEqual(select(data, "pyez_junos_interface_receiving_optic_power_dbm",
                                     interface=interface), [rx])
             self.assertEqual(select(data, "pyez_junos_interface_lane_receiving_optic_power_low_alarm_threshold",
-                                    interface=interface, lane=lane), [-14.51])
+                                    interface=interface, lane=lane), [-14.0])
         self.assertEqual(select(data, "pyez_junos_interface_receiving_optic_power_dbm",
                                 interface="xe-0/1/0:0"), [])
         self.assertEqual(select(data, "pyez_junos_interface_optics_available",
                                 interface="xe-0/1/0:0"), [0])
         self.assertEqual(select(data, "pyez_junos_interface_voltage_volts",
-                                interface="xe-0/1/1:0"), [3.271])
+                                interface="xe-0/1/1:0"), [3.3])
         collector.device.get_optics.assert_called_once_with()
 
     def test_multiple_lanes_no_average_or_speed_based_count(self):
@@ -133,7 +133,7 @@ class OpticsTests(unittest.TestCase):
         device = Mock(spec=JuniperNetworkDevice)
         device.rpc_reply.return_value = etree.parse(str(FIXTURE)).getroot()
         values = JuniperNetworkDevice.get_optics(device)
-        self.assertEqual(values["xe-0/1/1:2"]["lanes"]["2"]["rx_optic_power"], -0.99)
+        self.assertEqual(values["xe-0/1/1:2"]["lanes"]["2"]["rx_optic_power"], -3.0)
         device.rpc_reply.assert_called_once_with(
             "get_interface_optics_diagnostics_information", interface_name="[efgx][et]-*"
         )
