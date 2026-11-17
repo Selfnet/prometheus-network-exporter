@@ -94,6 +94,8 @@ keys. PIC detail supplies vendor name and part number when available;
 chassis inventory supplies serial number and reported type. Missing fields
 are blank, not inferred from the switch vendor. Unresolvable chassis
 locations are skipped. A failed PIC RPC leaves the chassis inventory usable.
+If the chassis inventory reports two different modules at one location, that
+location is skipped and logged; the other modules are still exported.
 
 Addresses without a known prefix retain a blank `prefix_length` and
 `network`. A peer address without a prefix is not interpreted as a subnet.
@@ -119,7 +121,9 @@ issued per lane. The NETCONF login class must permit the new chassis/PIC
 and interface queries. Rejected RPCs remain visible in `pyez_junos_rpc_failed`.
 
 These collectors report device data; they do not infer a DAC from a hostname,
-SFP-T label, N/A response or zero measurement.
+SFP-T label, N/A response or zero measurement. A lane record without an
+index or with an index already seen is skipped and logged instead of
+overwriting another lane.
 
 Optical RPC replies are cached inside the exporter for 300 seconds by default.
 Existing Prometheus jobs and scrape intervals can stay unchanged: `optics`

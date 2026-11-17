@@ -60,6 +60,21 @@ class InventoryTests(unittest.TestCase):
         self.assertEqual(info.labels['manufacturer'], '')
         self.assertEqual(info.labels['part_number'], 'NON-JNPR')
 
+    def test_conflicting_inventory_skips_only_that_module(self):
+        device = self.device(pic=False)
+        hardware = xml('''<chassis-inventory><chassis><chassis-module><name>FPC 0</name>
+          <chassis-sub-module><name>PIC 1</name>
+          <chassis-sub-sub-module><name>Xcvr 2</name><serial-number>serial-1</serial-number></chassis-sub-sub-module>
+          <chassis-sub-sub-module><name>Xcvr 2</name><serial-number>serial-2</serial-number></chassis-sub-sub-module>
+          <chassis-sub-sub-module><name>Xcvr 3</name><serial-number>serial-3</serial-number></chassis-sub-sub-module>
+          </chassis-sub-module></chassis-module></chassis></chassis-inventory>''')
+        replies = {'get_chassis_inventory': hardware, 'get_pic_detail': None,
+                   'get_interface_information': device.rpc_reply('get_interface_information')}
+        device.rpc_reply.side_effect = lambda name, **args: replies[name]
+        values = collect(TransceiverCollector(device))
+        info = [v for v in values if v.name == 'pyez_junos_transceiver_info']
+        self.assertEqual([v.labels['module'] for v in info], ['0/1/3'])
+
     def test_rpc_failure_does_not_invent_empty_inventory(self):
         device = Mock()
         device.rpc_reply.return_value = None

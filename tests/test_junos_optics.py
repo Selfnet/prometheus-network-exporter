@@ -138,11 +138,16 @@ class OpticsTests(unittest.TestCase):
             "get_interface_optics_diagnostics_information", interface_name="[efgx][et]-*"
         )
 
-    def test_duplicate_or_missing_lane_ids_fail_instead_of_overwriting(self):
-        for body in ['<optics-diagnostics-lane-values/>',
-                     '<optics-diagnostics-lane-values><lane-index>0</lane-index></optics-diagnostics-lane-values>' * 2]:
-            with self.assertRaises(ValueError):
-                parse_optics(reply("et-0/0/0", body))
+    def test_duplicate_or_missing_lane_ids_are_skipped_not_overwritten(self):
+        lane = ('<optics-diagnostics-lane-values><lane-index>0</lane-index>'
+                '<laser-rx-optical-power-dbm>{}</laser-rx-optical-power-dbm></optics-diagnostics-lane-values>')
+        body = ('<optics-diagnostics-lane-values><laser-rx-optical-power-dbm>-9</laser-rx-optical-power-dbm>'
+                '</optics-diagnostics-lane-values>' + lane.format(-4) + lane.format(-7))
+        with self.assertLogs("network_exporter", level="WARNING") as logs:
+            values = parse_optics(reply("et-0/0/0", body))["et-0/0/0"]
+        self.assertEqual(len(logs.records), 2)
+        self.assertEqual(list(values["lanes"]), ["0"])
+        self.assertEqual(values["lanes"]["0"]["rx_optic_power"], -4)
 
     def test_namespace_and_invalid_numeric_values(self):
         xml = reply("xe-0/0/0", '<laser-output-power-dbm>NaN</laser-output-power-dbm>'

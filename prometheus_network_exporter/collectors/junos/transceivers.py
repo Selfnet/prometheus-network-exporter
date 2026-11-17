@@ -7,7 +7,7 @@ from prometheus_client.core import InfoMetricFamily
 from ..base import Collector
 from . import base
 from .rpcs import RPCS
-from .xmlutil import iter_items, text
+from .xmlutil import LOGGER, iter_items, text
 
 LOCATION = re.compile(r"^(FPC|PIC|Xcvr|Transceiver)\s+(\d+)$", re.IGNORECASE)
 INTERFACE = re.compile(r"^[a-z]+-(\d+/\d+/\d+)(?::\d+)?$")
@@ -47,10 +47,16 @@ class TransceiverCollector(Collector):
         if reply is None:
             return
         modules = {}
+        conflicts = set()
         for module, values in inventory(reply):
             if module in modules and modules[module] != values:
-                raise ValueError("Conflicting transceiver inventory for module " + module)
-            modules[module] = values
+                conflicts.add(module)
+            modules.setdefault(module, values)
+        for module in sorted(conflicts):
+            # Two different modules at one location: report neither.
+            LOGGER.warning("transceivers: %s :: conflicting inventory for module %s, skipped",
+                           self.device.hostname, module)
+            del modules[module]
         self.enrich_pic_inventory(modules)
         info = InfoMetricFamily(self.base_name, "Reported transceiver inventory; blank fields are unknown",
                                 labels=["module"])

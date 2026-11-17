@@ -6,7 +6,7 @@ import re
 
 import yaml
 
-from .xmlutil import find, findall, iter_items, localname, text
+from .xmlutil import LOGGER, find, findall, iter_items, localname, text
 
 FIELDS = yaml.safe_load(read_text("prometheus_network_exporter.views.junos", "optic.yml"))[
     "PhyPortDiagView"
@@ -82,7 +82,11 @@ def parse_optics(reply):
             for lane in findall(diag, "optics-diagnostics-lane-values"):
                 index = text(lane, "lane-index")
                 if index is None or index in lanes:
-                    raise ValueError("Missing or duplicate optics lane index on " + name)
+                    # Skip the record instead of guessing or overwriting a
+                    # lane; the rest of the reply stays usable.
+                    LOGGER.warning("optics: %s lane index on %s, lane record skipped",
+                                   "duplicate" if index else "missing", name)
+                    continue
                 lanes[index] = read_fields(lane)
         if not available or values or lanes:
             values["diagnostics_available"] = int(available)
