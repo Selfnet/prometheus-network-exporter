@@ -116,7 +116,7 @@ Enable `lldp`, `transceivers` and `interface_addresses` in the relevant
 module's `metrics` list. For split core scrapes, add inventory/addressing
 only to `core_slow`; do not collect the same type in multiple modules for
 the same target. Access and legacy backbone modules need their own entries.
-The example config includes these types. RPC replies with identical
+The example config enables them in `core_slow` only. RPC replies with identical
 arguments are cached within each scrape, including brief interface replies
 shared by standalone optics and inventory. No additional optics RPC is
 issued per lane. The NETCONF login class must permit the new chassis/PIC
@@ -152,14 +152,6 @@ timestamps alone indicate scrape time, not a fresh optical measurement.
 Module swaps and optical alarms can take until the next refresh to appear.
 This only caches optical diagnostics, chassis inventory and PIC details;
 interface traffic, addresses, status and LLDP are not delayed by this cache.
-
-The existing interface collectors and their module assignments are
-unchanged. The `core_slow` logical-interface selection additionally includes
-`xe-0/0/16`, so all reported units on that port (including `.651`) have byte
-and packet counters. This selection only applies to targets scraping that
-module. For an access/legacy target using a different module, enable
-`logical_interfaces` and the same `junos.logical_interfaces` selection in
-its existing interface module. Its existing scrape frequency remains unchanged.
 
 Tests run without a switch:
 
