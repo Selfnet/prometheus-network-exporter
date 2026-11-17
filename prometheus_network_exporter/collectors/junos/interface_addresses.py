@@ -43,14 +43,32 @@ def address_info(local, destination):
     }
 
 
+# Junos internal interfaces between routing engine and PFE, and the internal
+# loopback units lo0.16384 and up.
+INTERNAL_PARENTS = ("bme", "jsrv")
+INTERNAL_LOOPBACK_UNIT = 16384
+
+
+def internal_unit(parent, name):
+    if parent.startswith(INTERNAL_PARENTS):
+        return True
+    unit = name.rpartition(".")[2]
+    return parent == "lo0" and unit.isdigit() and int(unit) >= INTERNAL_LOOPBACK_UNIT
+
+
 def unit_addresses(unit):
     for family in findall(unit, "address-family"):
         if text(family, "address-family-name") not in ("inet", "inet6"):
             continue
         for entry in findall(family, "interface-address"):
             values = address_info(text(entry, "ifa-local"), text(entry, "ifa-destination"))
-            if values is not None:
-                yield values
+            if values is None:
+                continue
+            address = ipaddress.ip_address(values["address"])
+            # Link-local and loopback addresses say nothing about a link subnet.
+            if address.is_link_local or address.is_loopback:
+                continue
+            yield values
 
 
 class InterfaceAddressCollector(Collector):
@@ -73,7 +91,7 @@ class InterfaceAddressCollector(Collector):
                 continue
             for unit in findall(physical, "logical-interface"):
                 name = text(unit, "name")
-                if not name:
+                if not name or internal_unit(parent, name):
                     continue
                 routing_instance = text(unit, "routing-instance") or text(physical, "routing-instance") or ""
                 for values in unit_addresses(unit):

@@ -108,6 +108,24 @@ class AddressTests(unittest.TestCase):
             self.assertEqual(value.labels['parent_interface'], 'xe-0/1/2:0')
             self.assertEqual(value.labels['routing_instance'], '')
 
+    def test_internal_and_link_local_addresses_are_skipped(self):
+        def unit(parent, name, address):
+            return (f'<physical-interface><name>{parent}</name><logical-interface><name>{name}</name>'
+                    '<address-family><address-family-name>inet6</address-family-name><interface-address>'
+                    f'<ifa-local>{address}</ifa-local></interface-address></address-family>'
+                    '</logical-interface></physical-interface>')
+        device = Mock()
+        device.rpc_reply.return_value = xml('<interface-information>' + ''.join([
+            unit('xe-0/0/1', 'xe-0/0/1.0', 'fe80::1/64'),
+            unit('xe-0/0/1', 'xe-0/0/1.0', '2001:db8::1/127'),
+            unit('lo0', 'lo0.0', '2001:db8:ffff::1/128'),
+            unit('lo0', 'lo0.0', '::1/128'),
+            unit('lo0', 'lo0.16385', '2001:db8:ffff::2/128'),
+            unit('bme0', 'bme0.0', '2001:db8:fffe::1/64'),
+        ]) + '</interface-information>')
+        values = collect(InterfaceAddressCollector(device))
+        self.assertEqual(sorted(v.labels['address'] for v in values), ['2001:db8::1', '2001:db8:ffff::1'])
+
     def test_rpc_failure(self):
         device = Mock()
         device.rpc_reply.return_value = None

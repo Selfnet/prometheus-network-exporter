@@ -103,6 +103,8 @@ An absent routing instance is unknown, not proof of the default instance.
 `parent_interface` is the containing physical interface from the XML;
 a LAG such as `ae0` is not assigned to an arbitrary member. These are inputs
 for endpoint comparisons, not a proof that a cable or subnet is correct.
+Link-local and loopback addresses are not exported, nor the internal units
+`lo0.16384` and up, `bme*` and `jsrv*`.
 
 The existing `lldp` type now retains `remote_port_id`,
 `remote_port_description` and `remote_port_subtype` separately in
