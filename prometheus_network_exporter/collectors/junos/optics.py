@@ -94,6 +94,10 @@ class OpticsCollector(Collector):
             key = metric.json_key
             if not key.startswith(("rx_optic_power", "tx_optic_power", "laser_bias")):
                 continue
+            # The legacy bias metrics carry the wrong unit suffix _dbm; the
+            # lane metrics only follow their milliamps aliases.
+            if key.startswith("laser_bias") and metric.config.get("type") == "dbm":
+                continue
             family = GaugeMetricFamily(
                 metric.base_name.replace(self.base_name + "_", self.base_name + "_lane_", 1),
                 "Reported lane value; module thresholds apply unless overridden by the lane",

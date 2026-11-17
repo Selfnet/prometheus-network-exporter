@@ -98,6 +98,20 @@ class OpticsTests(unittest.TestCase):
         self.assertEqual(select(data, "pyez_junos_interface_sending_optic_power_dbm"), [0])
         self.assertEqual(select(data, "pyez_junos_interface_receiving_optic_power_dbm"), [])
 
+    def test_lane_bias_metrics_only_in_milliamps(self):
+        xml = reply("et-0/0/0", '''<laser-bias-current-high-alarm-threshold>75</laser-bias-current-high-alarm-threshold>
+          <optics-diagnostics-lane-values><lane-index>0</lane-index>
+            <laser-bias-current>35.9</laser-bias-current></optics-diagnostics-lane-values>
+          <optics-diagnostics-lane-values><lane-index>1</lane-index>
+            <laser-bias-current>36.1</laser-bias-current></optics-diagnostics-lane-values>''')
+        collector, interfaces = self.collector(parse_optics(xml))
+        data = samples(collector, interfaces)
+        lane_metrics = {metric for metric, _ in data if metric.startswith("pyez_junos_interface_lane_laser_bias")}
+        self.assertTrue(lane_metrics)
+        self.assertFalse([metric for metric in lane_metrics if metric.endswith("_dbm")])
+        self.assertEqual(sorted(select(data, "pyez_junos_interface_lane_laser_bias_current_milliamps")), [35.9, 36.1])
+        self.assertEqual(select(data, "pyez_junos_interface_lane_laser_bias_high_alarm_threshold_milliamps"), [75, 75])
+
     def test_ambiguous_breakout_is_not_promoted(self):
         values = parse_optics(reply("xe-0/0/0:3", '''<optics-diagnostics-lane-values><lane-index>0</lane-index>
            <laser-rx-optical-power-dbm>-5</laser-rx-optical-power-dbm></optics-diagnostics-lane-values>'''))
