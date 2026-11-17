@@ -19,10 +19,17 @@ class OpticsCacheTests(unittest.TestCase):
 
     def test_reuses_then_refreshes_at_expiry(self):
         first = self.cache.reply(self.rpc, {}, self.fetch)
-        self.now.return_value = 1299
+        self.now.return_value = 1269
         self.assertIs(self.cache.reply(self.rpc, {}, self.fetch), first)
         self.fetch.assert_called_once()
-        self.now.return_value = 1300
+        self.now.return_value = 1270
+        self.cache.reply(self.rpc, {}, self.fetch)
+        self.assertEqual(self.fetch.call_count, 2)
+
+    def test_scrape_slightly_early_still_refreshes(self):
+        # Scrape interval equal to the cache interval, next scrape 2s early.
+        self.cache.reply(self.rpc, {}, self.fetch)
+        self.now.return_value = 1298
         self.cache.reply(self.rpc, {}, self.fetch)
         self.assertEqual(self.fetch.call_count, 2)
 

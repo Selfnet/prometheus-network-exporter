@@ -104,7 +104,8 @@ core_slow:
     session_wait_seconds: 60
     extensive_interfaces: "[ex][et]-*"
     extensive_description: "^(Core|Server|Uplink)"
-    optics_interval_seconds: 300
+    # Scraped every 300s anyway, an optics cache saves no RPC here.
+    optics_interval_seconds: 0
     logical_interfaces:
       - lo0
       - irb

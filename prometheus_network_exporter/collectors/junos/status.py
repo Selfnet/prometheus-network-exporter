@@ -104,7 +104,7 @@ class StatusCollector(Collector):
         )
         now = time.monotonic()
         for (rpc, arguments), (started, timestamp, _) in self.device.optics_cache.entries.items():
-            if now - started >= self.device.optics_cache.interval:
+            if self.device.optics_cache.expired(started, now):
                 continue
             args = dict(arguments)
             labels = [rpc, str(args.get("interface_name", "")),

@@ -135,7 +135,11 @@ continue to use `core_slow`; no additional optical job is needed.
 
 `junos.optics_interval_seconds` changes this refresh interval (0 disables
 caching). Refresh happens on the first scrape after the interval expires,
-not on a background timer. The first scrape after an exporter restart also
+not on a background timer. A reply counts as expired a tenth of the interval
+early, so a scrape interval equal to the cache interval refreshes on every
+scrape instead of every second one. The cache only saves RPCs in modules
+scraped more often than the interval; `core_slow` is scraped every 300s and
+sets it to 0. The first scrape after an exporter restart also
 refreshes the data. Caches belong to the target/module's device object;
 do not enable the same optical collectors in multiple modules for a target.
 An expired reply is discarded before refresh. Failed queries do not extend
