@@ -67,9 +67,9 @@ class OSPFStatisticsCollector(Collector):
             yield metric
 
         for metric_name, xml_field in self.gauge_fields.items():
-            metric = GaugeMetricFamily(
+            gauge = GaugeMetricFamily(
                 f"{self.base_name}_{metric_name}",
                 f"Junos {self.protocol.upper()} statistic {xml_field}",
             )
-            metric.add_metric([], self._number(statistics, xml_field))
-            yield metric
+            gauge.add_metric([], self._number(statistics, xml_field))
+            yield gauge

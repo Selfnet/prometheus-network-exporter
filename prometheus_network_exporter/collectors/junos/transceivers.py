@@ -1,6 +1,7 @@
 """Transceiver inventory, keyed by the physical FPC/PIC/port location."""
 
 import re
+from typing import Dict
 
 from prometheus_client.core import InfoMetricFamily
 
@@ -46,7 +47,7 @@ class TransceiverCollector(Collector):
         reply = self.device.rpc_reply(command, **args)
         if reply is None:
             return
-        modules = {}
+        modules: Dict[str, Dict[str, str]] = {}
         conflicts = set()
         for module, values in inventory(reply):
             if module in modules and modules[module] != values:

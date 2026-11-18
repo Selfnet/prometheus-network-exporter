@@ -43,3 +43,15 @@ source = ["prometheus_network_exporter"]
 show_missing = true
 skip_covered = true
 fail_under = 90
+
+[tool.mypy]
+python_version = "3.12"
+packages = ["prometheus_network_exporter"]
+warn_unused_ignores = true
+warn_redundant_casts = true
+check_untyped_defs = true
+
+[[tool.mypy.overrides]]
+# No type information published for these packages.
+module = ["jnpr.*", "lxml.*", "fqdn", "voluptuous", "cached_property", "ncclient.*"]
+ignore_missing_imports = true

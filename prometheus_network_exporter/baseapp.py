@@ -32,10 +32,6 @@ class Application(_Application):
         self.max_workers = kwargs.pop("max_workers", 10)
         self.debug = kwargs.pop("debug", False)
         buckets = kwargs.pop("prometheus_buckets", None)
-        histogram_kwargs = {
-            "labelnames": ["method", "path", "status"],
-            "registry": self.multiprocess_registry,
-        }
         self.exception_counter = Counter(
             "network_exporter_raised_exceptions",
             "Count of raised Exceptions in the Exporter",
@@ -65,10 +61,12 @@ class Application(_Application):
             multiprocess_mode="livesum",
             registry=self.multiprocess_registry,
         )
-        if buckets is not None:
-            histogram_kwargs["buckets"] = buckets
         self.request_time_histogram = Histogram(
-            "tornado_http_request_duration_seconds", "Tornado HTTP request duration in seconds", **histogram_kwargs
+            "tornado_http_request_duration_seconds",
+            "Tornado HTTP request duration in seconds",
+            labelnames=["method", "path", "status"],
+            registry=self.multiprocess_registry,
+            buckets=buckets if buckets is not None else Histogram.DEFAULT_BUCKETS,
         )
 
     def log_request(self, handler):

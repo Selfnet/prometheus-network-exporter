@@ -393,7 +393,7 @@ class CoreDumpCollector(Collector):
     @staticmethod
     def _scan(reply):
         """Core files per process and the newest file date per process."""
-        counts = collections.Counter()
+        counts: collections.Counter = collections.Counter()
         newest: Dict[str, float] = {}
         files = list(iter_items(reply, ("file-information",)))
         for item in files:
@@ -535,8 +535,9 @@ class NTPCollector(Collector):
         else:
             self.reader.record("output:sync-state")
         match = re.search(r"\boffset=\s*([-\d.]+)", output)
-        if match and number(match.group(1)) is not None:
-            offset.add_metric([], number(match.group(1)) / 1000.0)
+        milliseconds = number(match.group(1)) if match else None
+        if milliseconds is not None:
+            offset.add_metric([], milliseconds / 1000.0)
         else:
             self.reader.record("output:offset")
         match = re.search(r"\bstratum=\s*(\d+)", output)

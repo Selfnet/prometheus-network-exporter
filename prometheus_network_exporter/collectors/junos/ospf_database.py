@@ -9,6 +9,7 @@ change; a jump in the own router LSA sequence number or in LSA counts is.
 from __future__ import annotations
 
 import collections
+from typing import Dict, Optional, Tuple
 
 from prometheus_client.core import GaugeMetricFamily
 
@@ -37,10 +38,10 @@ class OSPFDatabaseCollector(Collector):
 
     def _count(self, reply):
         """LSAs per area and type, the own ones, the youngest age and the own router LSA."""
-        counts = collections.Counter()
-        own = collections.Counter()
-        youngest = {}
-        own_router = {}
+        counts: collections.Counter = collections.Counter()
+        own: collections.Counter = collections.Counter()
+        youngest: Dict[Tuple[str, str], float] = {}
+        own_router: Dict[str, Tuple[Optional[float], Optional[float]]] = {}
         area = ""
         # Area and interface headers precede the entries they apply to.
         for element in reply.iter():

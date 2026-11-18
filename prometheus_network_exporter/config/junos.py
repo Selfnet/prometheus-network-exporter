@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Callable
+from typing import Any, Callable, Dict
 from .configuration import MetricConfiguration
 from enum import Enum
 from .functions import junos
@@ -30,7 +30,7 @@ class Function(Enum):
 
 class JunosMetricConfiguration(MetricConfiguration):
 
-    function_mapping = {
+    function_mapping: Dict[Function, Callable[..., Any]] = {
         # Functions with simple type conversion.
         Function.IS_OK: junos.is_ok,
         Function.FLOATIFY: junos.floatify,
@@ -54,7 +54,3 @@ class JunosMetricConfiguration(MetricConfiguration):
     @property
     def function(self) -> Callable:
         return self.function_mapping[Function(self.config.get("function"))]
-
-    @property
-    def complex(self) -> bool:
-        return self.config.get("complex", False)

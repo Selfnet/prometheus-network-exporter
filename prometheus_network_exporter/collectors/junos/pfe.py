@@ -9,6 +9,7 @@ label, instead of hard coding field names that may not exist.
 from __future__ import annotations
 
 import re
+from typing import Dict
 
 from prometheus_client.core import CounterMetricFamily, GaugeMetricFamily
 
@@ -82,7 +83,7 @@ class PFEExceptionCollector(Collector):
         if reply is None:
             return
         exceptions = CounterMetricFamily(self.base_name, "PFE exception counters by type", labels=["type"])
-        found = {}
+        found: Dict[str, float] = {}
         structured = [
             element
             for element in reply.iter()

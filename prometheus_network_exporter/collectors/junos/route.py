@@ -9,7 +9,7 @@ Its cost grows with the table size, so keep it to the tables that matter.
 from __future__ import annotations
 
 import collections
-from typing import Iterable
+from typing import Dict, Iterable
 
 from prometheus_client.core import GaugeMetricFamily, InfoMetricFamily
 
@@ -187,8 +187,8 @@ class RouteTableCollector(Collector):
         read = self.reader
         watched = [prefix for prefix in self.watch if family_matches(prefix, table)]
         seen = set()
-        newest_age = {}
-        young_count = collections.Counter()
+        newest_age: Dict[str, float] = {}
+        young_count: collections.Counter = collections.Counter()
         for route in iter_items(reply, ("rt",)):
             destination = read.text(route, "rt-destination")
             entry = self._active_entry(route)

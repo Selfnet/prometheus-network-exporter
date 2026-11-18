@@ -10,6 +10,7 @@ from prometheus_network_exporter import (
     GLOBAL_GUARD,
     MAX_WORKERS,
 )
+from prometheus_network_exporter.baseapp import Application
 from prometheus_network_exporter.devices.junosdevice import JuniperNetworkDevice
 
 # Serialises get-or-create of pool entries; two concurrent first scrapes of
@@ -19,6 +20,7 @@ POOL_LOCK = threading.Lock()
 
 
 class ExporterHandler(tornado.web.RequestHandler):
+    application: Application
     executor = ThreadPoolExecutor(max_workers=MAX_WORKERS)
 
     @staticmethod

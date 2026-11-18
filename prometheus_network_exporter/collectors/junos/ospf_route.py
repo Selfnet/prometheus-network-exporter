@@ -48,7 +48,7 @@ class OSPFRouteCollector(Collector):
             "Cost of a watched prefix per next hop",
             labels=COST_LABELS,
         )
-        counts = collections.Counter()
+        counts: collections.Counter = collections.Counter()
         for entry in iter_items(reply, ENTRIES):
             prefix = read.text(entry, "address-prefix")
             path_type = label(read.text(entry, "route-path-type"))

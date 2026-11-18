@@ -299,7 +299,7 @@ class VxlanCollector(Collector):
 
     def _remote_vteps(self, reply) -> Optional[collections.Counter]:
         """VNIs per remote VTEP from XML elements or the text table, None if unparsable."""
-        per_vtep = collections.Counter()
+        per_vtep: collections.Counter = collections.Counter()
         addresses = [
             element
             for element in reply.iter()

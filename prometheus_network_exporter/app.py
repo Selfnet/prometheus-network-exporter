@@ -140,7 +140,8 @@ def shutdown():
         finally:
             data.lock.release()
         APP_LOGGER.info(f"{key} :: Disconnected")
-    SERVER.stop()
+    if SERVER is not None:
+        SERVER.stop()
     GLOBAL_GUARD.release()
     sys.exit(0)
 

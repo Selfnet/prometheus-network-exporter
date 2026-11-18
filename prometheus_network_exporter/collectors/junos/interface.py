@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import List
+
 import yaml
 from importlib.resources import read_text
 
@@ -26,10 +28,10 @@ class InterfaceCollector(Collector):
         access: bool = False,
         ospf: bool = False,
         optics: bool = False,
-        config_path: str = None,
-    ) -> InterfaceCollector:
+        config_path: str | None = None,
+    ) -> None:
         self.access = access
-        self.collectors = []
+        self.collectors: List[OpticsCollector | OSPFCollector | OSPF3Collector] = []
         config = self.default
         if config_path is not None:
             with open(config_path, "r") as file:

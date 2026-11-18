@@ -23,9 +23,9 @@ class OpticsCollector(Collector):
     def __init__(
         self,
         device: junosdevice.JuniperNetworkDevice,
-        interface_regex: str = None,
-        config_path: str = None,
-    ) -> OpticsCollector:
+        interface_regex: str | None = None,
+        config_path: str | None = None,
+    ) -> None:
         self.interface_regex = interface_regex
         config = self.default
         if config_path is not None:
@@ -34,10 +34,10 @@ class OpticsCollector(Collector):
         super(OpticsCollector, self).__init__(self.base_name, device, config)
         self._init_prometheus_metrics(metric_configuration=JunosMetricConfiguration)
 
-    def collect(self, interfaces: dict, access: bool = False):
+    def collect(self, interfaces: dict | None = None, access: bool = False):
         assert isinstance(self.device, junosdevice.JuniperNetworkDevice)
         optics = self.device.get_optics(interface_regex=self.interface_regex) if access else self.device.get_optics()
-        interfaces_optics_dict = merge_dicts_by_key(interfaces, optics)
+        interfaces_optics_dict = merge_dicts_by_key(interfaces or {}, optics)
         interfaces_optics_list = create_list_from_dict(interfaces_optics_dict, "interface_name")
         for prometheus in self.prometheus_metrics.values():
             assert isinstance(prometheus, JunosMetricConfiguration)
@@ -141,7 +141,7 @@ class StandaloneOpticsCollector(OpticsCollector):
 
     INTERFACES = "[efgx][et]-*"
 
-    def collect(self, interfaces: dict = None, access: bool = False):
+    def collect(self, interfaces: dict | None = None, access: bool = False):
         command, args = RPCS["interfaces_brief"]
         reply = self.device.rpc_reply(command, **args, interface_name=self.INTERFACES)
         interfaces = {}

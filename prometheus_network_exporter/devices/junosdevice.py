@@ -7,6 +7,7 @@ from __future__ import annotations
 import logging
 import threading
 import time
+from typing import Any, Dict, Optional, Set, Tuple
 
 from jnpr.junos import Device
 from jnpr.junos.exception import (
@@ -136,7 +137,7 @@ DEFAULT_RPC_RETRY_SECONDS = 900
 # One "heavy" NETCONF session per switch at a time, across all modules of
 # this exporter process. Without it a fast, a slow and the legacy module
 # would open up to three sessions on the same routing engine at once.
-_SESSION_SLOTS = {}
+_SESSION_SLOTS: Dict[str, threading.Semaphore] = {}
 _SESSION_SLOTS_LOCK = threading.Lock()
 
 
@@ -271,7 +272,7 @@ class IsolatedCollector:
 class JuniperNetworkDevice(basedevice.Device):
     def __init__(
         self, hostname, user=None, password=None, port=22, ssh_private_key_file=None, ssh_config=None, **kwargs
-    ) -> JuniperNetworkDevice:
+    ) -> None:
         device = Device(
             host=hostname,
             user=user,
@@ -284,16 +285,16 @@ class JuniperNetworkDevice(basedevice.Device):
         )
         # Per scrape bookkeeping, reset by begin_scrape().
         self.schema = SchemaWatch()
-        self._rpc_cache = {}
-        self.rpc_failed = set()
-        self.rpc_durations = {}
-        self.collector_failed = set()
-        self.collector_durations = {}
-        self.connect_duration = None
+        self._rpc_cache: Dict[Tuple[str, Tuple[Tuple[str, Any], ...]], Any] = {}
+        self.rpc_failed: Set[str] = set()
+        self.rpc_durations: Dict[str, float] = {}
+        self.collector_failed: Set[str] = set()
+        self.collector_durations: Dict[str, float] = {}
+        self.connect_duration: Optional[float] = None
         self.session_reused = False
-        self.aborted = None
+        self.aborted: Optional[str] = None
         # RPC name -> monotonic time until which it is not asked again.
-        self._rpc_denied = {}
+        self._rpc_denied: Dict[str, float] = {}
         super(JuniperNetworkDevice, self).__init__(hostname, device, **kwargs)
         self.optics_cache = OpticsCache(self.options.get("optics_interval_seconds", 300))
         self.register_collectors(self.types)
@@ -575,7 +576,7 @@ class JuniperNetworkDevice(basedevice.Device):
         The tables are keyed by (interface-name, neighbor-id) so that several
         neighbours on one broadcast segment do not overwrite each other.
         """
-        result = {}
+        result: Dict[str, Dict[str, list]] = {}
         self.prefetch(dict(values).get("neighbor_id") for values in ospf.values())
         for key, values in ospf.items():
             interface_name = key[0] if isinstance(key, tuple) else key
@@ -592,7 +593,7 @@ class JuniperNetworkDevice(basedevice.Device):
             result[interface][ospf_type.value].append({**{"unit": unit}, **self.lookup_ospf(dict(values))})
         return result
 
-    def get_ospf(self, interface_regex: str = None):
+    def get_ospf(self, interface_regex: str | None = None):
         return self.manipulate_ospf(
             dict(
                 OspfNeighborTable(self.device).get(interface=interface_regex)
@@ -602,7 +603,7 @@ class JuniperNetworkDevice(basedevice.Device):
             ospf_type=OSPFType.OSPF,
         )
 
-    def get_ospf3(self, interface_regex: str = None):
+    def get_ospf3(self, interface_regex: str | None = None):
         return self.manipulate_ospf(
             dict(
                 Ospf3NeighborTable(self.device).get(interface=interface_regex)
@@ -716,6 +717,6 @@ class JuniperNetworkDevice(basedevice.Device):
                 if not (self.keep_session and healthy):
                     self.disconnect(force=not healthy)
             finally:
-                if has_slot:
+                if slot is not None and has_slot:
                     slot.release()
                 self.lock.release()

@@ -21,7 +21,7 @@ def remove_empty(dictionary: dict) -> dict:
     return {key: value for key, value in dictionary.items() if value is not None and value != str(None) and value != ""}
 
 
-def enrich_dict_from_upper_dict_by_labels(listing: dict, labels: List[LabelConfiguration], key: str) -> list:
+def enrich_dict_from_upper_dict_by_labels(listing: list, labels: List[LabelConfiguration], key: str) -> list:
     for dictionary in listing:
         data = {label.json_key: label.get_label(dictionary) for label in labels}
         data = remove_empty(data)
@@ -68,8 +68,8 @@ def timed_cache(**timedelta_kwargs):
             timed_cache_clear()
             return f.cache_info()
 
-        _wrapped.cache_info = cache_info
-        _wrapped.cache_clear = f.cache_clear
+        setattr(_wrapped, "cache_info", cache_info)
+        setattr(_wrapped, "cache_clear", f.cache_clear)
         return _wrapped
 
     return _wrapper

@@ -66,7 +66,14 @@ def clear_counter_dir(path: str = COUNTER_DIR) -> None:
 class ProxyHandler(tornado.web.RequestHandler):
     """Forwards one request to the worker that owns its target."""
 
-    async def get(self, hostname: str = None):
+    application: ProxyApplication
+
+    def _unreachable(self, target: str, port: int, reason) -> None:
+        APP_LOGGER.error("%s :: worker on port %s did not answer: %s", target, port, reason)
+        self.set_status(502, reason="worker unreachable")
+        self.write(f"{target}: worker process did not answer".encode("utf-8"))
+
+    async def get(self, hostname: str | None = None):
         target = hostname if hostname is not None else self.get_argument("target", "")
         port = self.application.port_for(target)
         url = f"http://127.0.0.1:{port}{self.request.uri}"
@@ -77,14 +84,10 @@ class ProxyHandler(tornado.web.RequestHandler):
                 url, raise_error=False, connect_timeout=5, request_timeout=FORWARD_TIMEOUT_SECONDS
             )
         except TRANSPORT_ERRORS as error:
-            response = None
-            reason = error
-        else:
-            reason = response.error if response.code == 599 else None
-        if response is None or reason is not None:
-            APP_LOGGER.error("%s :: worker on port %s did not answer: %s", target, port, reason)
-            self.set_status(502, reason="worker unreachable")
-            self.write(f"{target}: worker process did not answer".encode("utf-8"))
+            self._unreachable(target, port, error)
+            return
+        if response.code == 599:
+            self._unreachable(target, port, response.error)
             return
         self.set_status(response.code, reason=response.reason)
         content_type = response.headers.get("Content-Type")
