@@ -1,11 +1,18 @@
 """Worker processes behind one port: sharding and the forwarding front door."""
 
+import os
+import sys
+import urllib.request
+from unittest import mock
+
+import pytest
 import tornado.testing
 import tornado.web
 from tornado.httpserver import HTTPServer
 from tornado.netutil import bind_sockets
 
-from prometheus_network_exporter.processes import ProxyApplication, shard_for
+from prometheus_network_exporter import processes
+from prometheus_network_exporter.processes import ProxyApplication, shard_for, start_workers
 
 
 def test_shard_is_stable_and_spreads():
@@ -95,3 +102,71 @@ class ProxyTest(tornado.testing.AsyncHTTPTestCase):
     def test_metrics_served_by_the_front_door(self):
         response = self.fetch("/metrics")
         assert response.code == 200
+
+
+class PingHandler(tornado.web.RequestHandler):
+    def get(self):
+        self.write(f"pid={os.getpid()}")
+
+
+def ping_application():
+    return tornado.web.Application([(r"^/ping$", PingHandler)])
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="workers are forked")
+def test_started_workers_answer_on_their_own_port():
+    workers, ports = start_workers(2, ping_application)
+    try:
+        answers = [urllib.request.urlopen(f"http://127.0.0.1:{port}/ping", timeout=10).read() for port in ports]
+        assert len(set(ports)) == 2
+        assert {answer.decode() for answer in answers} == {f"pid={worker.pid}" for worker in workers}
+    finally:
+        # SIGKILL: SIGTERM would run the graceful shutdown with its pauses.
+        for worker in workers:
+            worker.kill()
+            worker.join(10)
+    assert not any(worker.is_alive() for worker in workers)
+
+
+class _Args:
+    processes, worker, debug, ip, port = 2, 10, False, "127.0.0.1", 19332
+
+
+def run_serve(monkeypatch, alive=(True, True)):
+    workers = [mock.Mock(pid=100 + i, is_alive=mock.Mock(return_value=state), name=f"worker-{i}")
+               for i, state in enumerate(alive)]
+    monkeypatch.setattr(processes, "clear_counter_dir", mock.Mock())
+    monkeypatch.setattr(processes, "start_workers", mock.Mock(return_value=(workers, [1, 2])))
+    server, loop = mock.Mock(), mock.Mock()
+    monkeypatch.setattr(processes.tornado.httpserver, "HTTPServer", mock.Mock(return_value=server))
+    monkeypatch.setattr(processes.tornado.ioloop.IOLoop, "current", mock.Mock(return_value=loop))
+    periodic = mock.Mock()
+    monkeypatch.setattr(processes.tornado.ioloop, "PeriodicCallback", periodic)
+    handlers = {}
+    monkeypatch.setattr(processes.signal, "signal", lambda sig, handler: handlers.setdefault(sig, handler))
+    kill = mock.Mock()
+    monkeypatch.setattr(processes.os, "kill", kill)
+    processes.serve(_Args(), ping_application)
+    return workers, server, loop, periodic.call_args[0][0], handlers, kill
+
+
+def test_serve_listens_and_stops_the_workers(monkeypatch):
+    workers, server, loop, watch, handlers, kill = run_serve(monkeypatch)
+    server.listen.assert_called_once_with(19332, address="127.0.0.1")
+    loop.start.assert_called_once()
+    handlers[processes.signal.SIGTERM](processes.signal.SIGTERM, None)
+    shutdown = loop.add_callback_from_signal.call_args[0][0]
+    shutdown()
+    server.stop.assert_called_once()
+    assert sorted(call.args[0] for call in kill.call_args_list) == [100, 101]
+    assert all(worker.join.called for worker in workers)
+    loop.stop.assert_called_once()
+    watch()  # every worker alive: nothing happens
+
+
+def test_dead_worker_ends_the_exporter(monkeypatch):
+    workers, server, loop, watch, handlers, kill = run_serve(monkeypatch, alive=(True, False))
+    with pytest.raises(SystemExit):
+        watch()
+    workers[0].terminate.assert_called_once()
+    workers[1].terminate.assert_not_called()

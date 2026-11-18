@@ -27,3 +27,11 @@ def test_unknown_junos_option_is_rejected():
     module = {"device": "junos", "auth": {"method": "ssh_key"}, "metrics": ["probe"], "junos": {"rpc_timout": 5}}
     with pytest.raises(voluptuous.Invalid):
         Configuration().validate({"m": module})
+
+
+def test_schema_runs_as_script(monkeypatch):
+    import runpy
+    import sys
+
+    monkeypatch.setattr(sys, "argv", ["schema.py", "prometheus_network_exporter/config/config.yml"])
+    runpy.run_module("prometheus_network_exporter.schema", run_name="__main__")
