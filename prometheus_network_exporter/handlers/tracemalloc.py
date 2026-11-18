@@ -37,9 +37,12 @@ class TraceMallocHandler(tornado.web.RequestHandler):
         self.write(bytes(("Total allocated size: %.1f KiB\n" % (total / 1024)).encode("utf-8")))
 
     async def get(self):
-        if not self.application.debug:
+        # The setting, not an attribute: the front door of several worker
+        # processes serves /memstats too and has no debug attribute.
+        if not self.application.settings.get("debug", False):
             raise tornado.web.HTTPError(404)
-        key_type = str(self.get_argument("key_type", "lineno"))
-        assert key_type in ["lineno", "traceback"]
-        limit = int(self.get_argument("limit", 20))
+        key_type = self.get_argument("key_type", "lineno")
+        if key_type not in ("lineno", "traceback"):
+            raise tornado.web.HTTPError(400, "key_type is lineno or traceback")
+        limit = int(self.get_argument("limit", "20"))
         self.display_top(tracemalloc.take_snapshot(), key_type=key_type, limit=limit)

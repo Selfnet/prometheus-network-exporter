@@ -2,6 +2,7 @@
 
 import os
 import sys
+import tracemalloc
 import urllib.request
 from unittest import mock
 
@@ -170,3 +171,28 @@ def test_dead_worker_ends_the_exporter(monkeypatch):
         watch()
     workers[0].terminate.assert_called_once()
     workers[1].terminate.assert_not_called()
+
+
+class DebugProxyTest(tornado.testing.AsyncHTTPTestCase):
+    """/memstats of the front door follows its debug setting."""
+
+    debug = False
+
+    def get_app(self):
+        return ProxyApplication([1], max_clients=5, debug=self.debug)
+
+    def test_memstats(self):
+        response = self.fetch("/memstats", raise_error=False)
+        assert response.code == (200 if self.debug else 404)
+
+
+class DebugProxyEnabledTest(DebugProxyTest):
+    debug = True
+
+    def setUp(self):
+        tracemalloc.start()
+        self.addCleanup(tracemalloc.stop)
+        super().setUp()
+
+    def test_memstats_rejects_unknown_key_type(self):
+        assert self.fetch("/memstats?key_type=nonsense", raise_error=False).code == 400
