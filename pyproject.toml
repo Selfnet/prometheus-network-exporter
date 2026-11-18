@@ -19,11 +19,14 @@ cached-property = "*"
 pygnmi = "^0.8.15"
 
 [tool.poetry.group.dev.dependencies]
-flake8 = "*"
-PySocks = "*"
+# Pinned so that CI and a local run report the same findings.
+pytest = "9.2.0"
+coverage = "7.17.1"
+flake8 = "7.5.0"
+black = "26.10.1"
+mypy = "2.4.1"
+types-PyYAML = "6.0.12.20261103"
 pyinstaller = "*"
-mypy = "*"
-black = "^21.8b0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
@@ -42,7 +45,7 @@ source = ["prometheus_network_exporter"]
 [tool.coverage.report]
 show_missing = true
 skip_covered = true
-fail_under = 90
+fail_under = 95
 
 [tool.mypy]
 python_version = "3.12"

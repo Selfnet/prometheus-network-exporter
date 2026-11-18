@@ -14,14 +14,19 @@ replies from `tests/fixtures/junos`. They use documentation values only
 not belong in this repository.
 
 ```bash
-pip install . pytest coverage
-coverage run -m pytest
-coverage report
+poetry install --with dev
+poetry run black --check prometheus_network_exporter tests
+poetry run flake8 prometheus_network_exporter tests
+poetry run mypy
+poetry run coverage run -m pytest
+poetry run coverage report
 promtool check rules prometheus/rules/*.yml
 promtool test rules prometheus/tests/*.yml
 ```
 
-GitHub Actions runs the same checks on every push and pull request.
+GitHub Actions runs the same checks on every push and pull request. The tool
+versions are pinned in the dev group of `pyproject.toml`, so a local run
+reports the same findings. Coverage below 95 percent fails the run.
 
 ## The Exporter
 
