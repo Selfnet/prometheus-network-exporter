@@ -1,0 +1,27 @@
+<rpc-reply xmlns:junos="http://xml.juniper.net/junos/21.4R0/junos">
+    <ddos-protocols-information xmlns="http://xml.juniper.net/junos/21.4R0/junos-jddosd" junos:style="statistics">
+        <total-packet-types>45</total-packet-types>
+        <packet-types-rcvd-packets>2</packet-types-rcvd-packets>
+        <packet-types-in-violation>0</packet-types-in-violation>
+        <ddos-protocol-group>
+            <ddos-protocol>
+                <ddos-system-statistics junos:style="brief">
+                    <group-name>igmp</group-name><packet-type>aggregate</packet-type>
+                    <packet-received>14711</packet-received><packet-dropped>0</packet-dropped>
+                    <packet-arrival-rate>0</packet-arrival-rate><policer-violation-count>0</policer-violation-count>
+                    <protocol-states>ok</protocol-states>
+                </ddos-system-statistics>
+            </ddos-protocol>
+        </ddos-protocol-group>
+        <ddos-protocol-group>
+            <ddos-protocol>
+                <ddos-system-statistics junos:style="brief">
+                    <group-name>ospf</group-name><packet-type>aggregate</packet-type>
+                    <packet-received>3301728</packet-received><packet-dropped>12</packet-dropped>
+                    <packet-arrival-rate>47</packet-arrival-rate><policer-violation-count>1</policer-violation-count>
+                    <protocol-states>ok</protocol-states>
+                </ddos-system-statistics>
+            </ddos-protocol>
+        </ddos-protocol-group>
+    </ddos-protocols-information>
+</rpc-reply>

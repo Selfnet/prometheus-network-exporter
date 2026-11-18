@@ -1,0 +1,21 @@
+<rpc-reply xmlns:junos="http://xml.juniper.net/junos/21.4R3/junos">
+  <vxlan-source-vtep-information>
+    <vxlan-remote-vtep-information>
+      <remote-vtep-address>192.0.2.105</remote-vtep-address>
+      <remote-vtep-mode>RNVE</remote-vtep-mode>
+      <vxlan-dynamic-information>
+        <vn-id>2000</vn-id>
+      </vxlan-dynamic-information>
+      <vxlan-dynamic-information>
+        <vn-id>2100</vn-id>
+      </vxlan-dynamic-information>
+    </vxlan-remote-vtep-information>
+    <vxlan-remote-vtep-information>
+      <remote-vtep-address>192.0.2.109</remote-vtep-address>
+      <remote-vtep-mode>RNVE</remote-vtep-mode>
+      <vxlan-dynamic-information>
+        <vn-id>2000</vn-id>
+      </vxlan-dynamic-information>
+    </vxlan-remote-vtep-information>
+  </vxlan-source-vtep-information>
+</rpc-reply>

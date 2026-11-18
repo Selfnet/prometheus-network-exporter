@@ -1,0 +1,19 @@
+<rpc-reply xmlns:junos="http://xml.juniper.net/junos/21.4R3/junos">
+<output>
+last pid: 81234;  load averages:  1.20,  0.95,  0.80  up 2+01:00:21    10:11:12
+210 processes: 3 running, 190 sleeping, 17 waiting
+
+Mem: 512M Active, 300M Inact, 200M Wired, 100M Buf, 700M Free
+Swap:
+
+  PID USERNAME   PRI NICE   SIZE    RES STATE    C   TIME    WCPU COMMAND
+   11 root       155 ki31     0K    16K RUN      0 300.5H  71.48% idle{idle: cpu0}
+ 1955 root        40    0   850M   155M select   1  33.2H  12.50% fxpc{fxpc}
+ 1955 root        40    0   850M   155M select   1  10.0H   3.00% fxpc{TraceRoute Thread}
+ 2101 root        20    0   600M 40404K kqread   0  10:00   2.10% rpd{rpd}
+ 2101 root        20    0   600M 40404K kqread   0   0:10   0.40% rpd{krtio-th}
+ 1500 root        20    0   100M    20M select   0   1:00   0.20% chassisd
+ 1600 root        20    0    90M    12M select   1   0:30   0.10% ppmd
+ 1700 root        20    0    50M     8M select   0   0:01   0.00% sshd
+</output>
+</rpc-reply>

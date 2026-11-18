@@ -1,0 +1,24 @@
+<rpc-reply xmlns:junos="http://xml.juniper.net/junos/21.4R0/junos">
+    <forwarding-table-information xmlns="http://xml.juniper.net/junos/21.4R0/junos-rtinfo">
+        <route-table>
+            <table-name>default.inet</table-name><address-family>Internet</address-family><enabled-protocols></enabled-protocols>
+            <route-table-summary><route-table-type>user</route-table-type><route-count>3073</route-count></route-table-summary>
+            <route-table-summary><route-table-type>perm</route-table-type><route-count>5</route-count></route-table-summary>
+        </route-table>
+        <route-table>
+        </route-table>
+        <route-table>
+            <table-name>default-switch.evpn-vxlan</table-name><address-family>VPLS</address-family>
+            <route-table-summary><route-table-type>user</route-table-type><route-count>2</route-count></route-table-summary>
+        </route-table>
+        <route-table>
+            <table-name>default-switch.evpn-vxlan</table-name><pbbn-table-name></pbbn-table-name>
+            <bd-name>bd100.evpn-vxlan</bd-name><address-family>VPLS</address-family>
+            <enabled-protocols>Bridging, ACKed by all peers, EVPN VXLAN,</enabled-protocols>
+            <route-table-summary><route-table-type>user</route-table-type><route-count>7</route-count></route-table-summary>
+        </route-table>
+        <route-table>
+            <table-name>__juniper_private1__.brid</table-name><address-family>VPLS</address-family>
+        </route-table>
+    </forwarding-table-information>
+</rpc-reply>

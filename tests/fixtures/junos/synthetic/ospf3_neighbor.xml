@@ -1,0 +1,22 @@
+<rpc-reply xmlns:junos="http://xml.juniper.net/junos/21.4R3/junos">
+  <ospf3-neighbor-information xmlns="http://xml.juniper.net/junos/21.4R3/junos-routing">
+    <ospf3-neighbor>
+      <neighbor-id>192.0.2.102</neighbor-id>
+      <interface-name>ae0.0</interface-name>
+      <ospf-neighbor-state>Full</ospf-neighbor-state>
+      <neighbor-priority>128</neighbor-priority>
+      <activity-timer>33</activity-timer>
+      <neighbor-address>fe80::1</neighbor-address>
+      <ospf-area>0.0.0.0</ospf-area>
+      <options>0x13</options>
+      <ospf3-interface-index>3</ospf3-interface-index>
+      <dr-id>0.0.0.0</dr-id>
+      <bdr-id>0.0.0.0</bdr-id>
+      <neighbor-up-time junos:seconds="86400">1d 00:00:00</neighbor-up-time>
+      <neighbor-adjacency-time junos:seconds="86390">23:59:50</neighbor-adjacency-time>
+    </ospf3-neighbor>
+  </ospf3-neighbor-information>
+  <cli>
+    <banner></banner>
+  </cli>
+</rpc-reply>

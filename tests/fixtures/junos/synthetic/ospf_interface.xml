@@ -1,0 +1,66 @@
+<rpc-reply xmlns:junos="http://xml.juniper.net/junos/21.4R3/junos">
+  <ospf-interface-information xmlns="http://xml.juniper.net/junos/21.4R3/junos-routing">
+    <ospf-interface>
+      <interface-name>ae0.0</interface-name>
+      <ospf-interface-state>PtToPt</ospf-interface-state>
+      <ospf-area>0.0.0.0</ospf-area>
+      <dr-id>0.0.0.0</dr-id>
+      <bdr-id>0.0.0.0</bdr-id>
+      <neighbor-count>1</neighbor-count>
+      <interface-type>P2P</interface-type>
+      <interface-address>198.51.100.1</interface-address>
+      <address-mask>255.255.255.252</address-mask>
+      <mtu>9000</mtu>
+      <interface-cost>10</interface-cost>
+      <adj-count>1</adj-count>
+      <hello-interval>10</hello-interval>
+      <dead-interval>40</dead-interval>
+      <retransmit-interval>5</retransmit-interval>
+      <ospf-stub-type>Not Stub</ospf-stub-type>
+      <authentication-type>None</authentication-type>
+      <ospf-interface-protection-type>None</ospf-interface-protection-type>
+    </ospf-interface>
+    <ospf-interface>
+      <interface-name>irb.100</interface-name>
+      <ospf-interface-state>DR</ospf-interface-state>
+      <ospf-area>0.0.0.0</ospf-area>
+      <dr-id>192.0.2.101</dr-id>
+      <bdr-id>192.0.2.117</bdr-id>
+      <neighbor-count>2</neighbor-count>
+      <interface-type>LAN</interface-type>
+      <interface-address>198.51.100.129</interface-address>
+      <address-mask>255.255.255.0</address-mask>
+      <mtu>1500</mtu>
+      <interface-cost>100</interface-cost>
+      <adj-count>1</adj-count>
+      <hello-interval>10</hello-interval>
+      <dead-interval>40</dead-interval>
+      <retransmit-interval>5</retransmit-interval>
+      <ospf-stub-type>Not Stub</ospf-stub-type>
+      <authentication-type>MD5</authentication-type>
+    </ospf-interface>
+    <ospf-interface>
+      <interface-name>lo0.0</interface-name>
+      <ospf-interface-state>DR</ospf-interface-state>
+      <ospf-area>0.0.0.0</ospf-area>
+      <dr-id>192.0.2.101</dr-id>
+      <bdr-id>0.0.0.0</bdr-id>
+      <neighbor-count>0</neighbor-count>
+      <interface-type>LAN</interface-type>
+      <interface-address>192.0.2.101</interface-address>
+      <address-mask>255.255.255.255</address-mask>
+      <mtu>65535</mtu>
+      <interface-cost>0</interface-cost>
+      <adj-count>0</adj-count>
+      <hello-interval>10</hello-interval>
+      <dead-interval>40</dead-interval>
+      <retransmit-interval>5</retransmit-interval>
+      <ospf-stub-type>Not Stub</ospf-stub-type>
+      <authentication-type>None</authentication-type>
+      <passive/>
+    </ospf-interface>
+  </ospf-interface-information>
+  <cli>
+    <banner></banner>
+  </cli>
+</rpc-reply>

@@ -1,0 +1,11 @@
+<rpc-reply xmlns:junos="http://xml.juniper.net/junos/21.4R3/junos">
+  <task-memory-information>
+    <task-memory-overall-report>
+      <task-memory-in-use-size>412345</task-memory-in-use-size>
+      <task-memory-in-use-avail>21</task-memory-in-use-avail>
+      <task-memory-max-size>500000</task-memory-max-size>
+      <task-memory-max-avail>25</task-memory-max-avail>
+      <task-memory-max-when>26/10/11 22:15:30</task-memory-max-when>
+    </task-memory-overall-report>
+  </task-memory-information>
+</rpc-reply>

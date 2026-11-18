@@ -137,7 +137,7 @@ class LinkConfigurationTests(unittest.TestCase):
         device = Mock()
         device.schema = SchemaWatch()
         device.rpc_reply.return_value = xml('''<lldp-neighbors-information><lldp-neighbor-information>
-          <lldp-local-port-id>xe-0/1/2:0</lldp-local-port-id><lldp-remote-chassis-id>00:11:22:33:44:55</lldp-remote-chassis-id>
+          <lldp-local-port-id>xe-0/1/2:0</lldp-local-port-id><lldp-remote-chassis-id>00:00:5e:00:53:55</lldp-remote-chassis-id>
           <lldp-remote-system-name>peer-2</lldp-remote-system-name><lldp-remote-port-id>25GE1/0/1</lldp-remote-port-id>
           <lldp-remote-port-description>Core: peer-1</lldp-remote-port-description>
           </lldp-neighbor-information></lldp-neighbors-information>''')

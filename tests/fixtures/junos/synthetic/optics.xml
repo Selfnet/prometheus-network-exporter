@@ -1,0 +1,18 @@
+<rpc-reply xmlns:junos="http://xml.juniper.net/junos/21.4R3/junos">
+  <interface-information xmlns="http://xml.juniper.net/junos/21.4R3/junos-interface" junos:style="normal">
+    <physical-interface>
+      <name>xe-0/2/0</name>
+      <optics-diagnostics>
+        <laser-bias-current>2.100</laser-bias-current>
+        <laser-output-power-dbm>-7.50</laser-output-power-dbm>
+        <module-temperature junos:celsius="41.0">41 degrees C / 106 degrees F</module-temperature>
+        <module-voltage>3.3000</module-voltage>
+        <rx-signal-avg-optical-power-dbm>-30.00</rx-signal-avg-optical-power-dbm>
+        <laser-rx-power-low-alarm>on</laser-rx-power-low-alarm>
+        <laser-tx-power-low-alarm>off</laser-tx-power-low-alarm>
+        <laser-bias-current-low-warn>off</laser-bias-current-low-warn>
+        <tx-laser-fault-alarm>off</tx-laser-fault-alarm>
+      </optics-diagnostics>
+    </physical-interface>
+  </interface-information>
+</rpc-reply>

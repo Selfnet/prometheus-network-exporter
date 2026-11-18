@@ -14,3 +14,8 @@ junos_exporter.
 dist/
 build/
 .venv/
+
+# Local device captures for tests/test_exposition.py stay out of the repository.
+tests/fixtures/junos/*/
+!tests/fixtures/junos/synthetic/
+!tests/fixtures/junos/junos-21.4-shapes/

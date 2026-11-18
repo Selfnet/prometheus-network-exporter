@@ -1,0 +1,89 @@
+<rpc-reply xmlns:junos="http://xml.juniper.net/junos/21.4R3/junos">
+  <interface-information>
+    <physical-interface>
+      <name>xe-0/2/0</name>
+      <admin-status junos:format="Enabled">up</admin-status>
+      <oper-status>up</oper-status>
+      <description>Core: core-a</description>
+      <link-mode>Full-duplex</link-mode>
+      <speed>10Gbps</speed>
+      <current-physical-address>00:00:5e:00:53:01</current-physical-address>
+      <interface-flapped junos:seconds="100000">2026-10-10 10:00:00 CEST</interface-flapped>
+      <if-device-flags><ifdf-present/><ifdf-running/></if-device-flags>
+      <traffic-statistics>
+        <input-bytes>1000</input-bytes><output-bytes>2000</output-bytes>
+        <input-packets>10</input-packets><output-packets>20</output-packets>
+      </traffic-statistics>
+      <input-error-list><input-errors>1</input-errors><input-drops>0</input-drops></input-error-list>
+      <output-error-list><output-errors>0</output-errors><output-drops>1</output-drops></output-error-list>
+    </physical-interface>
+    <physical-interface>
+      <name>et-0/0/26</name>
+      <admin-status junos:format="Enabled">up</admin-status>
+      <oper-status>up</oper-status>
+      <description>Core: core-b</description>
+      <link-mode>Full-duplex</link-mode>
+      <speed>40Gbps</speed>
+      <current-physical-address>00:00:5e:00:53:02</current-physical-address>
+      <interface-flapped junos:seconds="200000">2026-10-10 10:00:00 CEST</interface-flapped>
+      <if-device-flags><ifdf-present/><ifdf-running/></if-device-flags>
+      <traffic-statistics>
+        <input-bytes>2000</input-bytes><output-bytes>4000</output-bytes>
+        <input-packets>20</input-packets><output-packets>40</output-packets>
+      </traffic-statistics>
+      <input-error-list><input-errors>2</input-errors><input-drops>0</input-drops></input-error-list>
+      <output-error-list><output-errors>0</output-errors><output-drops>2</output-drops></output-error-list>
+    </physical-interface>
+    <physical-interface>
+      <name>xe-0/0/16</name>
+      <admin-status junos:format="Enabled">up</admin-status>
+      <oper-status>up</oper-status>
+      <description>Server: host-1</description>
+      <link-mode>Full-duplex</link-mode>
+      <speed>10Gbps</speed>
+      <current-physical-address>00:00:5e:00:53:03</current-physical-address>
+      <interface-flapped junos:seconds="300000">2026-10-10 10:00:00 CEST</interface-flapped>
+      <if-device-flags><ifdf-present/><ifdf-running/></if-device-flags>
+      <traffic-statistics>
+        <input-bytes>3000</input-bytes><output-bytes>6000</output-bytes>
+        <input-packets>30</input-packets><output-packets>60</output-packets>
+      </traffic-statistics>
+      <input-error-list><input-errors>3</input-errors><input-drops>0</input-drops></input-error-list>
+      <output-error-list><output-errors>0</output-errors><output-drops>3</output-drops></output-error-list>
+    </physical-interface>
+    <physical-interface>
+      <name>ae0</name>
+      <admin-status junos:format="Enabled">up</admin-status>
+      <oper-status>up</oper-status>
+      <description>Core: lag</description>
+      <link-mode>Full-duplex</link-mode>
+      <speed>40Gbps</speed>
+      <current-physical-address>00:00:5e:00:53:04</current-physical-address>
+      <interface-flapped junos:seconds="400000">2026-10-10 10:00:00 CEST</interface-flapped>
+      <if-device-flags><ifdf-present/><ifdf-running/></if-device-flags>
+      <traffic-statistics>
+        <input-bytes>4000</input-bytes><output-bytes>8000</output-bytes>
+        <input-packets>40</input-packets><output-packets>80</output-packets>
+      </traffic-statistics>
+      <input-error-list><input-errors>4</input-errors><input-drops>0</input-drops></input-error-list>
+      <output-error-list><output-errors>0</output-errors><output-drops>4</output-drops></output-error-list>
+    </physical-interface>
+    <physical-interface>
+      <name>irb</name>
+      <admin-status junos:format="Enabled">up</admin-status>
+      <oper-status>up</oper-status>
+      <description></description>
+      <link-mode>Full-duplex</link-mode>
+      <speed></speed>
+      <current-physical-address>00:00:5e:00:53:05</current-physical-address>
+      <interface-flapped junos:seconds="500000">2026-10-10 10:00:00 CEST</interface-flapped>
+      <if-device-flags><ifdf-present/><ifdf-running/></if-device-flags>
+      <traffic-statistics>
+        <input-bytes>5000</input-bytes><output-bytes>10000</output-bytes>
+        <input-packets>50</input-packets><output-packets>100</output-packets>
+      </traffic-statistics>
+      <input-error-list><input-errors>5</input-errors><input-drops>0</input-drops></input-error-list>
+      <output-error-list><output-errors>0</output-errors><output-drops>5</output-drops></output-error-list>
+    </physical-interface>
+  </interface-information>
+</rpc-reply>

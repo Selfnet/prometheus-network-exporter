@@ -1,0 +1,16 @@
+<rpc-reply xmlns:junos="http://xml.juniper.net/junos/21.4R3/junos">
+  <interface-information xmlns="http://xml.juniper.net/junos/21.4R3/junos-interface" junos:style="normal">
+    <physical-interface>
+      <name>lo0</name>
+      <logical-interface>
+        <name>lo0.0</name>
+        <traffic-statistics junos:style="brief">
+          <input-bytes>5000000</input-bytes>
+          <output-bytes>4000000</output-bytes>
+          <input-packets>50000</input-packets>
+          <output-packets>40000</output-packets>
+        </traffic-statistics>
+      </logical-interface>
+    </physical-interface>
+  </interface-information>
+</rpc-reply>

@@ -1,0 +1,19 @@
+<rpc-reply xmlns:junos="http://xml.juniper.net/junos/21.4R3/junos">
+  <system-uptime-information xmlns="http://xml.juniper.net/junos/21.4R3/junos">
+    <current-time>
+      <date-time junos:seconds="1791925876">2026-10-13 23:11:16 CEST</date-time>
+    </current-time>
+    <system-booted-time>
+      <date-time junos:seconds="1791749455">2026-10-11 22:10:55 CEST</date-time>
+      <time-length junos:seconds="176421">2d 01:00</time-length>
+    </system-booted-time>
+    <protocols-started-time>
+      <date-time junos:seconds="1791749700">2026-10-11 22:15:00 CEST</date-time>
+    </protocols-started-time>
+    <last-configured-time>
+      <date-time junos:seconds="1791850000">2026-10-13 02:06:40 CEST</date-time>
+      <time-length junos:seconds="75876">21:04:36</time-length>
+      <user>adrian</user>
+    </last-configured-time>
+  </system-uptime-information>
+</rpc-reply>

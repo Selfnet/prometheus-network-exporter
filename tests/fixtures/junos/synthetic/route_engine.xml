@@ -1,0 +1,28 @@
+<rpc-reply xmlns:junos="http://xml.juniper.net/junos/21.4R3/junos">
+  <route-engine-information xmlns="http://xml.juniper.net/junos/21.4R3/junos-chassis">
+    <route-engine>
+      <slot>0</slot>
+      <mastership-state>master</mastership-state>
+      <temperature junos:celsius="45">45 degrees C / 113 degrees F</temperature>
+      <cpu-temperature junos:celsius="61">61 degrees C / 141 degrees F</cpu-temperature>
+      <memory-dram-size>2048 MB</memory-dram-size>
+      <memory-buffer-utilization>27</memory-buffer-utilization>
+      <cpu-user>10</cpu-user>
+      <cpu-background>0</cpu-background>
+      <cpu-system>15</cpu-system>
+      <cpu-interrupt>5</cpu-interrupt>
+      <cpu-idle>70</cpu-idle>
+      <cpu-user1>8</cpu-user1>
+      <cpu-background1>0</cpu-background1>
+      <cpu-system1>12</cpu-system1>
+      <cpu-interrupt1>3</cpu-interrupt1>
+      <cpu-idle1>77</cpu-idle1>
+      <model>EX4600-40F</model>
+      <up-time junos:seconds="176421">2 days, 1 hour, 0 minutes, 21 seconds</up-time>
+      <last-reboot-reason>0x4000:VJUNOS reboot</last-reboot-reason>
+      <load-average-one>1.20</load-average-one>
+      <load-average-five>0.95</load-average-five>
+      <load-average-fifteen>0.80</load-average-fifteen>
+    </route-engine>
+  </route-engine-information>
+</rpc-reply>

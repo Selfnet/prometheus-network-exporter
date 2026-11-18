@@ -1,0 +1,14 @@
+<rpc-reply xmlns:junos="http://xml.juniper.net/junos/21.4R3/junos">
+  <pim-neighbors-information xmlns="http://xml.juniper.net/junos/21.4R3/junos-routing">
+    <pim-interface>
+      <pim-interface-name>et-0/0/26.0</pim-interface-name>
+      <pim-neighbor>
+        <pim-neighbor-address>198.51.100.2</pim-neighbor-address>
+        <neighbor-uptime junos:seconds="3600">01:00:00</neighbor-uptime>
+      </pim-neighbor>
+    </pim-interface>
+    <pim-interface>
+      <pim-interface-name>xe-0/2/0.0</pim-interface-name>
+    </pim-interface>
+  </pim-neighbors-information>
+</rpc-reply>

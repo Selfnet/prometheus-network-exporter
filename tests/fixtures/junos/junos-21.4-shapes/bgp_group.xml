@@ -1,0 +1,23 @@
+<rpc-reply xmlns:junos="http://xml.juniper.net/junos/21.4R0/junos">
+    <bgp-group-information xmlns="http://xml.juniper.net/junos/21.4R0/junos-routing">
+        <bgp-group junos:style="brief">
+            <type>Internal</type><peer-as>64496</peer-as><local-as>64496</local-as>
+            <name>iBGP-RR</name><group-index>0</group-index><group-flags>Export Eval</group-flags>
+            <peer-count>20</peer-count><established-count>15</established-count>
+            <peer-address>192.0.2.2+58405</peer-address><flap-count>9</flap-count>
+        </bgp-group>
+        <bgp-group junos:style="brief">
+            <type>Internal</type><peer-as>64496</peer-as><local-as>64496</local-as>
+            <name>iBGP-RR</name><group-index>1</group-index><group-flags>Export Eval</group-flags>
+            <peer-count>2</peer-count><established-count>0</established-count>
+        </bgp-group>
+        <bgp-group junos:style="brief">
+            <type>Internal</type><peer-as>64496</peer-as><local-as>64496</local-as>
+            <name>iBGP-access</name><group-index>6</group-index>
+            <peer-count>40</peer-count><established-count>30</established-count>
+        </bgp-group>
+        <bgp-information>
+            <group-count>3</group-count><peer-count>62</peer-count><down-peer-count>17</down-peer-count>
+        </bgp-information>
+    </bgp-group-information>
+</rpc-reply>

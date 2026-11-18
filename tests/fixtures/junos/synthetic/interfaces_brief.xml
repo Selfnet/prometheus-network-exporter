@@ -1,0 +1,19 @@
+<rpc-reply xmlns:junos="http://xml.juniper.net/junos/21.4R3/junos">
+  <interface-information xmlns="http://xml.juniper.net/junos/21.4R3/junos-interface" junos:style="normal">
+    <physical-interface>
+      <name>xe-0/2/0</name>
+      <admin-status junos:format="Enabled">up</admin-status>
+      <oper-status>down</oper-status>
+      <description>Core: core-3 (OSPFed) via K1:DWDM</description>
+      <speed>10Gbps</speed>
+      <current-physical-address>00:00:5e:00:53:3f</current-physical-address>
+    </physical-interface>
+    <physical-interface>
+      <name>et-0/0/26</name>
+      <oper-status>up</oper-status>
+      <description>Core: core-1 (OSPFed)</description>
+      <speed>40Gbps</speed>
+      <current-physical-address>00:00:5e:00:53:23</current-physical-address>
+    </physical-interface>
+  </interface-information>
+</rpc-reply>

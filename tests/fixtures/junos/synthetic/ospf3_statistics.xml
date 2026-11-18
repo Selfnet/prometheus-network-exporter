@@ -1,0 +1,34 @@
+<rpc-reply xmlns:junos="http://xml.juniper.net/junos/21.4R3/junos">
+  <ospf3-statistics-information xmlns="http://xml.juniper.net/junos/21.4R3/junos-routing">
+    <ospf-statistics>
+      <packet-statistics>
+        <ospf-packet-type>Hello</ospf-packet-type>
+        <packets-sent>1000</packets-sent>
+        <packets-received>990</packets-received>
+        <packets-sent-5seconds>1</packets-sent-5seconds>
+        <packets-received-5seconds>1</packets-received-5seconds>
+      </packet-statistics>
+      <packet-statistics>
+        <ospf-packet-type>DbD</ospf-packet-type>
+        <packets-sent>10</packets-sent>
+        <packets-received>10</packets-received>
+        <packets-sent-5seconds>0</packets-sent-5seconds>
+        <packets-received-5seconds>0</packets-received-5seconds>
+      </packet-statistics>
+      <dbds-retransmit>1</dbds-retransmit>
+      <lsas-flooded>50</lsas-flooded>
+      <lsas-high-prio-flooded>2</lsas-high-prio-flooded>
+      <lsas-retransmit>3</lsas-retransmit>
+      <lsas-nbr-transmit>40</lsas-nbr-transmit>
+      <lsas-requested>5</lsas-requested>
+      <lsas-acknowledged>45</lsas-acknowledged>
+      <flood-queue-depth>0</flood-queue-depth>
+      <total-retransmits>0</total-retransmits>
+      <total-database-summaries>0</total-database-summaries>
+      <total-linkstate-request>0</total-linkstate-request>
+    </ospf-statistics>
+  </ospf3-statistics-information>
+  <cli>
+    <banner></banner>
+  </cli>
+</rpc-reply>

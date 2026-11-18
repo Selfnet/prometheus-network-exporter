@@ -1,0 +1,16 @@
+<rpc-reply xmlns:junos="http://xml.juniper.net/junos/21.4R3/junos">
+  <ldp-neighbor-information xmlns="http://xml.juniper.net/junos/21.4R3/junos-routing">
+    <ldp-neighbor>
+      <ldp-neighbor-address>198.51.100.2</ldp-neighbor-address>
+      <ldp-neighbor-interface>et-0/0/26.0</ldp-neighbor-interface>
+      <ldp-label-space-id>192.0.2.101:0</ldp-label-space-id>
+      <ldp-remaining-time>12</ldp-remaining-time>
+    </ldp-neighbor>
+    <ldp-neighbor>
+      <ldp-neighbor-address>192.0.2.101</ldp-neighbor-address>
+      <ldp-neighbor-interface>lo0.0</ldp-neighbor-interface>
+      <ldp-label-space-id>192.0.2.101:0</ldp-label-space-id>
+      <ldp-remaining-time>40</ldp-remaining-time>
+    </ldp-neighbor>
+  </ldp-neighbor-information>
+</rpc-reply>

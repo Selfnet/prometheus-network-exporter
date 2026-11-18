@@ -1,0 +1,10 @@
+<rpc-reply xmlns:junos="http://xml.juniper.net/junos/21.4R3/junos">
+<output>
+assID=0 status=0615 leap_none, sync_ntp, 1 event, clock_sync,
+version="ntpd 4.2.0-a", processor="amd64", system="JUNOS21.4R3-S12.2",
+leap=00, stratum=3, precision=-20, rootdelay=12.345, rootdispersion=40.1,
+peer=12345, refid=203.0.113.129, reftime=eaf0c0de.12345678  Tue, Oct 13 2026 23:00:00.000,
+poll=10, clock=eaf0c1de.12345678  Tue, Oct 13 2026 23:11:16.000, state=4,
+offset=-1.250, frequency=12.345, jitter=0.432, stability=0.012
+</output>
+</rpc-reply>

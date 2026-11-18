@@ -1,0 +1,6 @@
+<rpc-reply xmlns:junos="http://xml.juniper.net/junos/21.4R0/junos">
+    <ddos-protocols-information xmlns="http://xml.juniper.net/junos/21.4R0/junos-jddosd" junos:style="violations">
+        <total-packet-types>45</total-packet-types>
+        <packet-types-in-violation>0</packet-types-in-violation>
+    </ddos-protocols-information>
+</rpc-reply>

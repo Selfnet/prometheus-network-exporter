@@ -1,0 +1,16 @@
+<rpc-reply xmlns:junos="http://xml.juniper.net/junos/21.4R3/junos">
+<output>
+Unit: 0
+Profile active: l2-profile-three
+Type            Max       Used      Free      % free
+----------------------------------------------------
+IPv4 Host       147456    1182      146264    99.19
+IPv4 LPM        12288     1187      11097     90.31
+IPv4 Mcast      73728     0         73728     100.00
+
+IPv6 Host       73728     283       73445     99.62
+IPv6 LPM(&lt; 64)  4096      79        4017      98.07
+IPv6 LPM(&gt; 64)  2048      9         2039      99.56
+IPv6 Mcast      36864     0         36864     100.00
+</output>
+</rpc-reply>

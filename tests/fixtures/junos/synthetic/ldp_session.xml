@@ -1,0 +1,16 @@
+<rpc-reply xmlns:junos="http://xml.juniper.net/junos/21.4R3/junos">
+  <ldp-session-information xmlns="http://xml.juniper.net/junos/21.4R3/junos-routing">
+    <ldp-session junos:style="detail">
+      <ldp-neighbor-address>192.0.2.101</ldp-neighbor-address>
+      <ldp-session-state>Operational</ldp-session-state>
+      <ldp-connection-state>Open</ldp-connection-state>
+      <ldp-remaining-time>25</ldp-remaining-time>
+      <ldp-session-up-time junos:seconds="86400">1d 00:00:00</ldp-session-up-time>
+    </ldp-session>
+    <ldp-session junos:style="detail">
+      <ldp-neighbor-address>192.0.2.109</ldp-neighbor-address>
+      <ldp-session-state>Nonexistent</ldp-session-state>
+      <ldp-connection-state>Closed</ldp-connection-state>
+    </ldp-session>
+  </ldp-session-information>
+</rpc-reply>
