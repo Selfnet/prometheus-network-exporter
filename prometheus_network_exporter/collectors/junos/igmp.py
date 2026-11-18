@@ -53,12 +53,11 @@ class IGMPCollector(Collector):
             for mgm_addresses in igmp.values():
                 for address in mgm_addresses["mgm_addresses"]:
                     current_addr = ipaddress.ip_address(address)
-                    if current_addr in network:
-                        for ignore in self.ignored_networks:
-                            if current_addr not in ignore:
-                                counter[
-                                    self.config["IGMP_NETWORKS"]["allow"][str(network)]
-                                ] += 1
+                    # Counted once, and only outside every ignored network.
+                    if current_addr in network and not any(
+                        current_addr in ignore for ignore in self.ignored_networks
+                    ):
+                        counter[self.config["IGMP_NETWORKS"]["allow"][str(network)]] += 1
         return [
             {"broadcaster": broadcaster, "broadcasts": broadcasts}
             for broadcaster, broadcasts in counter.items()
