@@ -55,6 +55,21 @@ class BGPNeighborCollector(Collector):
                 result[address] = value
         return result
 
+    def _peer_tables(self, peer, labels, errors, queue, ribs):
+        """The repeated elements of one peer: errors, output queues and RIBs."""
+        read = self.reader
+        for error in findall(peer, "bgp-error"):
+            name = label(read.text(error, "name")) or "unknown"
+            add(errors, labels + [name, "in"], read.number(error, "receive-count"))
+            add(errors, labels + [name, "out"], read.number(error, "send-count"))
+        for entry in findall(peer, "bgp-output-queue"):
+            add(queue, labels + [label(read.text(entry, "table-name"))], read.number(entry, "count"))
+        for table in findall(peer, "bgp-rib"):
+            rib = label(read.text(table, "name"))
+            for kind, metric in ribs.items():
+                count = read.number(table, f"{kind}-prefix-count", required=kind != "advertised")
+                add(metric, labels + [rib], count)
+
     def collect(self):
         reply = self.device.rpc_reply("get_bgp_neighbor_information")
         if reply is None:
@@ -128,10 +143,6 @@ class BGPNeighborCollector(Collector):
                         labels + [direction],
                         read.number(peer, f"{prefix}-{field}", required=established),
                     )
-            for error in findall(peer, "bgp-error"):
-                name = label(read.text(error, "name")) or "unknown"
-                add(errors, labels + [name, "in"], read.number(error, "receive-count"))
-                add(errors, labels + [name, "out"], read.number(error, "send-count"))
             add(
                 hold_time,
                 labels,
@@ -142,24 +153,7 @@ class BGPNeighborCollector(Collector):
                 labels,
                 read.number(peer, "keepalive-interval", required=established),
             )
-            for entry in findall(peer, "bgp-output-queue"):
-                add(
-                    queue,
-                    labels + [label(read.text(entry, "table-name"))],
-                    read.number(entry, "count"),
-                )
-            for table in findall(peer, "bgp-rib"):
-                rib = label(read.text(table, "name"))
-                for kind, metric in ribs.items():
-                    add(
-                        metric,
-                        labels + [rib],
-                        read.number(
-                            table,
-                            f"{kind}-prefix-count",
-                            required=kind != "advertised",
-                        ),
-                    )
+            self._peer_tables(peer, labels, errors, queue, ribs)
             info.add_metric(
                 labels,
                 {

@@ -381,12 +381,12 @@ class JuniperNetworkDevice(basedevice.Device):
         self.status_registry.register(StatusCollector(self))
 
     def _register_legacy_and_routing(self, types: list):
-        ospf = True
-        optics = True
-        if "ospf" not in types:
-            ospf = False
-        if "optics" not in types:
-            optics = False
+        self._register_interface_types(types)
+        self._register_protocol_types(types)
+
+    def _register_interface_types(self, types: list):
+        ospf = "ospf" in types
+        optics = "optics" in types
         if "interface" in types and "interface_specifics" not in types:
             self._register(InterfaceCollector(self, ospf=ospf, optics=optics))
         if "interface_specifics" in types and "interface" not in types:
@@ -394,6 +394,8 @@ class JuniperNetworkDevice(basedevice.Device):
         if optics and "interface" not in types and "interface_specifics" not in types:
             # optics on its own, e.g. in a slow module next to a fast interface job
             self._register(StandaloneOpticsCollector(self))
+
+    def _register_protocol_types(self, types: list):
         if "environment" in types:
             self._register(EnvironmentCollector(self))
         # bgp and ospf are the cheap legacy views of 1.2.5: one show bgp

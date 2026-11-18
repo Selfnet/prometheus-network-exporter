@@ -182,6 +182,34 @@ class RouteTableCollector(Collector):
     def _active_entry(self, route):
         return active_entry(self.reader, route)
 
+    def _table(self, table, reply, families, newest, young):
+        """Route ages per protocol and the watched prefixes of one table dump."""
+        read = self.reader
+        watched = [prefix for prefix in self.watch if family_matches(prefix, table)]
+        seen = set()
+        newest_age = {}
+        young_count = collections.Counter()
+        for route in iter_items(reply, ("rt",)):
+            destination = read.text(route, "rt-destination")
+            entry = self._active_entry(route)
+            if entry is None:
+                continue
+            protocol = label(read.text(entry, "protocol-name"))
+            route_age = read.seconds(entry, "age")
+            young_count[protocol] += 0
+            if route_age is not None:
+                newest_age[protocol] = min(newest_age.get(protocol, route_age), route_age)
+                young_count[protocol] += route_age < self.young_seconds
+            if destination in watched and destination not in seen:
+                seen.add(destination)
+                emit_watch(read, families, [table, destination], entry, protocol, route_age)
+        for protocol, count in sorted(young_count.items()):
+            add(newest, [table, protocol], newest_age.get(protocol))
+            young.add_metric([table, protocol], float(count))
+        for prefix in watched:
+            if prefix not in seen:
+                families.present.add_metric([table, prefix], 0.0)
+
     def collect(self):
         read = self.reader
         threshold = GaugeMetricFamily(
@@ -191,7 +219,7 @@ class RouteTableCollector(Collector):
         threshold.add_metric([], self.young_seconds)
         newest = GaugeMetricFamily(
             f"{self.base_name}_newest_age_seconds",
-            "Age of the youngest active route; small values mean the table " "changed recently",
+            "Age of the youngest active route; small values mean the table changed recently",
             labels=["table", "protocol"],
         )
         young = GaugeMetricFamily(
@@ -208,32 +236,7 @@ class RouteTableCollector(Collector):
                 # pyez_junos_rpc_failed{rpc="route_table_<name>"} reports it
                 # and the JunosWatchedRouteUnknown rule alerts on that.
                 continue
-            watched = [prefix for prefix in self.watch if family_matches(prefix, table)]
-            seen = set()
-            newest_age = {}
-            young_count = collections.Counter()
-            for route in iter_items(reply, ("rt",)):
-                destination = read.text(route, "rt-destination")
-                entry = self._active_entry(route)
-                if entry is None:
-                    continue
-                protocol = label(read.text(entry, "protocol-name"))
-                route_age = read.seconds(entry, "age")
-                young_count[protocol] += 0
-                if route_age is not None:
-                    newest_age[protocol] = min(newest_age.get(protocol, route_age), route_age)
-                    if route_age < self.young_seconds:
-                        young_count[protocol] += 1
-                if destination not in watched or destination in seen:
-                    continue
-                seen.add(destination)
-                emit_watch(read, families, [table, destination], entry, protocol, route_age)
-            for protocol, count in sorted(young_count.items()):
-                add(newest, [table, protocol], newest_age.get(protocol))
-                young.add_metric([table, protocol], float(count))
-            for prefix in watched:
-                if prefix not in seen:
-                    families.present.add_metric([table, prefix], 0.0)
+            self._table(table, reply, families, newest, young)
 
         # Without a watch list the families stay out of the output, so that
         # RouteWatchCollector can own them without duplicate metadata.
