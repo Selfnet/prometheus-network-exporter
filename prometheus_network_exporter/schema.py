@@ -70,6 +70,8 @@ class Configuration(object):
                         Optional("optics_interval_seconds"): All(int, Range(min=0)),
                         # Reuse the NETCONF session between scrapes (probe module).
                         Optional("keep_session"): bool,
+                        # SSH keepalive of a kept session in seconds, 0 for none.
+                        Optional("keepalive_seconds"): All(int, Range(min=0)),
                         # Share one session slot per switch with the other modules.
                         Optional("exclusive_session"): bool,
                         Optional("session_wait_seconds"): int,

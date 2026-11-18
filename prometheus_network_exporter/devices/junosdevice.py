@@ -130,6 +130,8 @@ DEFAULT_ROUTE_TABLES = ("inet.0", "inet6.0")
 DEFAULT_YOUNG_ROUTE_SECONDS = 300
 DEFAULT_RPC_TIMEOUT = 60
 DEFAULT_SESSION_WAIT_SECONDS = 30
+# SSH keepalive of kept sessions, so that a dead link is noticed between scrapes.
+DEFAULT_KEEPALIVE_SECONDS = 30
 # An RPC Junos rejected (no permission, protocol not configured) is not
 # asked again for this long; every attempt costs a round trip.
 DEFAULT_RPC_RETRY_SECONDS = 900
@@ -293,6 +295,8 @@ class JuniperNetworkDevice(basedevice.Device):
         self.connect_duration: Optional[float] = None
         self.session_reused = False
         self.aborted: Optional[str] = None
+        # Kept sessions found dead before a scrape, since the exporter started.
+        self.sessions_lost = 0
         # RPC name -> monotonic time until which it is not asked again.
         self._rpc_denied: Dict[str, float] = {}
         super(JuniperNetworkDevice, self).__init__(hostname, device, **kwargs)
@@ -326,6 +330,15 @@ class JuniperNetworkDevice(basedevice.Device):
         exchange and a new mgd process on the routing engine every time.
         """
         return bool(self.options.get("keep_session", False))
+
+    @property
+    def keepalive_seconds(self) -> int:
+        """SSH keepalive interval of a kept session; 0 sends none.
+
+        A link that goes down without closing the TCP connection would
+        otherwise leave a session that looks alive until the next RPC fails.
+        """
+        return int(self.options.get("keepalive_seconds", DEFAULT_KEEPALIVE_SECONDS))
 
     @property
     def exclusive_session(self) -> bool:
@@ -652,6 +665,24 @@ class JuniperNetworkDevice(basedevice.Device):
         except Exception:  # noqa: B902
             return False
 
+    def _session_alive(self) -> bool:
+        """Whether the open NETCONF session still has a working SSH transport."""
+        try:
+            conn = getattr(self.device, "_conn", None)
+            if conn is None:
+                return bool(self.is_connected())
+            transport = getattr(getattr(conn, "_session", None), "_transport", None)
+            return bool(conn.connected) and (transport is None or transport.is_active())
+        except Exception:  # noqa: B902 - a broken session is simply not alive
+            return False
+
+    def _enable_keepalive(self) -> None:
+        try:
+            transport = self.device._conn._session._transport
+            transport.set_keepalive(self.keepalive_seconds)
+        except Exception as exception:  # noqa: B902 - keepalives are best effort
+            LOGGER.info("%s :: no SSH keepalive: %r", self.hostname, exception)
+
     def _drop_transport(self) -> None:
         """Close the SSH transport without a NETCONF round trip."""
         try:
@@ -665,6 +696,23 @@ class JuniperNetworkDevice(basedevice.Device):
             self.device.connected = False
         except Exception:  # noqa: B902
             pass
+
+    def _open_session(self) -> None:
+        """Reuse a kept session that is still alive, otherwise log in."""
+        if self.keep_session and self.is_connected() and self._session_alive():
+            self.session_reused = True
+            return
+        if self.keep_session and self._connected_safe():
+            # Link down or closed by the device since the last scrape.
+            LOGGER.info("%s :: kept session is dead, logging in again", self.hostname)
+            self.sessions_lost += 1
+            self._drop_transport()
+        self.session_reused = False
+        started = time.monotonic()
+        self.connect()
+        self.connect_duration = time.monotonic() - started
+        if self.keep_session and self.keepalive_seconds > 0:
+            self._enable_keepalive()
 
     def collect(self):
         # The lock serialises scrapes of one device. It must only be released,
@@ -685,13 +733,7 @@ class JuniperNetworkDevice(basedevice.Device):
                         "{} is busy with another module for {}s".format(self.hostname, self.session_wait_seconds)
                     )
             self.begin_scrape()
-            if self.keep_session and self.is_connected():
-                self.session_reused = True
-            else:
-                self.session_reused = False
-                started = time.monotonic()
-                self.connect()
-                self.connect_duration = time.monotonic() - started
+            self._open_session()
             self.device.timeout = self.rpc_timeout
             try:
                 body = generate_latest(self.registry)

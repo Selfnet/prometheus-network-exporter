@@ -157,6 +157,15 @@ class UnlockTest(HandlerTest):
         assert CONNECTION_POOL == {}
         assert all(device.disconnected for device in FakeDevice.instances)
 
+    def test_unlock_one_module(self):
+        self.get(f"/device?target={TARGET}&module=core_fast")
+        self.get(f"/device?target={TARGET}&module=core_slow")
+        response = self.get(f"/unlock/{TARGET}?module=core_slow")
+        assert response.code == 200
+        assert list(CONNECTION_POOL) == [f"{TARGET}|core_fast"]
+        assert [d.disconnected for d in FakeDevice.instances] == [False, True]
+        assert self.get(f"/unlock/{TARGET}?module=core_slow").code == 404
+
     def test_unknown_and_invalid_target(self):
         assert self.get(f"/unlock/{TARGET}").code == 404
         assert self.get("/unlock/not_a_host!").code == 409

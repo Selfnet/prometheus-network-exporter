@@ -1,6 +1,7 @@
 """Load protection: one session slot per switch, kept probe sessions."""
 
 import threading
+from types import SimpleNamespace
 
 import pytest
 
@@ -140,3 +141,83 @@ def test_failing_close_does_not_leak_the_lock(monkeypatch):
     assert device.lock.acquire(blocking=False)
     device.lock.release()
     assert junosdevice.session_slot(device.hostname).acquire(blocking=False)
+
+
+class FakeTransport:
+    def __init__(self):
+        self.active = True
+        self.keepalive = None
+
+    def is_active(self):
+        return self.active
+
+    def set_keepalive(self, seconds):
+        self.keepalive = seconds
+
+
+def attach_transport(device):
+    """Give the fake PyEZ device the ncclient session layout of a real one.
+
+    Every login gets a new transport; the list holds them in order.
+    """
+    transports = []
+    original_open = device.device.open
+
+    def open_with_transport():
+        original_open()
+        transports.append(FakeTransport())
+        session = SimpleNamespace(_transport=transports[-1], close=lambda: None)
+        device.device._conn = SimpleNamespace(connected=True, _session=session)
+        return device.device
+
+    device.device.open = open_with_transport
+    return transports
+
+
+def test_dead_kept_session_is_replaced_before_the_scrape():
+    device = make_device(SYNTHETIC, types=["probe"], options={"keep_session": True})
+    device.device.connected = False
+    transports = attach_transport(device)
+    collect(device)
+    assert transports[0].keepalive == 30
+    # The link went down between two scrapes; PyEZ still believes it is connected.
+    transports[0].active = False
+    found = collect(device)
+    assert device.device.opened == 2
+    assert found["pyez_junos_netconf_session_reused"][0][1] == 0
+    assert found["pyez_junos_netconf_sessions_lost_total"][0][1] == 1
+    # The new session is alive again and gets reused.
+    assert collect(device)["pyez_junos_netconf_session_reused"][0][1] == 1
+    assert device.device.opened == 2
+
+
+def test_session_closed_by_the_device_is_noticed():
+    device = make_device(SYNTHETIC, types=["probe"], options={"keep_session": True})
+    device.device.connected = False
+    attach_transport(device)
+    collect(device)
+    device.device._conn.connected = False
+    collect(device)
+    assert device.device.opened == 2
+
+
+@pytest.mark.parametrize("options, expected", [({"keep_session": True, "keepalive_seconds": 0}, None), ({}, None)])
+def test_no_keepalive_without_kept_session_or_when_disabled(options, expected):
+    device = make_device(SYNTHETIC, types=["probe"], options=options)
+    device.device.connected = False
+    transports = attach_transport(device)
+    collect(device)
+    assert transports[0].keepalive is expected
+
+
+def test_missing_transport_does_not_fail_the_scrape():
+    device = make_device(SYNTHETIC, types=["probe"], options={"keep_session": True})
+    device.device.connected = False
+    collect(device)  # the fake has no ncclient session: keepalive is skipped
+    assert collect(device)["pyez_junos_netconf_session_reused"][0][1] == 1
+
+
+def test_broken_session_object_counts_as_dead():
+    device = make_device(SYNTHETIC, types=["probe"], options={"keep_session": True})
+    device.device._conn = object()  # no connected attribute
+    assert device._session_alive() is False

@@ -7,17 +7,23 @@ from prometheus_network_exporter import CONNECTION_POOL, APP_LOGGER
 UNLOCK_TIMEOUT_SECONDS = 10
 
 
-def unlock_device(hostname: str) -> tuple:
-    """Disconnect and drop every pool entry of the target, one per module.
+def unlock_device(hostname: str, module: str | None = None) -> tuple:
+    """Disconnect and drop the pool entries of the target, one per module.
 
-    Runs in a worker thread: waiting for the device lock on the IOLoop
-    thread would stall every other request of the exporter.
+    With a module only that module's session is dropped, the next scrape of
+    that module logs in again. Runs in a worker thread: waiting for the
+    device lock on the IOLoop thread would stall every other request.
     """
     keys = [
-        key for key, device in list(CONNECTION_POOL.items()) if key.split("|", 1)[0] == hostname and device is not None
+        key
+        for key, device in list(CONNECTION_POOL.items())
+        if device is not None
+        and key.split("|", 1)[0] == hostname
+        and (module is None or key.split("|", 1)[1] == module)
     ]
     if not keys:
-        return 404, "Element not Found", f"{hostname} is locked or not found."
+        scope = f"{hostname} with module {module}" if module else hostname
+        return 404, "Element not Found", f"{scope} is locked or not found."
     busy = []
     for key in keys:
         device = CONNECTION_POOL.get(key)
@@ -40,7 +46,10 @@ def unlock_device(hostname: str) -> tuple:
 class DeviceUnlockHandler(tornado.web.RequestHandler):
     async def get(self, hostname):
         if FQDN(hostname).is_valid:
-            code, status, data = await tornado.ioloop.IOLoop.current().run_in_executor(None, unlock_device, hostname)
+            module = self.get_argument("module", None)
+            code, status, data = await tornado.ioloop.IOLoop.current().run_in_executor(
+                None, unlock_device, hostname, module
+            )
         else:
             code, status, data = 409, "FQDN is invalid!", f"{hostname} is not a valid FQDN!"
         self.set_status(code, reason=status)

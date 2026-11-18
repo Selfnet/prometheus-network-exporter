@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import time
 
-from prometheus_client.core import GaugeMetricFamily
+from prometheus_client.core import CounterMetricFamily, GaugeMetricFamily
 
 from ..base import Collector
 from . import base
@@ -61,6 +61,13 @@ class StatusCollector(Collector):
         )
         reused.add_metric([], 1.0 if getattr(self.device, "session_reused", False) else 0.0)
         yield reused
+
+        lost = CounterMetricFamily(
+            f"{base}_netconf_sessions_lost",
+            "Kept sessions (keep_session) found dead before a scrape and replaced by a new login",
+        )
+        lost.add_metric([], float(getattr(self.device, "sessions_lost", 0)))
+        yield lost
 
         collector_duration = GaugeMetricFamily(
             f"{base}_collector_duration_seconds",

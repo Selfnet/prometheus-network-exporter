@@ -42,30 +42,25 @@ The SSH config is also used.
     python -m prometheus_network_exporter.app
 ```
 
-## HowTo: Query for junos_devices
+## Query a device
 
     http://localhost:9332/device?target=device.example.com&module=default
 
-If access is True only the interfaces for the ports specified in
-`config/metrics_definitions.yml` are queried and if access is False everything is queried.
-The default definition for access=True is:
+`module` names a block of the config file; its `metrics` list selects the
+collectors. `interface` exports every interface, `interface_specifics` only
+the uplinks matching `[gxe][et]-*/1/*`; with both in one module `interface`
+wins. `ospf` and `optics` next to one of them add the OSPF neighbours and
+the optics to the interface collector, `optics` alone uses its own collector.
 
-## HowTo: disconnect all devices in Connection Pool?
+## Drop a session
 
-This curl disconnects all devices currently in the exporter_connection_pool.
+    http://localhost:9332/unlock/device.example.com
+    http://localhost:9332/unlock/device.example.com?module=core_probe
 
-```bash
-    curl "localhost:9332/disconnect"
-```
-
-
-```yml
-NETWORK_REGEXES:
-    - ge-*/1/*
-    - xe-*/*/*
-```
-
-Those are backbone ports on our access switches. So access defines if it is a backbone switch/router or a access switch.
+Disconnects and drops the device objects of the target, all modules or only
+the one given; the next scrape logs in again. A scrape still running is
+waited for up to 10 seconds, after that the answer is 409 and the device
+object stays.
 
 ## Optics, transceiver inventory and link endpoints
 
@@ -265,6 +260,7 @@ An optional `junos` block in the module tunes these collectors:
   junos:
     rpc_timeout: 20                          # seconds per RPC, default 60
     keep_session: false                      # reuse the NETCONF session between scrapes (probe)
+    keepalive_seconds: 30                    # SSH keepalive of a kept session, 0 for none
     exclusive_session: true                  # one session slot per switch across modules
     session_wait_seconds: 30                 # wait this long for the slot, else fail the scrape
     rpc_retry_seconds: 900                   # an RPC Junos rejected is not asked again for this long
@@ -291,8 +287,21 @@ then fail with `DeviceBusy` instead of opening a parallel session. The probe
 module opts out and keeps one long lived session (`keep_session`), so a 15s
 probe costs one small RPC instead of an SSH login and a new mgd process.
 
+A kept session stays open until it fails. Before each scrape the exporter
+checks that its SSH transport is still alive; a session the device closed
+or lost with the link is dropped and replaced by a new login instead of
+failing the scrape. SSH keepalives every `keepalive_seconds` let a dead link
+show up between scrapes. `pyez_junos_netconf_session_reused` is 1 when a
+scrape used the kept session, `pyez_junos_netconf_sessions_lost_total`
+counts the kept sessions found dead. `/unlock/<target>?module=<module>`
+drops one module's session by hand.
+
 `--config` selects another config file, which allows a second exporter
 instance next to the production one.
+
+`--worker N` (default 90) is the number of devices one process scrapes at
+the same time; further scrapes wait for a free thread. `--debug` enables
+`/memstats`, the top memory allocations from tracemalloc.
 
 `--processes N` starts N worker processes behind the one port. A Python
 process runs its collectors on one CPU core, however many threads it has;
