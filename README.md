@@ -158,16 +158,8 @@ flags of a single reported lane. `JunosLaneOpticsAlarm` covers modules with
 several reported lanes, whose receive and bias alarms Junos only reports per
 lane.
 
-Tests run without a switch:
-
-```bash
-python -m unittest discover -s tests -v
-```
-
-The synthetic optics fixture covers four breakout lanes, scalar optics and
-explicit N/A replies. Synthetic tests cover other lane counts, missing
-fields, inventory and address replies. Inventory/PIC schemas and unbroken
-multi-lane modules still need validation on the deployed device models.
+Inventory/PIC schemas and unbroken multi-lane modules still need validation
+on the deployed device models.
 
 ## Routing metrics for Junos (BGP, OSPF, route tables, BFD)
 
