@@ -23,7 +23,7 @@ def test_routing_engine(control_plane):
     assert value(control_plane, cpu, slot="0", mode="kernel", window="current") == 0.15
     assert value(control_plane, cpu, slot="0", mode="kernel", window="1m") == 0.12
     # 5m and 15m are not in the fixture and must be absent, not 0.
-    assert not [l for l, _ in control_plane[cpu] if l["window"] == "5m"]
+    assert not [labels for labels, _ in control_plane[cpu] if labels["window"] == "5m"]
     assert value(control_plane, "pyez_junos_re_load_average", slot="0", window="1m") == 1.2
     assert value(control_plane, "pyez_junos_re_memory_utilization_ratio", slot="0") == 0.27
     assert value(control_plane, "pyez_junos_re_temperature_celsius", slot="0", sensor="cpu") == 61
@@ -37,7 +37,7 @@ def test_processes(control_plane):
     assert value(control_plane, "pyez_junos_process_cpu_ratio", process="fxpc") == pytest.approx(0.155)
     assert value(control_plane, "pyez_junos_process_threads", process="fxpc") == 2
     assert value(control_plane, "pyez_junos_process_resident_bytes", process="rpd") == 40404 * 1024
-    names = {l["process"] for l, _ in control_plane["pyez_junos_process_cpu_ratio"]}
+    names = {labels["process"] for labels, _ in control_plane["pyez_junos_process_cpu_ratio"]}
     assert "idle" not in names
     assert {"rpd", "fxpc", "chassisd", "ppmd", "sshd"} <= names
 
@@ -49,7 +49,7 @@ def test_fpc(control_plane):
     assert value(control_plane, "pyez_junos_fpc_cpu_interrupt_ratio", slot="0") == 0.04
     assert value(control_plane, "pyez_junos_fpc_memory_utilization_ratio", slot="0", type="heap") == 0.35
     # An empty slot has no CPU.
-    assert not [l for l, _ in control_plane["pyez_junos_fpc_cpu_ratio"] if l["slot"] == "1"]
+    assert not [labels for labels, _ in control_plane["pyez_junos_fpc_cpu_ratio"] if labels["slot"] == "1"]
 
 
 def test_alarms(control_plane):
@@ -69,7 +69,7 @@ def test_core_dumps(control_plane):
     assert value(control_plane, "pyez_junos_core_dumps", process="rpd") == 2
     assert value(control_plane, "pyez_junos_core_dumps", process="fxpc") == 1
     assert value(control_plane, "pyez_junos_core_dump_newest_timestamp_seconds", process="rpd") == 1791750000
-    assert "README" not in {l["process"] for l, _ in control_plane["pyez_junos_core_dumps"]}
+    assert "README" not in {labels["process"] for labels, _ in control_plane["pyez_junos_core_dumps"]}
 
 
 def test_uptime_and_commit(control_plane):
@@ -80,7 +80,7 @@ def test_uptime_and_commit(control_plane):
 
 
 def test_storage_keeps_only_writable_mounts(control_plane):
-    mounts = {l["mount"] for l, _ in control_plane["pyez_junos_storage_used_ratio"]}
+    mounts = {labels["mount"] for labels, _ in control_plane["pyez_junos_storage_used_ratio"]}
     assert mounts == {"/.mount", "/.mount/var"}
     assert value(control_plane, "pyez_junos_storage_used_ratio", mount="/.mount/var") == 0.93
 
@@ -98,7 +98,7 @@ def test_storage_includes_a_root_mount(tmp_path):
         "</system-storage-information></rpc-reply>"
     )
     found = samples(scrape(make_device(tmp_path, types=["system"])))
-    mounts = {l["mount"] for l, _ in found["pyez_junos_storage_used_ratio"]}
+    mounts = {labels["mount"] for labels, _ in found["pyez_junos_storage_used_ratio"]}
     assert mounts == {"/", "/var"}
     assert value(found, "pyez_junos_storage_used_ratio", mount="/") == 0.41
 
@@ -174,7 +174,7 @@ def test_core_dumps_text_ignores_messages(tmp_path):
         "</output></rpc-reply>"
     )
     found = samples(scrape(make_device(tmp_path, types=["core_dumps"])))
-    assert [(l["process"], v) for l, v in found["pyez_junos_core_dumps"]] == [("rpd", 1.0)]
+    assert [(labels["process"], v) for labels, v in found["pyez_junos_core_dumps"]] == [("rpd", 1.0)]
 
 
 def test_core_dumps_none_in_xml(tmp_path):

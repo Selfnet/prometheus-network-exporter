@@ -15,7 +15,9 @@ def test_ldp_sessions(found):
     assert value(found, "pyez_junos_ldp_session_state", neighbor="192.0.2.101", state="Operational") == 1
     assert value(found, "pyez_junos_ldp_session_state", neighbor="192.0.2.109", state="Nonexistent") == 1
     assert value(found, "pyez_junos_ldp_session_up_seconds", neighbor="192.0.2.101") == 86400
-    assert not [l for l, _ in found["pyez_junos_ldp_session_up_seconds"] if l["neighbor"] == "192.0.2.109"]
+    assert not [
+        labels for labels, _ in found["pyez_junos_ldp_session_up_seconds"] if labels["neighbor"] == "192.0.2.109"
+    ]
 
 
 def test_ldp_neighbors(found):

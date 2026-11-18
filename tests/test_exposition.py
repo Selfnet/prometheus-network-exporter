@@ -32,7 +32,9 @@ def test_no_schema_gaps_and_valid_exposition(fixture_dir):
     names = [family.name for family in families]
     assert len(names) == len(set(names)), "metric family exported twice"
     found = samples(text)
-    missing = [(l["collector"], l["field"]) for l, v in found.get("pyez_junos_xml_missing_fields", []) if v]
+    missing = [
+        (labels["collector"], labels["field"]) for labels, v in found.get("pyez_junos_xml_missing_fields", []) if v
+    ]
     assert missing == [], f"collectors expect fields this Junos reply does not have: {missing}"
 
 

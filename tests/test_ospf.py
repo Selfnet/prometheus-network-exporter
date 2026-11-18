@@ -14,8 +14,12 @@ def test_neighbor_state_set_and_timers(synthetic):
 
 
 def test_two_neighbors_on_one_interface_are_both_exported(synthetic):
-    on_irb = [l for l, _ in synthetic["pyez_junos_ospf_neighbor_dead_timer_seconds"] if l["interface"] == "irb.100"]
-    assert {l["neighbor_id"] for l in on_irb} == {"192.0.2.109", "192.0.2.117"}
+    on_irb = [
+        labels
+        for labels, _ in synthetic["pyez_junos_ospf_neighbor_dead_timer_seconds"]
+        if labels["interface"] == "irb.100"
+    ]
+    assert {labels["neighbor_id"] for labels in on_irb} == {"192.0.2.109", "192.0.2.117"}
     info = labels_of(synthetic, "pyez_junos_ospf_neighbor_info", neighbor_id="192.0.2.109")
     assert info["dr"] == "198.51.100.129"
     assert info["bdr"] == "198.51.100.145"
@@ -113,7 +117,7 @@ def test_routes_by_type_and_interface(synthetic):
         == 0
     )
     assert value(synthetic, "pyez_junos_ospf3_route_cost", prefix="::/0", nexthop="fe80::2") == 0
-    assert not [l for l, _ in synthetic["pyez_junos_ospf3_route_cost"] if l["prefix"] == "0.0.0.0/0"]
+    assert not [labels for labels, _ in synthetic["pyez_junos_ospf3_route_cost"] if labels["prefix"] == "0.0.0.0/0"]
 
 
 def test_legacy_ospf_view_requests_extensive_and_keeps_both_neighbors():
@@ -137,7 +141,7 @@ def test_missing_protocol_produces_no_metrics_but_a_failed_rpc(tmp_path):
     found = samples(scrape(make_device(tmp_path, types=["ospf_details"])))
     assert "pyez_junos_ospf3_neighbor_state" not in found
     assert value(found, "pyez_junos_ospf_full_spf_runs_total", topology="default") == 1234
-    failed = {l["rpc"] for l, _ in found["pyez_junos_rpc_failed"]}
+    failed = {labels["rpc"] for labels, _ in found["pyez_junos_rpc_failed"]}
     assert failed == {
         "ospf3_neighbor",
         "ospf3_interface",

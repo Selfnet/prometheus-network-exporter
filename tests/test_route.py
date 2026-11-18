@@ -34,7 +34,7 @@ def test_watch_list(synthetic):
     assert info["learned_from"] == "192.0.2.102"
     # IPv4 prefixes are never looked for in inet6.0 and the other way round.
     assert not [
-        l
-        for l, _ in synthetic["pyez_junos_route_watch_present"]
-        if l["table"] == "inet6.0" and l["prefix"] == "0.0.0.0/0"
+        labels
+        for labels, _ in synthetic["pyez_junos_route_watch_present"]
+        if labels["table"] == "inet6.0" and labels["prefix"] == "0.0.0.0/0"
     ]

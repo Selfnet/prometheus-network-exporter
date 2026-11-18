@@ -204,12 +204,14 @@ def run_app(monkeypatch, *args):
     monkeypatch.setattr("sys.argv", ["prometheus-network-exporter", "--config", str(CONFIG), *args])
     server = mock.Mock()
     loop = mock.Mock()
-    monkeypatch.setattr(app_module.tornado.httpserver, "HTTPServer", mock.Mock(return_value=server))
+    http_server = mock.Mock(return_value=server)
+    monkeypatch.setattr(app_module.tornado.httpserver, "HTTPServer", http_server)
     monkeypatch.setattr(app_module.tornado.ioloop.IOLoop, "current", mock.Mock(return_value=loop))
     monkeypatch.setattr(app_module.signal, "signal", mock.Mock())
     serve = mock.Mock()
     monkeypatch.setattr(processes, "serve", serve)
     app_module.app()
+    server.application = http_server.call_args[0][0] if http_server.called else None
     return server, loop, serve
 
 
@@ -218,7 +220,7 @@ def test_app_single_process(monkeypatch):
     server.listen.assert_called_once_with(19332, address="127.0.0.1")
     loop.start.assert_called_once()
     serve.assert_not_called()
-    assert app_module.MAX_WORKERS == 3
+    assert server.application.max_workers == 3
 
 
 def test_app_hands_several_processes_to_the_front_door(monkeypatch):

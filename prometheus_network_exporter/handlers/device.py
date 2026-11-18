@@ -1,7 +1,6 @@
 import getpass
 import threading
 from concurrent.futures import ThreadPoolExecutor
-from paramiko import RSAKey
 
 import tornado
 from fqdn import FQDN
@@ -20,7 +19,6 @@ POOL_LOCK = threading.Lock()
 
 
 class ExporterHandler(tornado.web.RequestHandler):
-    global MAX_WORKERS
     executor = ThreadPoolExecutor(max_workers=MAX_WORKERS)
 
     @staticmethod
@@ -34,7 +32,6 @@ class ExporterHandler(tornado.web.RequestHandler):
 
     @tornado.concurrent.run_on_executor
     def get_device_information(self, hostname, key):
-        global CONNECTION_POOL, APP_LOGGER
         try:
             module = self.application.CONFIG[self.get_argument("module")]
         except tornado.web.MissingArgumentError:
@@ -108,7 +105,6 @@ class ExporterHandler(tornado.web.RequestHandler):
         return CONNECTION_POOL[key]
 
     async def get(self):
-        global CONNECTION_POOL, GLOBAL_GUARD
         self.set_header("Content-type", "text/plain")
 
         hostname = self.get_argument("target")

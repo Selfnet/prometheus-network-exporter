@@ -19,7 +19,6 @@ from prometheus_network_exporter import (  # noqa: E402
     CONNECTION_POOL,
     COUNTER_DIR,
     GLOBAL_GUARD,
-    MAX_WORKERS,
 )
 from prometheus_network_exporter import __version__ as VERSION  # noqa: E402
 from prometheus_network_exporter import processes  # noqa: E402
@@ -38,7 +37,7 @@ SERVER = None
 
 
 def app():
-    global APP_LOGGER, MAX_WORKERS, SERVER, COUNTER_DIR
+    global SERVER
     parser = argparse.ArgumentParser(
         prog="prometheus-network-exporter",
         description="Prometheus exporter for JunOS switches and routers + Others",
@@ -107,7 +106,6 @@ def app():
 
     processes.clear_counter_dir()
     app = build_application()
-    MAX_WORKERS = app.max_workers
     signal.signal(signal.SIGTERM, sig_handler)
     signal.signal(signal.SIGINT, sig_handler)
     SERVER = tornado.httpserver.HTTPServer(app)
@@ -119,13 +117,11 @@ def app():
 
 
 def sig_handler(sig, frame):
-    global APP_LOGGER
     APP_LOGGER.info("Caught signal: {}".format(sig))
     tornado.ioloop.IOLoop.current().add_callback_from_signal(shutdown)
 
 
 def shutdown():
-    global SERVER, GLOBAL_GUARD, APP_LOGGER
     GLOBAL_GUARD.acquire(True)
     APP_LOGGER.info("Sleeping for 60s")
     time.sleep(5)

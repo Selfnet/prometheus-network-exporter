@@ -151,6 +151,6 @@ def _get_pid_of_inode(inode):
         try:
             if re.search(inode, os.readlink(item)):
                 return item.split("/")[2]
-        except:
+        except OSError:
             pass
     return None

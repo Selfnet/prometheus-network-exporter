@@ -1,7 +1,5 @@
 """Behaviour under bad input: nothing may silently pass as healthy."""
 
-import threading
-
 from lxml import etree
 from prometheus_client.core import GaugeMetricFamily
 
@@ -124,7 +122,7 @@ def test_unknown_states_are_counted_not_labelled(tmp_path):
         (tmp_path / path.name).write_text(text)
     found = samples(scrape(make_device(tmp_path, types=["ospf_details"])))
     assert value(found, "pyez_junos_ospf_neighbor_state", neighbor_id="192.0.2.109", state="unknown") == 1
-    assert "Weird" not in {l["state"] for l, _ in found["pyez_junos_ospf_neighbor_state"]}
+    assert "Weird" not in {labels["state"] for labels, _ in found["pyez_junos_ospf_neighbor_state"]}
     assert (
         value(
             found,

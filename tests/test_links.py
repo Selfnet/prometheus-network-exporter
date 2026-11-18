@@ -14,20 +14,20 @@ def found():
 
 def test_interface_errors_only_for_matching_descriptions(found):
     name = "pyez_junos_interface_errors_total"
-    interfaces = {l["interface"] for l, _ in found[name]}
+    interfaces = {labels["interface"] for labels, _ in found[name]}
     assert interfaces == {"et-0/0/26", "xe-0/0/16"}
     assert value(found, name, interface="et-0/0/26", list="output", counter="carrier_transitions") == 4
     assert value(found, name, interface="et-0/0/26", list="output", counter="mtu_errors") == 2
     assert value(found, name, interface="xe-0/0/16", list="mac", counter="input_crc_errors") == 12
     # Plain traffic counters of the MAC statistics are not error counters.
-    assert not [l for l, _ in found[name] if l["counter"] in ("input_unicasts", "input_bytes")]
+    assert not [labels for labels, _ in found[name] if labels["counter"] in ("input_unicasts", "input_bytes")]
 
 
 def test_interface_errors_without_description_filter(tmp_path):
     (tmp_path / "interface_extensive.xml").write_text((SYNTHETIC / "interface_extensive.xml").read_text())
     device = make_device(tmp_path, types=["interface_errors"], options={"extensive_description": ""})
     result = samples(scrape(device))
-    interfaces = {l["interface"] for l, _ in result["pyez_junos_interface_errors_total"]}
+    interfaces = {labels["interface"] for labels, _ in result["pyez_junos_interface_errors_total"]}
     assert "xe-0/0/23" in interfaces
 
 
@@ -39,7 +39,7 @@ def test_queue_counters(found):
         labels_of(found, name, interface="et-0/0/26", queue="7", kind="queued")["forwarding_class"] == "network-control"
     )
     # Byte counters are left out.
-    assert not [l for l, _ in found[name] if "bytes" in l["kind"]]
+    assert not [labels for labels, _ in found[name] if "bytes" in labels["kind"]]
 
 
 def test_logical_interfaces(found):

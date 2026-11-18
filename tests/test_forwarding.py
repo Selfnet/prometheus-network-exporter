@@ -54,7 +54,8 @@ def test_krt_from_text(found):
 def test_krt_queue_from_xml(tmp_path):
     (tmp_path / "krt_queue.xml").write_text(
         "<rpc-reply><krt-queue-information>"
-        "<krt-queue><krtq-type>Normal-priority add queue</krtq-type><krtq-queue-length>3</krtq-queue-length></krt-queue>"
+        "<krt-queue><krtq-type>Normal-priority add queue</krtq-type>"
+        "<krtq-queue-length>3</krtq-queue-length></krt-queue>"
         "</krt-queue-information></rpc-reply>"
     )
     (tmp_path / "krt_state.xml").write_text(

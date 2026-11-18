@@ -46,8 +46,14 @@ def test_every_rib_of_a_peer_is_exported(synthetic):
     assert value(synthetic, "pyez_junos_bgp_peer_rib_advertised_prefixes", peer="192.0.2.102", rib="bgp.evpn.0") == 18
     assert value(synthetic, "pyez_junos_bgp_peer_output_queue_routes", peer="192.0.2.102", rib="bgp.evpn.0") == 2
     # A peer that is not Established has no RIBs and no negotiated timers.
-    assert not [l for l, _ in synthetic["pyez_junos_bgp_peer_rib_received_prefixes"] if l["peer"] == "192.0.2.105"]
-    assert not [l for l, _ in synthetic["pyez_junos_bgp_peer_hold_time_seconds"] if l["peer"] == "192.0.2.105"]
+    assert not [
+        labels
+        for labels, _ in synthetic["pyez_junos_bgp_peer_rib_received_prefixes"]
+        if labels["peer"] == "192.0.2.105"
+    ]
+    assert not [
+        labels for labels, _ in synthetic["pyez_junos_bgp_peer_hold_time_seconds"] if labels["peer"] == "192.0.2.105"
+    ]
     assert value(synthetic, "pyez_junos_bgp_peer_hold_time_seconds", peer="192.0.2.102") == 90
 
 
