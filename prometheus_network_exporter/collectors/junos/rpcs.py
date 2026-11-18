@@ -95,6 +95,7 @@ for _protocol in OSPF_PROTOCOLS:
 
 ROUTE_TABLE_RPC = "get_route_information"
 INTERFACE_RPC = "get_interface_information"
+PIC_DETAIL_RPC = "get_pic_detail"
 LOGICAL_INTERFACE_ARGS = {"statistics": True, "detail": True}
 
 
@@ -132,6 +133,9 @@ def fixture_name(rpc: str, args: dict) -> str:
         return "route_table_{}".format(args.get("table", "default"))
     if _is_logical_interface_call(rpc, args):
         return "logical_interfaces_{}".format(_slug(args["interface_name"]))
+    if rpc == PIC_DETAIL_RPC and "fpc_slot" in args and "pic_slot" in args:
+        # One name per PIC: a PIC that rejects the RPC must not block the others.
+        return "transceiver_pic_{}_{}".format(_slug(str(args["fpc_slot"])), _slug(str(args["pic_slot"])))
     plain = {key: value for key, value in args.items() if key not in FILTER_ARGS}
     for name, (spec_rpc, spec_args) in RPCS.items():
         if spec_rpc == rpc and spec_args == plain:

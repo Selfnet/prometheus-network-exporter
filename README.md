@@ -94,6 +94,10 @@ keys. PIC detail supplies vendor name and part number when available;
 chassis inventory supplies serial number and reported type. Missing fields
 are blank, not inferred from the switch vendor. Unresolvable chassis
 locations are skipped. A failed PIC RPC leaves the chassis inventory usable.
+Each PIC is asked separately and reported as `transceiver_pic_<fpc>_<pic>` in
+`pyez_junos_rpc_failed`, so a PIC that rejects the RPC does not block the
+others. The part number is read from `sfp-vendor-pno`, the element Junos
+documents, or from `sfp-vendor-part-number`.
 If the chassis inventory reports two different modules at one location, that
 location is skipped and logged; the other modules are still exported.
 

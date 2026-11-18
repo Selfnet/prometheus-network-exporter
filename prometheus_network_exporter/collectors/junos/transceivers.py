@@ -90,8 +90,10 @@ class TransceiverCollector(Collector):
                 module = location + "/" + (text(port, "port-number") or "")
                 if module not in modules:
                     continue
-                for field, tag in (("manufacturer", "sfp-vendor-name"),
-                                   ("part_number", "sfp-vendor-part-number")):
-                    value = text(port, tag)
+                # Junos documents sfp-vendor-pno; sfp-vendor-part-number is
+                # accepted as well.
+                for field, tags in (("manufacturer", ("sfp-vendor-name",)),
+                                    ("part_number", ("sfp-vendor-pno", "sfp-vendor-part-number"))):
+                    value = next(filter(None, (text(port, tag) for tag in tags)), None)
                     if value:
                         modules[module][field] = value
