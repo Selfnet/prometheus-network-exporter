@@ -74,3 +74,28 @@ def test_every_allowed_metric_type_registers_a_collector():
         if name == "ospf":
             nested = [type(c).__name__ for c in register.call_args_list[0].args[0].collectors]
             assert nested == ["OSPFCollector", "OSPF3Collector"]
+
+
+def registered(types):
+    from unittest import mock
+
+    from prometheus_network_exporter.devices.junosdevice import JuniperNetworkDevice
+
+    with mock.patch.object(JuniperNetworkDevice, "_register") as register:
+        JuniperNetworkDevice("switch.example.net", types=types, exception_counter=mock.Mock())
+    return [call.args[0] for call in register.call_args_list]
+
+
+@pytest.mark.parametrize(
+    "types, access",
+    [(["interface"], False), (["interface_specifics"], True), (["interface", "interface_specifics"], False)],
+)
+def test_interface_types(types, access):
+    from prometheus_network_exporter.collectors.junos.interface import InterfaceCollector
+
+    all_collectors = registered(types + ["optics"])
+    assert "StandaloneOpticsCollector" not in [type(c).__name__ for c in all_collectors]
+    collectors = [c for c in all_collectors if isinstance(c, InterfaceCollector)]
+    assert [c.access for c in collectors] == [access]
+    # optics ride along in the interface collector, no standalone optics then
+    assert [type(c).__name__ for c in collectors[0].collectors] == ["OpticsCollector"]

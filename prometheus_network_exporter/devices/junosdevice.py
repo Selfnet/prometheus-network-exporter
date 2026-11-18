@@ -388,9 +388,12 @@ class JuniperNetworkDevice(basedevice.Device):
     def _register_interface_types(self, types: list):
         ospf = "ospf" in types
         optics = "optics" in types
-        if "interface" in types and "interface_specifics" not in types:
+        # interface queries every interface, interface_specifics only the
+        # uplinks; with both the superset wins, both at once would export
+        # the same series twice.
+        if "interface" in types:
             self._register(InterfaceCollector(self, ospf=ospf, optics=optics))
-        if "interface_specifics" in types and "interface" not in types:
+        elif "interface_specifics" in types:
             self._register(InterfaceCollector(self, access=True, ospf=ospf, optics=optics))
         if optics and "interface" not in types and "interface_specifics" not in types:
             # optics on its own, e.g. in a slow module next to a fast interface job
