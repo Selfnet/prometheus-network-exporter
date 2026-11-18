@@ -106,7 +106,8 @@ class ProxyApplication(tornado.web.Application):
             (r"^/unlock/(.*?)$", ProxyHandler),
             (r"^/memstats$", TraceMallocHandler),
         ]
-        super().__init__(urls, debug=debug)
+        # Only /memstats, not Tornado's debug mode with autoreload.
+        super().__init__(urls, memstats=debug)
         self.ports = list(ports)
         tornado.httpclient.AsyncHTTPClient.configure(None, max_clients=max_clients)
         self.client = tornado.httpclient.AsyncHTTPClient()

@@ -8,7 +8,6 @@ from prometheus_network_exporter import (
     APP_LOGGER,
     CONNECTION_POOL,
     GLOBAL_GUARD,
-    MAX_WORKERS,
 )
 from prometheus_network_exporter.baseapp import Application
 from prometheus_network_exporter.devices.junosdevice import JuniperNetworkDevice
@@ -21,7 +20,11 @@ POOL_LOCK = threading.Lock()
 
 class ExporterHandler(tornado.web.RequestHandler):
     application: Application
-    executor = ThreadPoolExecutor(max_workers=MAX_WORKERS)
+
+    @property
+    def executor(self) -> ThreadPoolExecutor:
+        """The scrape pool of the application, sized by --worker."""
+        return self.application.executor
 
     @staticmethod
     def pool_key(hostname: str, module_name) -> str:

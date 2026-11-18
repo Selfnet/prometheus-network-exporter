@@ -19,6 +19,7 @@ from prometheus_network_exporter import (  # noqa: E402
     CONNECTION_POOL,
     COUNTER_DIR,
     GLOBAL_GUARD,
+    MAX_WORKERS,
 )
 from prometheus_network_exporter import __version__ as VERSION  # noqa: E402
 from prometheus_network_exporter import processes  # noqa: E402
@@ -36,6 +37,15 @@ if not sys.warnoptions:
 SERVER = None
 
 
+def flag(value: str) -> bool:
+    """--debug, --debug true and --debug false; bool("false") would be True."""
+    if value.lower() in ("1", "true", "yes", "on"):
+        return True
+    if value.lower() in ("0", "false", "no", "off"):
+        return False
+    raise argparse.ArgumentTypeError(f"expected true or false, got {value!r}")
+
+
 def app():
     global SERVER
     parser = argparse.ArgumentParser(
@@ -47,25 +57,27 @@ def app():
         "--port",
         type=int,
         default=9332,
-        help="Specifys the port on which the exporter is running.(Default=9332)",
+        help="Port the exporter listens on. (Default=9332)",
     )
     parser.add_argument(
         "--ip",
         type=str,
         default="::1",
-        help="Specifys the port on which the exporter is running.(Default=::1)",
+        help="Address the exporter listens on. (Default=::1)",
     )
     parser.add_argument(
         "--worker",
         type=int,
-        default=10,
-        help="Specifys the max concurrent threads running for the metrics collection. (Default=150)",
+        default=MAX_WORKERS,
+        help=f"Devices scraped at the same time, threads per process. (Default={MAX_WORKERS})",
     )
     parser.add_argument(
         "--debug",
-        type=bool,
+        type=flag,
+        nargs="?",
+        const=True,
         default=False,
-        help="Enables the Debug Tracemalloc interface.",
+        help="Enable the tracemalloc interface /memstats. (Default=false)",
     )
     parser.add_argument(
         "--config",

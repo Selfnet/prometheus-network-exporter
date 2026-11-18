@@ -81,6 +81,18 @@ class HandlerTest(tornado.testing.AsyncHTTPTestCase):
 
 
 class DeviceHandlerTest(HandlerTest):
+    def test_scrapes_run_on_the_application_pool(self):
+        threads = []
+
+        def collect(device):
+            threads.append(threading.current_thread().name)
+            return 200, "OK", b""
+
+        with mock.patch.object(FakeDevice, "collect", collect):
+            self.get(f"/device?target={TARGET}&module=default")
+        assert threads and threads[0].startswith("scrape")
+        assert self._app.executor._max_workers == 4
+
     def test_scrape_creates_one_pool_entry_per_module(self):
         response = self.get(f"/device?target={TARGET}&module=core_fast")
         assert response.code == 200
@@ -221,6 +233,31 @@ def test_app_single_process(monkeypatch):
     loop.start.assert_called_once()
     serve.assert_not_called()
     assert server.application.max_workers == 3
+
+
+def test_worker_option_sizes_the_scrape_pool(monkeypatch):
+    server, loop, serve = run_app(monkeypatch)
+    assert server.application.max_workers == 90
+    assert server.application.executor._max_workers == 90
+    server, loop, serve = run_app(monkeypatch, "--worker", "7")
+    assert server.application.executor._max_workers == 7
+
+
+@pytest.mark.parametrize(
+    "args, expected",
+    [((), False), (("--debug",), True), (("--debug", "true"), True), (("--debug", "False"), False)],
+)
+def test_debug_flag(monkeypatch, args, expected):
+    monkeypatch.setattr(app_module.tracemalloc, "start", mock.Mock())
+    server, loop, serve = run_app(monkeypatch, *args)
+    assert server.application.settings["memstats"] is expected
+    assert not server.application.settings.get("debug", False), "no autoreload in production"
+    assert app_module.tracemalloc.start.called is expected
+
+
+def test_debug_flag_rejects_other_values():
+    with pytest.raises(Exception):
+        app_module.flag("maybe")
 
 
 def test_app_hands_several_processes_to_the_front_door(monkeypatch):

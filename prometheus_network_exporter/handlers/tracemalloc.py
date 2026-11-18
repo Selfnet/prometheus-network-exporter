@@ -39,7 +39,7 @@ class TraceMallocHandler(tornado.web.RequestHandler):
     async def get(self):
         # The setting, not an attribute: the front door of several worker
         # processes serves /memstats too and has no debug attribute.
-        if not self.application.settings.get("debug", False):
+        if not self.application.settings.get("memstats", False):
             raise tornado.web.HTTPError(404)
         key_type = self.get_argument("key_type", "lineno")
         if key_type not in ("lineno", "traceback"):
