@@ -195,9 +195,7 @@ def serve(args, build_application: Callable) -> None:
     signal.signal(signal.SIGTERM, stop)
     signal.signal(signal.SIGINT, stop)
     tornado.ioloop.PeriodicCallback(watch, 5000).start()
-    APP_LOGGER.info(
-        "Starting HTTP Server on http://%s:%s with %d worker processes", args.ip, args.port, len(workers)
-    )
+    APP_LOGGER.info("Starting HTTP Server on http://%s:%s with %d worker processes", args.ip, args.port, len(workers))
     server.listen(args.port, address=args.ip)
     loop.start()
     APP_LOGGER.info("Exiting ...")

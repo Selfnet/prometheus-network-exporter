@@ -12,16 +12,12 @@ class MetricsHandler(tornado.web.RequestHandler):
     """
 
     async def get_ssh_count(self):
-        counts = Counter(
-            tok["state"] for tok in [*netstat.ssh(v4=True), *netstat.ssh(v6=True)]
-        )
+        counts = Counter(tok["state"] for tok in [*netstat.ssh(v4=True), *netstat.ssh(v6=True)])
         for state, count in counts.items():
             self.application.CONNECTIONS.labels(state, "ssh").set(count)
 
     async def get_http_count(self):
-        counts = Counter(
-            tok["state"] for tok in [*netstat.http(v4=True), *netstat.http(v6=True)]
-        )
+        counts = Counter(tok["state"] for tok in [*netstat.http(v4=True), *netstat.http(v6=True)])
         for state, count in counts.items():
             self.application.CONNECTIONS.labels(state, "http").set(count)
 

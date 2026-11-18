@@ -9,13 +9,13 @@ from prometheus_network_exporter.devices.junosdevice import JuniperNetworkDevice
 
 class OpticsCacheTests(unittest.TestCase):
     def setUp(self):
-        self.clock = patch('prometheus_network_exporter.collectors.junos.optics_cache.time.monotonic')
+        self.clock = patch("prometheus_network_exporter.collectors.junos.optics_cache.time.monotonic")
         self.now = self.clock.start()
         self.now.return_value = 1000
         self.addCleanup(self.clock.stop)
         self.cache = OpticsCache()
         self.fetch = Mock(return_value=object())
-        self.rpc = 'get_interface_optics_diagnostics_information'
+        self.rpc = "get_interface_optics_diagnostics_information"
 
     def test_reuses_then_refreshes_at_expiry(self):
         first = self.cache.reply(self.rpc, {}, self.fetch)
@@ -35,7 +35,7 @@ class OpticsCacheTests(unittest.TestCase):
 
     def test_interface_calls_are_never_cached_across_scrapes(self):
         for _ in range(2):
-            self.cache.reply('get_interface_information', {'terse': True}, self.fetch)
+            self.cache.reply("get_interface_information", {"terse": True}, self.fetch)
         self.assertEqual(self.fetch.call_count, 2)
         self.assertEqual(self.cache.entries, {})
 
@@ -51,9 +51,9 @@ class OpticsCacheTests(unittest.TestCase):
         self.assertEqual(self.cache.entries, {})
 
     def test_pic_and_target_caches_are_independent(self):
-        self.cache.reply('get_pic_detail', {'fpc_slot': '0', 'pic_slot': '1'}, self.fetch)
-        self.cache.reply('get_pic_detail', {'fpc_slot': '0', 'pic_slot': '2'}, self.fetch)
-        OpticsCache().reply('get_pic_detail', {'fpc_slot': '0', 'pic_slot': '1'}, self.fetch)
+        self.cache.reply("get_pic_detail", {"fpc_slot": "0", "pic_slot": "1"}, self.fetch)
+        self.cache.reply("get_pic_detail", {"fpc_slot": "0", "pic_slot": "2"}, self.fetch)
+        OpticsCache().reply("get_pic_detail", {"fpc_slot": "0", "pic_slot": "1"}, self.fetch)
         self.assertEqual(self.fetch.call_count, 3)
 
     def test_zero_disables_cache(self):
@@ -70,12 +70,12 @@ class OpticsCacheTests(unittest.TestCase):
             JuniperNetworkDevice.rpc_reply(device, self.rpc)
         device._rpc_reply.assert_called_once_with(self.rpc)
         for _ in range(2):
-            JuniperNetworkDevice.rpc_reply(device, 'get_interface_information')
+            JuniperNetworkDevice.rpc_reply(device, "get_interface_information")
         self.assertEqual(device._rpc_reply.call_count, 3)
 
     def test_source_age_and_refresh_timestamp(self):
-        with patch('prometheus_network_exporter.collectors.junos.optics_cache.time.time', return_value=1700000000):
-            self.cache.reply(self.rpc, {'interface_name': 'et-*'}, self.fetch)
+        with patch("prometheus_network_exporter.collectors.junos.optics_cache.time.time", return_value=1700000000):
+            self.cache.reply(self.rpc, {"interface_name": "et-*"}, self.fetch)
         self.now.return_value = 1060
         collector = StatusCollector(SimpleNamespace(optics_cache=self.cache))
         values = [s for family in collector.optics_freshness() for s in family.samples]
@@ -85,5 +85,5 @@ class OpticsCacheTests(unittest.TestCase):
         self.assertEqual([s for f in collector.optics_freshness() for s in f.samples], [])
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

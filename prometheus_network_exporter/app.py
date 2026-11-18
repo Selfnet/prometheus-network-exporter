@@ -43,9 +43,7 @@ def app():
         prog="prometheus-network-exporter",
         description="Prometheus exporter for JunOS switches and routers + Others",
     )
-    parser.add_argument(
-        "--version", action="version", version="%(prog)s: {}".format(VERSION)
-    )
+    parser.add_argument("--version", action="version", version="%(prog)s: {}".format(VERSION))
     parser.add_argument(
         "--port",
         type=int,

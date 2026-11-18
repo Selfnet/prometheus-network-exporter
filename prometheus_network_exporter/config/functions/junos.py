@@ -61,9 +61,7 @@ def floatify(string: Union[str, float]) -> float:
 
 
 def fan_power_temp_status(prometheus: MetricConfiguration, data: dict):
-    prometheus.labels = [
-        LabelConfiguration(config={"label": "sensorname", "key": "sensorname"})
-    ]
+    prometheus.labels = [LabelConfiguration(config={"label": "sensorname", "key": "sensorname"})]
     prometheus.metric = prometheus.build_metric()
     data_list = create_list_from_dict(data, "sensorname")
     for data_part in data_list:
@@ -75,9 +73,7 @@ def fan_power_temp_status(prometheus: MetricConfiguration, data: dict):
 
 
 def temp_celsius(prometheus: MetricConfiguration, data: dict):
-    prometheus.labels = [
-        LabelConfiguration(config={"label": "sensorname", "key": "sensorname"})
-    ]
+    prometheus.labels = [LabelConfiguration(config={"label": "sensorname", "key": "sensorname"})]
     prometheus.metric = prometheus.build_metric()
     data_list = create_list_from_dict(data, "sensorname")
     for data_part in data_list:
@@ -90,9 +86,7 @@ def temp_celsius(prometheus: MetricConfiguration, data: dict):
 
 def reboot(prometheus: MetricConfiguration, data: dict):
     data = list(data.values())[0]
-    label_config = LabelConfiguration(
-        config={"label": "reboot_reason", "key": "last_reboot_reason"}
-    )
+    label_config = LabelConfiguration(config={"label": "reboot_reason", "key": "last_reboot_reason"})
     reason_string = label_config.get_label(data)
     prometheus.labels = [label_config]
     prometheus.metric = prometheus.build_metric()
@@ -100,9 +94,7 @@ def reboot(prometheus: MetricConfiguration, data: dict):
     for a in ["failure", "error", "failed"]:
         if a in reason_string.lower():
             reason = 0
-    prometheus.metric.add_metric(
-        labels=[label.get_label(data) for label in prometheus.labels], value=reason
-    )
+    prometheus.metric.add_metric(labels=[label.get_label(data) for label in prometheus.labels], value=reason)
     return prometheus.metric
 
 
@@ -131,9 +123,7 @@ def cpu_idle(prometheus: MetricConfiguration, data: dict):
 
 
 def ram_usage(prometheus: MetricConfiguration, data: dict):
-    prometheus.labels = [
-        LabelConfiguration(config={"label": "routing_engine", "key": "routing_engine"})
-    ]
+    prometheus.labels = [LabelConfiguration(config={"label": "routing_engine", "key": "routing_engine"})]
     prometheus.metric = prometheus.build_metric()
     data_list = create_list_from_dict(data, "routing_engine")
     for perf in data_list:
@@ -149,9 +139,7 @@ def ram_usage(prometheus: MetricConfiguration, data: dict):
 
 
 def uptime(prometheus: MetricConfiguration, data: dict):
-    prometheus.labels = [
-        LabelConfiguration(config={"label": "routing_engine", "key": "routing_engine"})
-    ]
+    prometheus.labels = [LabelConfiguration(config={"label": "routing_engine", "key": "routing_engine"})]
     prometheus.metric = prometheus.build_metric()
     data_list = create_list_from_dict(data, "routing_engine")
     for perf in data_list:
@@ -163,9 +151,7 @@ def uptime(prometheus: MetricConfiguration, data: dict):
 
 
 def ram(prometheus: MetricConfiguration, data: dict):
-    prometheus.labels = [
-        LabelConfiguration(config={"label": "routing_engine", "key": "routing_engine"})
-    ]
+    prometheus.labels = [LabelConfiguration(config={"label": "routing_engine", "key": "routing_engine"})]
     prometheus.metric = prometheus.build_metric()
     data_list = create_list_from_dict(data, "routing_engine")
     for perf in data_list:

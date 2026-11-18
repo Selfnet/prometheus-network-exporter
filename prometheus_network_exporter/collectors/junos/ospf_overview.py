@@ -40,9 +40,7 @@ class OSPFOverviewCollector(Collector):
         read = self.reader
 
         info = InfoMetricFamily(self.base_name, "OSPF instance information")
-        info.add_metric(
-            [], {"router_id": label(read.text(reply, ".//ospf-router-id"))}
-        )
+        info.add_metric([], {"router_id": label(read.text(reply, ".//ospf-router-id"))})
         yield from read.unique(self._families(reply, info))
 
     def _families(self, reply, info):
@@ -55,16 +53,11 @@ class OSPFOverviewCollector(Collector):
             labels=["topology"],
         )
         gauges = {
-            suffix: GaugeMetricFamily(
-                f"{self.base_name}_{suffix}", doc, labels=["topology"]
-            )
+            suffix: GaugeMetricFamily(f"{self.base_name}_{suffix}", doc, labels=["topology"])
             for suffix, _, doc in TOPOLOGY_GAUGES
         }
         for topology in findall(reply, ".//ospf-topology-overview"):
-            labels = [
-                label(read.text(topology, "ospf-topology-name", required=False))
-                or "default"
-            ]
+            labels = [label(read.text(topology, "ospf-topology-name", required=False)) or "default"]
             add(spf_runs, labels, read.number(topology, "ospf-full-spf-count"))
             for suffix, field, _ in TOPOLOGY_GAUGES:
                 add(gauges[suffix], labels, read.number(topology, field))
@@ -76,17 +69,13 @@ class OSPFOverviewCollector(Collector):
             "Neighbours in state Full in the area",
             labels=["area"],
         )
-        abrs = GaugeMetricFamily(
-            f"{self.base_name}_area_abrs", "Area border routers in the area", labels=["area"]
-        )
+        abrs = GaugeMetricFamily(f"{self.base_name}_area_abrs", "Area border routers in the area", labels=["area"])
         asbrs = GaugeMetricFamily(
             f"{self.base_name}_area_asbrs",
             "AS boundary routers in the area",
             labels=["area"],
         )
-        area_info = InfoMetricFamily(
-            f"{self.base_name}_area", "OSPF area configuration", labels=["area"]
-        )
+        area_info = InfoMetricFamily(f"{self.base_name}_area", "OSPF area configuration", labels=["area"])
         for area in findall(reply, ".//ospf-area-overview"):
             labels = [label(read.text(area, "ospf-area"))]
             add(
@@ -100,9 +89,7 @@ class OSPFOverviewCollector(Collector):
                 labels,
                 {
                     "stub_type": label(read.text(area, "ospf-stub-type", required=False)),
-                    "authentication": label(
-                        read.text(area, "authentication-type", required=False)
-                    ),
+                    "authentication": label(read.text(area, "authentication-type", required=False)),
                 },
             )
         yield from (neighbors_up, abrs, asbrs, area_info)

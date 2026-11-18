@@ -222,9 +222,7 @@ class LDPCollector(Collector):
         if reply is not None:
             per_interface = collections.Counter()
             for neighbor in iter_items(reply, ("ldp-neighbor",)):
-                interface = label(
-                    read.first_text(neighbor, ("ldp-neighbor-interface", "interface-name"))
-                )
+                interface = label(read.first_text(neighbor, ("ldp-neighbor-interface", "interface-name")))
                 per_interface[interface] += 1
                 add(
                     hold,
@@ -310,8 +308,7 @@ class PIMCollector(Collector):
                 continue
             for neighbor in found:
                 name = label(
-                    read.text(neighbor, "pim-interface-name", required=False)
-                    or text(interface, "pim-interface-name")
+                    read.text(neighbor, "pim-interface-name", required=False) or text(interface, "pim-interface-name")
                 )
                 counts[name] += 1
                 add(
@@ -344,9 +341,7 @@ class NeighborTableCollector(Collector):
                 total = float(sum(1 for _ in iter_items(reply, ("arp-table-entry",))))
             arp.add_metric([], total)
 
-        nd = GaugeMetricFamily(
-            f"{self.base_name}_nd_entries", "IPv6 neighbour entries per state", labels=["state"]
-        )
+        nd = GaugeMetricFamily(f"{self.base_name}_nd_entries", "IPv6 neighbour entries per state", labels=["state"])
         command, args = RPCS["nd_table"]
         reply = self.device.rpc_reply(command, **args)
         if reply is not None:

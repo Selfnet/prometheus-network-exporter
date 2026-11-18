@@ -54,12 +54,14 @@ class TransceiverCollector(Collector):
             modules.setdefault(module, values)
         for module in sorted(conflicts):
             # Two different modules at one location: report neither.
-            LOGGER.warning("transceivers: %s :: conflicting inventory for module %s, skipped",
-                           self.device.hostname, module)
+            LOGGER.warning(
+                "transceivers: %s :: conflicting inventory for module %s, skipped", self.device.hostname, module
+            )
             del modules[module]
         self.enrich_pic_inventory(modules)
-        info = InfoMetricFamily(self.base_name, "Reported transceiver inventory; blank fields are unknown",
-                                labels=["module"])
+        info = InfoMetricFamily(
+            self.base_name, "Reported transceiver inventory; blank fields are unknown", labels=["module"]
+        )
         for module, values in modules.items():
             info.add_metric([module], values)
         yield info
@@ -68,8 +70,9 @@ class TransceiverCollector(Collector):
         reply = self.device.rpc_reply(command, **args, interface_name="[efgx][et]-*")
         if reply is None:
             return
-        ports = InfoMetricFamily(f"{base}_interface_transceiver", "Interface to physical module mapping",
-                                 labels=["interface", "module"])
+        ports = InfoMetricFamily(
+            f"{base}_interface_transceiver", "Interface to physical module mapping", labels=["interface", "module"]
+        )
         seen = set()
         for interface in iter_items(reply, ("physical-interface",)):
             name = text(interface, "name") or ""
@@ -92,8 +95,10 @@ class TransceiverCollector(Collector):
                     continue
                 # Junos documents sfp-vendor-pno; sfp-vendor-part-number is
                 # accepted as well.
-                for field, tags in (("manufacturer", ("sfp-vendor-name",)),
-                                    ("part_number", ("sfp-vendor-pno", "sfp-vendor-part-number"))):
+                for field, tags in (
+                    ("manufacturer", ("sfp-vendor-name",)),
+                    ("part_number", ("sfp-vendor-pno", "sfp-vendor-part-number")),
+                ):
                     value = next(filter(None, (text(port, tag) for tag in tags)), None)
                     if value:
                         modules[module][field] = value

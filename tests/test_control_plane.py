@@ -55,11 +55,14 @@ def test_fpc(control_plane):
 def test_alarms(control_plane):
     assert value(control_plane, "pyez_junos_alarms_active", source="chassis", **{"class": "Major"}) == 1
     assert value(control_plane, "pyez_junos_alarms_active", source="system", **{"class": "Major"}) == 0
-    assert value(
-        control_plane,
-        "pyez_junos_alarm_since_timestamp_seconds",
-        description="xe-0/2/0: Rx power low",
-    ) == 1791810000
+    assert (
+        value(
+            control_plane,
+            "pyez_junos_alarm_since_timestamp_seconds",
+            description="xe-0/2/0: Rx power low",
+        )
+        == 1791810000
+    )
 
 
 def test_core_dumps(control_plane):

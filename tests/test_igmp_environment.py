@@ -28,8 +28,9 @@ LABELS:
 
 
 def collect(collector):
-    return {(s.name, tuple(sorted(s.labels.items()))): s.value
-            for family in collector.collect() for s in family.samples}
+    return {
+        (s.name, tuple(sorted(s.labels.items()))): s.value for family in collector.collect() for s in family.samples
+    }
 
 
 def device(**values):
@@ -59,8 +60,7 @@ def test_igmp_without_ignore_list_still_counts(tmp_path):
     del config["IGMP_NETWORKS"]["ignore"]
     path = tmp_path / "igmp.yaml"
     path.write_text(yaml.safe_dump(config))
-    collector = IGMPCollector(device(get_igmp={"irb.1": {"mgm_addresses": ["239.192.0.1"]}}),
-                              config_path=str(path))
+    collector = IGMPCollector(device(get_igmp={"irb.1": {"mgm_addresses": ["239.192.0.1"]}}), config_path=str(path))
     assert collect(collector)[("pyez_junos_igmp_broadcasts", (("broadcaster", "first"),))] == 1
 
 
@@ -73,10 +73,15 @@ def test_default_igmp_config_loads():
 ENVIRONMENT = {
     "version": "21.4R3-S5.4",
     "model": "ex4600-40f",
-    "re_loads": {"re0": {
-        "cpu_idle": "90", "memory_dram_size": "2048 MB", "memory_buffer_utilization": "25",
-        "uptime": 86400, "last_reboot_reason": "Router rebooted after a normal shutdown.",
-    }},
+    "re_loads": {
+        "re0": {
+            "cpu_idle": "90",
+            "memory_dram_size": "2048 MB",
+            "memory_buffer_utilization": "25",
+            "uptime": 86400,
+            "last_reboot_reason": "Router rebooted after a normal shutdown.",
+        }
+    },
     "Temp": {"CPU": {"status": "OK", "temperature": 41}},
     "Fans": {"Fan 1": {"status": "OK"}, "Fan 2": {"status": "Failed"}},
     "Power": {"PSU 0": {"status": "OK"}},
@@ -92,7 +97,8 @@ def test_environment_metrics():
     assert data[("pyez_junos_device_temp_status", (("sensorname", "CPU"),))] == 1
     assert data[("pyez_junos_device_cpu_usage_ratio", (("cpu", "re0"),))] == 10
     assert data[("pyez_junos_device_ram_bytes_total", (("routing_engine", "re0"),))] == 2048 * 1049000
-    assert data[("pyez_junos_device_reboot_status",
-                 (("reboot_reason", "Router rebooted after a normal shutdown."),))] == 1
+    assert (
+        data[("pyez_junos_device_reboot_status", (("reboot_reason", "Router rebooted after a normal shutdown."),))] == 1
+    )
     assert data[("pyez_junos_device_software_version_info", (("software_version", "21.4R3-S5.4"),))] == 1
     assert data[("pyez_junos_device_hardware_model_info", (("hardware_model", "ex4600-40f"),))] == 1

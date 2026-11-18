@@ -18,7 +18,10 @@ def test_example_config_is_valid():
 
 
 def test_every_metric_type_is_allowed():
-    types = sorted(set(SIMPLE_COLLECTORS) | {"processes", "interface_errors", "logical_interfaces", "route_watch", "bgp_details", "ospf_details"})
+    types = sorted(
+        set(SIMPLE_COLLECTORS)
+        | {"processes", "interface_errors", "logical_interfaces", "route_watch", "bgp_details", "ospf_details"}
+    )
     module = {"device": "junos", "auth": {"method": "ssh_key"}, "metrics": types}
     Configuration().validate({"m": module})
 

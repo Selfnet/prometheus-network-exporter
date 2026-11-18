@@ -28,9 +28,7 @@ class Collector(object):
         for label in self.config.get(label_config_key, []):
             self.labels.append(LabelConfiguration(config=label))
 
-        for metric_type, possible_metrics in self.config.get(
-            metric_config_key, {}
-        ).items():
+        for metric_type, possible_metrics in self.config.get(metric_config_key, {}).items():
             for possible_metric in possible_metrics:
                 prometheus_metric = metric_configuration(
                     base_name=self.base_name,

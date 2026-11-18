@@ -27,8 +27,7 @@ class OpticsCache:
             return fetch(rpc, **args)
         now = time.monotonic()
         # Also discard entries for PICs or interface selections no longer used.
-        self.entries = {key: value for key, value in self.entries.items()
-                        if not self.expired(value[0], now)}
+        self.entries = {key: value for key, value in self.entries.items() if not self.expired(value[0], now)}
         key = (rpc, tuple(sorted(args.items())))
         cached = self.entries.get(key)
         if cached is not None:

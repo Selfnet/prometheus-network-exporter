@@ -105,8 +105,10 @@ def _timeout_on(device, rpc_name):
     class TimingOut(type(rpc)):
         def __getattr__(self, name):
             if name == rpc_name:
+
                 def call(**kwargs):
                     raise RpcTimeoutError(None, name, 10)
+
                 return call
             return original(self, name)
 

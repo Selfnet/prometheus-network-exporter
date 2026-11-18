@@ -44,9 +44,7 @@ class EchoHandler(tornado.web.RequestHandler):
 def fake_worker():
     sockets = bind_sockets(0, "127.0.0.1")
     port = sockets[0].getsockname()[1]
-    app = tornado.web.Application(
-        [(r"^/device$", EchoHandler), (r"^/unlock/(.*?)$", EchoHandler)], port=port
-    )
+    app = tornado.web.Application([(r"^/device$", EchoHandler), (r"^/unlock/(.*?)$", EchoHandler)], port=port)
     server = HTTPServer(app)
     server.add_sockets(sockets)
     return server, port
@@ -133,8 +131,10 @@ class _Args:
 
 
 def run_serve(monkeypatch, alive=(True, True)):
-    workers = [mock.Mock(pid=100 + i, is_alive=mock.Mock(return_value=state), name=f"worker-{i}")
-               for i, state in enumerate(alive)]
+    workers = [
+        mock.Mock(pid=100 + i, is_alive=mock.Mock(return_value=state), name=f"worker-{i}")
+        for i, state in enumerate(alive)
+    ]
     monkeypatch.setattr(processes, "clear_counter_dir", mock.Mock())
     monkeypatch.setattr(processes, "start_workers", mock.Mock(return_value=(workers, [1, 2])))
     server, loop = mock.Mock(), mock.Mock()

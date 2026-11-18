@@ -82,8 +82,11 @@ class InterfaceAddressCollector(Collector):
         reply = self.device.rpc_reply(command, **args)
         if reply is None:
             return
-        info = InfoMetricFamily(self.base_name, "Interface address; blank prefix or routing instance means unknown",
-                                labels=["interface", "parent_interface", "routing_instance"])
+        info = InfoMetricFamily(
+            self.base_name,
+            "Interface address; blank prefix or routing instance means unknown",
+            labels=["interface", "parent_interface", "routing_instance"],
+        )
         seen = set()
         for physical in iter_items(reply, ("physical-interface",)):
             parent = text(physical, "name")

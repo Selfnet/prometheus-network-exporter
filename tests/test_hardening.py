@@ -79,8 +79,7 @@ def test_watch_prefix_listed_twice_in_a_dump_is_exported_once():
     reply[0].append(etree.fromstring(f"<rt><rt-destination>0.0.0.0/0</rt-destination>{entry}</rt>"))
     device._rpc_cache[("get_route_information", (("active_path", True), ("table", "inet.0")))] = reply
     present = [
-        s for family in collector.collect() for s in family.samples
-        if s.name == "pyez_junos_route_watch_present"
+        s for family in collector.collect() for s in family.samples if s.name == "pyez_junos_route_watch_present"
     ]
     assert len(present) == 1 and present[0].value == 1
 
@@ -119,9 +118,19 @@ def test_unknown_states_are_counted_not_labelled(tmp_path):
     for path in SYNTHETIC.glob("*.xml"):
         text = path.read_text()
         if path.name == "ospf_neighbor.xml":
-            text = text.replace("<ospf-neighbor-state>2Way</ospf-neighbor-state>", "<ospf-neighbor-state>Weird</ospf-neighbor-state>")
+            text = text.replace(
+                "<ospf-neighbor-state>2Way</ospf-neighbor-state>", "<ospf-neighbor-state>Weird</ospf-neighbor-state>"
+            )
         (tmp_path / path.name).write_text(text)
     found = samples(scrape(make_device(tmp_path, types=["ospf_details"])))
     assert value(found, "pyez_junos_ospf_neighbor_state", neighbor_id="192.0.2.109", state="unknown") == 1
     assert "Weird" not in {l["state"] for l, _ in found["pyez_junos_ospf_neighbor_state"]}
-    assert value(found, "pyez_junos_xml_missing_fields", collector="ospf_neighbor", field="ospf-neighbor-state:unexpected-value") == 1
+    assert (
+        value(
+            found,
+            "pyez_junos_xml_missing_fields",
+            collector="ospf_neighbor",
+            field="ospf-neighbor-state:unexpected-value",
+        )
+        == 1
+    )

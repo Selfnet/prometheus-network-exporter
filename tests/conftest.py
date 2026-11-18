@@ -66,11 +66,7 @@ def load_reply(path: pathlib.Path, strip: bool):
     root = etree.parse(str(path)).getroot()
     reply = root
     if localname(root) == "rpc-reply":
-        children = [
-            child
-            for child in root
-            if isinstance(child.tag, str) and localname(child) != "cli"
-        ]
+        children = [child for child in root if isinstance(child.tag, str) and localname(child) != "cli"]
         reply = children[0]
     if strip:
         remove_namespaces_and_spaces(reply)
@@ -168,9 +164,7 @@ def samples(text: str) -> dict:
 
 def value(found: dict, name: str, **labels):
     matches = [
-        v
-        for sample_labels, v in found.get(name, [])
-        if all(sample_labels.get(k) == v2 for k, v2 in labels.items())
+        v for sample_labels, v in found.get(name, []) if all(sample_labels.get(k) == v2 for k, v2 in labels.items())
     ]
     assert len(matches) == 1, f"{name}{labels}: {matches!r}"
     return matches[0]

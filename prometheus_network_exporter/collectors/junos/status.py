@@ -38,8 +38,7 @@ class StatusCollector(Collector):
 
         connect = GaugeMetricFamily(
             f"{base}_netconf_connect_seconds",
-            "Time to open the NETCONF session for this scrape; slow when the "
-            "routing engine is busy",
+            "Time to open the NETCONF session for this scrape; slow when the " "routing engine is busy",
         )
         if self.device.connect_duration is not None:
             connect.add_metric([], self.device.connect_duration)
@@ -95,11 +94,13 @@ class StatusCollector(Collector):
 
     def optics_freshness(self):
         age = GaugeMetricFamily(
-            f"{base}_optics_cache_age_seconds", "Age of the cached optical RPC reply",
+            f"{base}_optics_cache_age_seconds",
+            "Age of the cached optical RPC reply",
             labels=["rpc", "interface", "fpc", "pic"],
         )
         stamp = GaugeMetricFamily(
-            f"{base}_optics_last_refresh_timestamp_seconds", "Unix time of the cached optical RPC reply",
+            f"{base}_optics_last_refresh_timestamp_seconds",
+            "Unix time of the cached optical RPC reply",
             labels=["rpc", "interface", "fpc", "pic"],
         )
         now = time.monotonic()
@@ -107,8 +108,12 @@ class StatusCollector(Collector):
             if self.device.optics_cache.expired(started, now):
                 continue
             args = dict(arguments)
-            labels = [rpc, str(args.get("interface_name", "")),
-                      str(args.get("fpc_slot", "")), str(args.get("pic_slot", ""))]
+            labels = [
+                rpc,
+                str(args.get("interface_name", "")),
+                str(args.get("fpc_slot", "")),
+                str(args.get("pic_slot", "")),
+            ]
             age.add_metric(labels, max(0, now - started))
             stamp.add_metric(labels, timestamp)
         yield age

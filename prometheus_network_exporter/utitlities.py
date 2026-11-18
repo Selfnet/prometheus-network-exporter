@@ -14,23 +14,14 @@ def merge_dicts_by_key(first: dict, second: dict) -> dict:
 
 
 def create_list_from_dict(dictionary: dict, key: str, format_str="{}") -> list:
-    return [
-        {key: format_str.format(dict_key), **dict_values}
-        for dict_key, dict_values in dictionary.items()
-    ]
+    return [{key: format_str.format(dict_key), **dict_values} for dict_key, dict_values in dictionary.items()]
 
 
 def remove_empty(dictionary: dict) -> dict:
-    return {
-        key: value
-        for key, value in dictionary.items()
-        if value is not None and value != str(None) and value != ""
-    }
+    return {key: value for key, value in dictionary.items() if value is not None and value != str(None) and value != ""}
 
 
-def enrich_dict_from_upper_dict_by_labels(
-    listing: dict, labels: List[LabelConfiguration], key: str
-) -> list:
+def enrich_dict_from_upper_dict_by_labels(listing: dict, labels: List[LabelConfiguration], key: str) -> list:
     for dictionary in listing:
         data = {label.json_key: label.get_label(dictionary) for label in labels}
         data = remove_empty(data)

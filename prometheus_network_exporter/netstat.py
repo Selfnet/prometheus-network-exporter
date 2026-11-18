@@ -7,7 +7,6 @@ import socket
 import struct
 import codecs
 
-
 PROC_TCP = "/proc/net/tcp"
 PROC_TCP6 = "/proc/net/tcp6"
 STATE = {

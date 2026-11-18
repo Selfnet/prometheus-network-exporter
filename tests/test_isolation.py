@@ -22,9 +22,12 @@ def test_failing_collector_does_not_take_the_scrape_down(monkeypatch):
     assert value(found, "pyez_junos_collector_failed", collector="route_engine") == 1
     assert value(found, "pyez_junos_fpc_cpu_ratio", slot="0", window="current") == 0.22
     assert value(found, "pyez_junos_collector_duration_seconds", collector="fpc") >= 0
-    assert device.exception_counter.labels(
-        exception="KeyError", collector="JuniperNetworkDevice", hostname="switch.example.com"
-    )._value.get() == 1
+    assert (
+        device.exception_counter.labels(
+            exception="KeyError", collector="JuniperNetworkDevice", hostname="switch.example.com"
+        )._value.get()
+        == 1
+    )
 
 
 def test_session_errors_still_abort_the_scrape(monkeypatch):
@@ -98,8 +101,10 @@ def test_rpc_timeout_aborts_the_scrape(monkeypatch):
 
     def getattr_with_timeout(self, name):
         if name == "get_route_engine_information":
+
             def call(**kwargs):
                 raise RpcTimeoutError(None, name, 20)
+
             return call
         return original(self, name)
 

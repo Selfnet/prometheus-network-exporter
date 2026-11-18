@@ -27,13 +27,16 @@ def test_flaps_messages_and_errors(synthetic):
     assert value(synthetic, "pyez_junos_bgp_peer_flaps_total", peer="192.0.2.105") == 7
     assert value(synthetic, "pyez_junos_bgp_peer_updates_total", peer="192.0.2.102", direction="in") == 234
     assert value(synthetic, "pyez_junos_bgp_peer_octets_total", peer="192.0.2.102", direction="out") == 400000
-    assert value(
-        synthetic,
-        "pyez_junos_bgp_peer_errors_total",
-        peer="192.0.2.102",
-        error="Hold Timer Expired Error",
-        direction="in",
-    ) == 2
+    assert (
+        value(
+            synthetic,
+            "pyez_junos_bgp_peer_errors_total",
+            peer="192.0.2.102",
+            error="Hold Timer Expired Error",
+            direction="in",
+        )
+        == 2
+    )
     assert value(synthetic, "pyez_junos_bgp_peer_errors_total", peer="192.0.2.102", error="Cease", direction="out") == 0
 
 

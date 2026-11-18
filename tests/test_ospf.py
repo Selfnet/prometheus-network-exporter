@@ -67,12 +67,51 @@ def test_database_aggregates(synthetic):
 
 
 def test_routes_by_type_and_interface(synthetic):
-    assert value(synthetic, "pyez_junos_ospf_routes", area="0.0.0.0", path_type="Intra", route_type="Network", nexthop_interface="ae0.0") == 2
-    assert value(synthetic, "pyez_junos_ospf_routes", area="0.0.0.0", path_type="Intra", route_type="Network", nexthop_interface="irb.100") == 1
-    assert value(synthetic, "pyez_junos_ospf_routes", area="", path_type="Ext2", route_type="Network", nexthop_interface="irb.100") == 1
+    assert (
+        value(
+            synthetic,
+            "pyez_junos_ospf_routes",
+            area="0.0.0.0",
+            path_type="Intra",
+            route_type="Network",
+            nexthop_interface="ae0.0",
+        )
+        == 2
+    )
+    assert (
+        value(
+            synthetic,
+            "pyez_junos_ospf_routes",
+            area="0.0.0.0",
+            path_type="Intra",
+            route_type="Network",
+            nexthop_interface="irb.100",
+        )
+        == 1
+    )
+    assert (
+        value(
+            synthetic,
+            "pyez_junos_ospf_routes",
+            area="",
+            path_type="Ext2",
+            route_type="Network",
+            nexthop_interface="irb.100",
+        )
+        == 1
+    )
     assert value(synthetic, "pyez_junos_ospf_routes", path_type="Intra", route_type="Router") == 1
     # Watched prefixes carry cost and next hop; the family decides the protocol.
-    assert value(synthetic, "pyez_junos_ospf_route_cost", prefix="0.0.0.0/0", nexthop_interface="irb.100", nexthop="198.51.100.137") == 0
+    assert (
+        value(
+            synthetic,
+            "pyez_junos_ospf_route_cost",
+            prefix="0.0.0.0/0",
+            nexthop_interface="irb.100",
+            nexthop="198.51.100.137",
+        )
+        == 0
+    )
     assert value(synthetic, "pyez_junos_ospf3_route_cost", prefix="::/0", nexthop="fe80::2") == 0
     assert not [l for l, _ in synthetic["pyez_junos_ospf3_route_cost"] if l["prefix"] == "0.0.0.0/0"]
 
@@ -99,4 +138,11 @@ def test_missing_protocol_produces_no_metrics_but_a_failed_rpc(tmp_path):
     assert "pyez_junos_ospf3_neighbor_state" not in found
     assert value(found, "pyez_junos_ospf_full_spf_runs_total", topology="default") == 1234
     failed = {l["rpc"] for l, _ in found["pyez_junos_rpc_failed"]}
-    assert failed == {"ospf3_neighbor", "ospf3_interface", "ospf3_overview", "ospf3_database", "ospf3_route", "ospf3_statistics"}
+    assert failed == {
+        "ospf3_neighbor",
+        "ospf3_interface",
+        "ospf3_overview",
+        "ospf3_database",
+        "ospf3_route",
+        "ospf3_statistics",
+    }

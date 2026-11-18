@@ -18,9 +18,7 @@ class IGMPCollector(Collector):
     name = "igmp"
     base_name = "{0}_{1}".format(base, name)
 
-    def __init__(
-        self, device: junosdevice.JuniperNetworkDevice, config_path: str = None
-    ) -> IGMPCollector:
+    def __init__(self, device: junosdevice.JuniperNetworkDevice, config_path: str = None) -> IGMPCollector:
         config = self.default
         if config_path is not None:
             with open(config_path, "r") as file:
@@ -30,17 +28,11 @@ class IGMPCollector(Collector):
 
     @cached_property
     def allowed_networks(self):
-        return [
-            ipaddress.ip_network(prefix)
-            for prefix in self.config["IGMP_NETWORKS"].get("allow", {}).keys()
-        ]
+        return [ipaddress.ip_network(prefix) for prefix in self.config["IGMP_NETWORKS"].get("allow", {}).keys()]
 
     @cached_property
     def ignored_networks(self):
-        return [
-            ipaddress.ip_network(net)
-            for net in self.config["IGMP_NETWORKS"].get("ignore", {}).keys()
-        ]
+        return [ipaddress.ip_network(net) for net in self.config["IGMP_NETWORKS"].get("ignore", {}).keys()]
 
     def get_igmp_broadcasts(self):
         igmp = self.device.get_igmp()
@@ -54,14 +46,9 @@ class IGMPCollector(Collector):
                 for address in mgm_addresses["mgm_addresses"]:
                     current_addr = ipaddress.ip_address(address)
                     # Counted once, and only outside every ignored network.
-                    if current_addr in network and not any(
-                        current_addr in ignore for ignore in self.ignored_networks
-                    ):
+                    if current_addr in network and not any(current_addr in ignore for ignore in self.ignored_networks):
                         counter[self.config["IGMP_NETWORKS"]["allow"][str(network)]] += 1
-        return [
-            {"broadcaster": broadcaster, "broadcasts": broadcasts}
-            for broadcaster, broadcasts in counter.items()
-        ]
+        return [{"broadcaster": broadcaster, "broadcasts": broadcasts} for broadcaster, broadcasts in counter.items()]
 
     def collect(self):
         igmp_list = self.get_igmp_broadcasts()

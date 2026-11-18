@@ -16,9 +16,7 @@ class EnvironmentCollector(Collector):
     name = "device"
     base_name = "{0}_{1}".format(base, name)
 
-    def __init__(
-        self, device: junosdevice.JuniperNetworkDevice, config_path: str = None
-    ) -> EnvironmentCollector:
+    def __init__(self, device: junosdevice.JuniperNetworkDevice, config_path: str = None) -> EnvironmentCollector:
 
         config = self.default
         if config_path is not None:
@@ -28,18 +26,14 @@ class EnvironmentCollector(Collector):
         super(EnvironmentCollector, self).__init__(self.base_name, device, config)
         self._init_prometheus_metrics(metric_configuration=JunosMetricConfiguration)
 
-    def collect_complex_metric(
-        self, metric: MetricConfiguration, complex_data: dict
-    ) -> list:
+    def collect_complex_metric(self, metric: MetricConfiguration, complex_data: dict) -> list:
         return metric.function(metric, complex_data)
 
     def collect(self):
         environment = self.device.get_environment()
         for prometheus in self.prometheus_metrics.values():
             if prometheus.complex:
-                yield self.collect_complex_metric(
-                    prometheus, environment.get(prometheus.json_key)
-                )
+                yield self.collect_complex_metric(prometheus, environment.get(prometheus.json_key))
             elif prometheus.metric_type is Metric.Info:
                 prometheus.metric.add_metric(
                     labels=self.get_labels(environment),

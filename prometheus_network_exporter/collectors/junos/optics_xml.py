@@ -8,9 +8,9 @@ import yaml
 
 from .xmlutil import LOGGER, find, findall, iter_items, localname, text
 
-FIELDS = yaml.safe_load(read_text("prometheus_network_exporter.views.junos", "optic.yml"))[
-    "PhyPortDiagView"
-]["fields_diag"]
+FIELDS = yaml.safe_load(read_text("prometheus_network_exporter.views.junos", "optic.yml"))["PhyPortDiagView"][
+    "fields_diag"
+]
 
 
 def numeric(value):
@@ -84,8 +84,9 @@ def parse_optics(reply):
                 if index is None or index in lanes:
                     # Skip the record instead of guessing or overwriting a
                     # lane; the rest of the reply stays usable.
-                    LOGGER.warning("optics: %s lane index on %s, lane record skipped",
-                                   "duplicate" if index else "missing", name)
+                    LOGGER.warning(
+                        "optics: %s lane index on %s, lane record skipped", "duplicate" if index else "missing", name
+                    )
                     continue
                 lanes[index] = read_fields(lane)
         if not available or values or lanes:

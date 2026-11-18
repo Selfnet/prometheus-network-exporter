@@ -116,8 +116,10 @@ class DeviceHandlerTest(HandlerTest):
         assert CONNECTION_POOL == {}
 
     def test_password_auth(self):
-        self._app.CONFIG["pw"] = {**self._app.CONFIG["default"],
-                                  "auth": {"method": "password", "username": "u", "password": "p"}}
+        self._app.CONFIG["pw"] = {
+            **self._app.CONFIG["default"],
+            "auth": {"method": "password", "username": "u", "password": "p"},
+        }
         assert self.get(f"/device?target={TARGET}&module=pw").code == 200
         assert FakeDevice.instances[0].kwargs["password"] == "p"
 
@@ -163,9 +165,11 @@ class UnlockTest(HandlerTest):
 class MetricsTest(HandlerTest):
     def test_metrics_include_tcp_states_and_workers(self):
         connections = [{"state": "ESTABLISHED"}, {"state": "ESTABLISHED"}, {"state": "TIME_WAIT"}]
-        with mock.patch("prometheus_network_exporter.netstat.netstat", return_value=iter([])), \
-                mock.patch("prometheus_network_exporter.netstat.ssh", side_effect=[iter(connections), iter([])]), \
-                mock.patch("prometheus_network_exporter.netstat.http", side_effect=[iter([]), iter([])]):
+        with (
+            mock.patch("prometheus_network_exporter.netstat.netstat", return_value=iter([])),
+            mock.patch("prometheus_network_exporter.netstat.ssh", side_effect=[iter(connections), iter([])]),
+            mock.patch("prometheus_network_exporter.netstat.http", side_effect=[iter([]), iter([])]),
+        ):
             response = self.get("/metrics")
         assert response.code == 200
         state = self._app.CONNECTIONS.labels("ESTABLISHED", "ssh")._value.get()

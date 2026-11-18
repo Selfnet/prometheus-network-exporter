@@ -61,11 +61,7 @@ class MetricConfiguration(_Configuration):
         labels: List[LabelConfiguration],
         config: dict,
     ) -> MetricConfiguration:
-        self.__metric_type = (
-            metric_type
-            if isinstance(metric_type, Metric)
-            else Metric(metric_type.lower())
-        )
+        self.__metric_type = metric_type if isinstance(metric_type, Metric) else Metric(metric_type.lower())
         self.__base_name = base_name
         self.labels = labels
         super().__init__(config=config)
@@ -75,9 +71,7 @@ class MetricConfiguration(_Configuration):
     def base_name(self) -> str:
         if self.config.get("type") is None:
             return "{0}_{1}".format(self.__base_name, self.config["metric"])
-        return "{0}_{1}_{2}".format(
-            self.__base_name, self.config["metric"], self.config["type"]
-        )
+        return "{0}_{1}_{2}".format(self.__base_name, self.config["metric"], self.config["type"])
 
     @property
     def description(self) -> str:

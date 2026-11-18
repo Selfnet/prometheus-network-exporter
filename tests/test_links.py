@@ -35,7 +35,9 @@ def test_queue_counters(found):
     name = "pyez_junos_interface_queue_packets_total"
     assert value(found, name, interface="xe-0/0/16", queue="0", kind="tail_drop") == 1000
     assert value(found, name, interface="xe-0/0/16", queue="7", kind="trans") == 5000
-    assert labels_of(found, name, interface="et-0/0/26", queue="7", kind="queued")["forwarding_class"] == "network-control"
+    assert (
+        labels_of(found, name, interface="et-0/0/26", queue="7", kind="queued")["forwarding_class"] == "network-control"
+    )
     # Byte counters are left out.
     assert not [l for l, _ in found[name] if "bytes" in l["kind"]]
 
@@ -43,7 +45,10 @@ def test_queue_counters(found):
 def test_logical_interfaces(found):
     assert value(found, "pyez_junos_logical_interface_received_bytes_total", interface="lo0.0") == 5000000
     assert value(found, "pyez_junos_logical_interface_transmitted_packets_total", interface="irb.2102") == 80
-    assert labels_of(found, "pyez_junos_logical_interface_received_packets_total", interface="irb.2102")["description"] == "ceph"
+    assert (
+        labels_of(found, "pyez_junos_logical_interface_received_packets_total", interface="irb.2102")["description"]
+        == "ceph"
+    )
 
 
 def test_lacp(found):
@@ -146,7 +151,11 @@ def test_optics_without_interface_collector():
     }
     assert value(found, "pyez_junos_interface_temperature_celsius", interface="xe-0/2/0") == 41
     assert value(found, "pyez_junos_interface_receiving_optic_power_dbm", interface="xe-0/2/0") == -30
-    assert value(found, "pyez_junos_interface_optics_alarm", interface="xe-0/2/0", alarm="laser_rx_power_low_alarm") == 1
-    assert value(found, "pyez_junos_interface_optics_alarm", interface="xe-0/2/0", alarm="laser_tx_power_low_alarm") == 0
+    assert (
+        value(found, "pyez_junos_interface_optics_alarm", interface="xe-0/2/0", alarm="laser_rx_power_low_alarm") == 1
+    )
+    assert (
+        value(found, "pyez_junos_interface_optics_alarm", interface="xe-0/2/0", alarm="laser_tx_power_low_alarm") == 0
+    )
     # One optics RPC and the cheap interface list, not show interfaces detail.
     assert sorted(set(device.device.rpc.calls)) == ["interfaces_brief", "optics"]

@@ -38,8 +38,10 @@ def info(found):
 
 
 def test_each_pic_has_its_own_rpc_name():
-    names = {fixture_name("get_pic_detail", {"fpc_slot": fpc, "pic_slot": pic}) for fpc, pic in
-             [("0", "0"), ("0", "1"), ("1", "0")]}
+    names = {
+        fixture_name("get_pic_detail", {"fpc_slot": fpc, "pic_slot": pic})
+        for fpc, pic in [("0", "0"), ("0", "1"), ("1", "0")]
+    }
     assert names == {"transceiver_pic_0_0", "transceiver_pic_0_1", "transceiver_pic_1_0"}
 
 

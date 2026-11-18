@@ -72,12 +72,7 @@ class Device:
         now = time.monotonic()
         with self._names_lock:
             pending = sorted(
-                {
-                    ip
-                    for ip in addresses
-                    if ip and ip != "None"
-                    and (ip not in self._names or self._names[ip][0] <= now)
-                }
+                {ip for ip in addresses if ip and ip != "None" and (ip not in self._names or self._names[ip][0] <= now)}
             )
         if len(pending) > 1:
             # list() waits for all of them; lookup() stores every result.

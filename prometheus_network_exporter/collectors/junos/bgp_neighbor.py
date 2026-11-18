@@ -37,14 +37,10 @@ class BGPNeighborCollector(Collector):
         self.reader = Reader(device.schema, self.name)
 
     def _gauge(self, suffix, doc, extra=()):
-        return GaugeMetricFamily(
-            f"{self.base_name}_{suffix}", doc, labels=PEER_LABELS + list(extra)
-        )
+        return GaugeMetricFamily(f"{self.base_name}_{suffix}", doc, labels=PEER_LABELS + list(extra))
 
     def _counter(self, suffix, doc, extra=()):
-        return CounterMetricFamily(
-            f"{self.base_name}_{suffix}", doc, labels=PEER_LABELS + list(extra)
-        )
+        return CounterMetricFamily(f"{self.base_name}_{suffix}", doc, labels=PEER_LABELS + list(extra))
 
     def _uptimes(self) -> dict:
         """Seconds in the current state per peer, only ``show bgp summary`` has it."""
@@ -73,15 +69,11 @@ class BGPNeighborCollector(Collector):
             "BGP finite state machine state of the peer, 1 for the current state",
             ["state"],
         )
-        state_seconds = self._gauge(
-            "state_seconds", "Seconds the peer has been in its current state"
-        )
+        state_seconds = self._gauge("state_seconds", "Seconds the peer has been in its current state")
         flaps = self._counter("flaps", "Times the session went down")
         messages = self._counter("messages", "BGP messages", ["direction"])
         updates = self._counter("updates", "BGP UPDATE messages", ["direction"])
-        refreshes = self._counter(
-            "refreshes", "BGP ROUTE-REFRESH messages", ["direction"]
-        )
+        refreshes = self._counter("refreshes", "BGP ROUTE-REFRESH messages", ["direction"])
         octets = self._counter("octets", "BGP protocol bytes", ["direction"])
         errors = self._counter(
             "errors",
@@ -89,12 +81,8 @@ class BGPNeighborCollector(Collector):
             ["error", "direction"],
         )
         hold_time = self._gauge("hold_time_seconds", "Negotiated hold time")
-        keepalive = self._gauge(
-            "keepalive_interval_seconds", "Negotiated keepalive interval"
-        )
-        queue = self._gauge(
-            "output_queue_routes", "Routes waiting in the output queue", ["rib"]
-        )
+        keepalive = self._gauge("keepalive_interval_seconds", "Negotiated keepalive interval")
+        queue = self._gauge("output_queue_routes", "Routes waiting in the output queue", ["rib"])
         ribs = {
             kind: self._gauge(
                 f"rib_{kind}_prefixes",
@@ -103,9 +91,7 @@ class BGPNeighborCollector(Collector):
             )
             for kind in RIB_COUNTERS
         }
-        info = InfoMetricFamily(
-            self.base_name, "Static information about the BGP peer", labels=PEER_LABELS
-        )
+        info = InfoMetricFamily(self.base_name, "Static information about the BGP peer", labels=PEER_LABELS)
         last_event = InfoMetricFamily(
             f"{self.base_name}_last_event",
             "Last state, event and error seen on the session",
@@ -199,9 +185,7 @@ class BGPNeighborCollector(Collector):
                     "last_state": label(read.text(peer, "last-state")),
                     "last_event": label(read.text(peer, "last-event")),
                     "last_error": label(read.text(peer, "last-error")),
-                    "last_flap_event": label(
-                        read.text(peer, "last-flap-event", required=False)
-                    ),
+                    "last_flap_event": label(read.text(peer, "last-flap-event", required=False)),
                 },
             )
 

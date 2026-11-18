@@ -119,32 +119,22 @@ class RoutingEngineCollector(Collector):
             "Routing engine memory utilisation",
             labels=labels,
         )
-        up = GaugeMetricFamily(
-            f"{self.base_name}_up_seconds", "Routing engine uptime", labels=labels
-        )
+        up = GaugeMetricFamily(f"{self.base_name}_up_seconds", "Routing engine uptime", labels=labels)
         temperature = GaugeMetricFamily(
             f"{self.base_name}_temperature_celsius",
             "Routing engine and CPU temperature",
             labels=labels + ["sensor"],
         )
-        info = InfoMetricFamily(
-            self.base_name, "Routing engine model, mastership and reboot reason", labels=labels
-        )
+        info = InfoMetricFamily(self.base_name, "Routing engine model, mastership and reboot reason", labels=labels)
         for engine in iter_items(reply, ("route-engine",)):
             slot = [label(read.text(engine, "slot", required=False) or "0")]
             for mode, field in CPU_MODES:
                 for window, suffix in CPU_WINDOWS:
-                    value = (
-                        read.number(engine, field)
-                        if not suffix
-                        else number(text(engine, field + suffix))
-                    )
+                    value = read.number(engine, field) if not suffix else number(text(engine, field + suffix))
                     add(cpu, slot + [mode, window], _ratio(value))
             for window, field in LOAD_AVERAGES:
                 add(load, slot + [window], read.number(engine, field))
-            utilisation = read.first_text(
-                engine, ("memory-buffer-utilization", "memory-system-total-util")
-            )
+            utilisation = read.first_text(engine, ("memory-buffer-utilization", "memory-system-total-util"))
             add(memory, slot, _ratio(number(utilisation)))
             add(up, slot, read.seconds(engine, "up-time", required=False))
             for sensor, field in (("re", "temperature"), ("cpu", "cpu-temperature")):
@@ -155,12 +145,8 @@ class RoutingEngineCollector(Collector):
                 slot,
                 {
                     "model": label(read.text(engine, "model", required=False)),
-                    "mastership_state": label(
-                        read.text(engine, "mastership-state", required=False)
-                    ),
-                    "last_reboot_reason": label(
-                        read.text(engine, "last-reboot-reason", required=False)
-                    ),
+                    "mastership_state": label(read.text(engine, "mastership-state", required=False)),
+                    "last_reboot_reason": label(read.text(engine, "last-reboot-reason", required=False)),
                 },
             )
         yield from read.unique((cpu, load, memory, up, temperature, info))
@@ -205,7 +191,7 @@ def parse_top(output: str) -> Dict[str, dict]:
     if header_index is None:
         return result
     columns = lines[header_index].split()
-    for line in lines[header_index + 1:]:
+    for line in lines[header_index + 1 :]:
         parts = line.split(None, len(columns) - 1)
         if len(parts) != len(columns) or not parts[0].isdigit():
             continue
@@ -257,24 +243,19 @@ class ProcessCollector(Collector):
         selected += [name for name in busiest[: self.top] if name not in selected]
         cpu = GaugeMetricFamily(
             f"{self.base_name}_cpu_ratio",
-            "Weighted CPU share of the process, summed over its threads; "
-            "1.0 is one core",
+            "Weighted CPU share of the process, summed over its threads; " "1.0 is one core",
             labels=["process"],
         )
         resident = GaugeMetricFamily(
             f"{self.base_name}_resident_bytes", "Resident memory of the process", labels=["process"]
         )
-        threads = GaugeMetricFamily(
-            f"{self.base_name}_threads", "Threads of the process", labels=["process"]
-        )
+        threads = GaugeMetricFamily(f"{self.base_name}_threads", "Threads of the process", labels=["process"])
         for name in selected:
             entry = processes[name]
             cpu.add_metric([name], entry["cpu"])
             add(resident, [name], entry["resident"])
             threads.add_metric([name], float(entry["threads"]))
-        count = GaugeMetricFamily(
-            f"{base}_processes", "Distinct process names in the process table"
-        )
+        count = GaugeMetricFamily(f"{base}_processes", "Distinct process names in the process table")
         count.add_metric([], float(len(processes)))
         yield from self.reader.unique((cpu, resident, threads, count))
 
@@ -298,9 +279,7 @@ class FPCCollector(Collector):
         state = GaugeMetricFamily(
             f"{self.base_name}_state", "FPC state, 1 for the current one", labels=labels + ["state"]
         )
-        cpu = GaugeMetricFamily(
-            f"{self.base_name}_cpu_ratio", "FPC CPU utilisation", labels=labels + ["window"]
-        )
+        cpu = GaugeMetricFamily(f"{self.base_name}_cpu_ratio", "FPC CPU utilisation", labels=labels + ["window"])
         interrupt = GaugeMetricFamily(
             f"{self.base_name}_cpu_interrupt_ratio", "FPC CPU share spent in interrupts", labels=labels
         )
@@ -309,9 +288,7 @@ class FPCCollector(Collector):
             "FPC heap and buffer utilisation",
             labels=labels + ["type"],
         )
-        temperature = GaugeMetricFamily(
-            f"{self.base_name}_temperature_celsius", "FPC temperature", labels=labels
-        )
+        temperature = GaugeMetricFamily(f"{self.base_name}_temperature_celsius", "FPC temperature", labels=labels)
         for fpc in iter_items(reply, ("fpc",)):
             slot = [label(read.text(fpc, "slot"))]
             current = read.text(fpc, "state")
@@ -346,9 +323,7 @@ class AlarmCollector(Collector):
 
     def collect(self):
         read = self.reader
-        active = GaugeMetricFamily(
-            f"{base}_alarms_active", "Active alarms per class", labels=["source", "class"]
-        )
+        active = GaugeMetricFamily(f"{base}_alarms_active", "Active alarms per class", labels=["source", "class"])
         info = InfoMetricFamily(
             self.base_name,
             "One sample per active alarm",
@@ -403,9 +378,7 @@ class CoreDumpCollector(Collector):
         if reply is None:
             return
         counts, newest = self._scan(reply)
-        dumps = GaugeMetricFamily(
-            f"{base}_core_dumps", "Core dump files on the device", labels=["process"]
-        )
+        dumps = GaugeMetricFamily(f"{base}_core_dumps", "Core dump files on the device", labels=["process"])
         for process, count in sorted(counts.items()):
             dumps.add_metric([process], float(count))
         latest = GaugeMetricFamily(
@@ -478,9 +451,7 @@ class UptimeCollector(Collector):
             "Unix time of the last configuration commit",
             labels=labels,
         )
-        commit_info = InfoMetricFamily(
-            f"{base}_last_commit", "User of the last configuration commit", labels=labels
-        )
+        commit_info = InfoMetricFamily(f"{base}_last_commit", "User of the last configuration commit", labels=labels)
         for uptime in iter_items(reply, ("system-uptime-information",)):
             parent = uptime.getparent()
             re_name = ""
@@ -520,9 +491,7 @@ class StorageCollector(Collector):
         if reply is None:
             return
         read = self.reader
-        used = GaugeMetricFamily(
-            f"{self.base_name}_used_ratio", "Used share of the file system", labels=["mount"]
-        )
+        used = GaugeMetricFamily(f"{self.base_name}_used_ratio", "Used share of the file system", labels=["mount"])
         for filesystem in iter_items(reply, ("filesystem",)):
             mount = read.text(filesystem, "mounted-on")
             if mount is None or not self.mounts.match(mount):
@@ -546,15 +515,13 @@ class NTPCollector(Collector):
         if reply is None:
             return
         output = all_text(reply)
-        synced = GaugeMetricFamily(
-            f"{self.base_name}_synced", "1 when ntpd is synchronised to a server"
-        )
+        synced = GaugeMetricFamily(f"{self.base_name}_synced", "1 when ntpd is synchronised to a server")
         offset = GaugeMetricFamily(f"{self.base_name}_offset_seconds", "Offset to the system peer")
         stratum = GaugeMetricFamily(f"{self.base_name}_stratum", "Stratum of the device")
         query_failed = GaugeMetricFamily(
             f"{self.base_name}_query_failed",
             "1 when ntpd on the device did not answer the local status query "
-            "(\"localhost: timed out\"); sync state and offset are unknown then",
+            '("localhost: timed out"); sync state and offset are unknown then',
         )
         if re.search(r"timed out|nothing received|Connection refused", output):
             query_failed.add_metric([], 1.0)
@@ -594,13 +561,9 @@ class ProbeCollector(Collector):
     def collect(self):
         command, args = RPCS["probe"]
         reply = self.device.rpc_reply(command, **args)
-        success = GaugeMetricFamily(
-            f"{self.base_name}_success", "1 when the probe RPC answered"
-        )
+        success = GaugeMetricFamily(f"{self.base_name}_success", "1 when the probe RPC answered")
         success.add_metric([], 0.0 if reply is None else 1.0)
-        duration = GaugeMetricFamily(
-            f"{self.base_name}_rpc_seconds", "Round trip time of the probe RPC"
-        )
+        duration = GaugeMetricFamily(f"{self.base_name}_rpc_seconds", "Round trip time of the probe RPC")
         add(duration, [], self.device.rpc_durations.get("probe"))
         yield success
         yield duration

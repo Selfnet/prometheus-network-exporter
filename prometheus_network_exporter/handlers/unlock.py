@@ -14,9 +14,7 @@ def unlock_device(hostname: str) -> tuple:
     thread would stall every other request of the exporter.
     """
     keys = [
-        key
-        for key, device in list(CONNECTION_POOL.items())
-        if key.split("|", 1)[0] == hostname and device is not None
+        key for key, device in list(CONNECTION_POOL.items()) if key.split("|", 1)[0] == hostname and device is not None
     ]
     if not keys:
         return 404, "Element not Found", f"{hostname} is locked or not found."
@@ -42,9 +40,7 @@ def unlock_device(hostname: str) -> tuple:
 class DeviceUnlockHandler(tornado.web.RequestHandler):
     async def get(self, hostname):
         if FQDN(hostname).is_valid:
-            code, status, data = await tornado.ioloop.IOLoop.current().run_in_executor(
-                None, unlock_device, hostname
-            )
+            code, status, data = await tornado.ioloop.IOLoop.current().run_in_executor(None, unlock_device, hostname)
         else:
             code, status, data = 409, "FQDN is invalid!", f"{hostname} is not a valid FQDN!"
         self.set_status(code, reason=status)

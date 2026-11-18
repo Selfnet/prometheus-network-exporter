@@ -73,12 +73,8 @@ class OSPFDatabaseCollector(Collector):
                         )
 
         labels = ["area", "lsa_type"]
-        lsas = GaugeMetricFamily(
-            f"{self.base_name}_lsas", "LSAs in the database", labels=labels
-        )
-        own_lsas = GaugeMetricFamily(
-            f"{self.base_name}_own_lsas", "LSAs originated by this router", labels=labels
-        )
+        lsas = GaugeMetricFamily(f"{self.base_name}_lsas", "LSAs in the database", labels=labels)
+        own_lsas = GaugeMetricFamily(f"{self.base_name}_own_lsas", "LSAs originated by this router", labels=labels)
         age_min = GaugeMetricFamily(
             f"{self.base_name}_lsa_age_seconds_min",
             "Age of the youngest LSA; LSAs are refreshed about every 30 minutes",

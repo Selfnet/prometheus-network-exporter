@@ -9,7 +9,9 @@ SHAPES = FIXTURES / "junos-21.4-shapes"
 
 @pytest.fixture
 def found():
-    device = make_device(SHAPES, types=["bgp", "bgp_details", "ddos", "fib", "pim", "system", "krt", "vxlan", "ospf", "ospf_details"])
+    device = make_device(
+        SHAPES, types=["bgp", "bgp_details", "ddos", "fib", "pim", "system", "krt", "vxlan", "ospf", "ospf_details"]
+    )
     result = samples(scrape(device))
     assert not device.schema.missing
     return result
@@ -22,7 +24,10 @@ def test_split_bgp_groups_are_summed(found):
 
 
 def test_ddos_labels_inside_statistics(found):
-    assert value(found, "pyez_junos_ddos_packets_total", group="ospf", packet_type="aggregate", counter="packet-dropped") == 12
+    assert (
+        value(found, "pyez_junos_ddos_packets_total", group="ospf", packet_type="aggregate", counter="packet-dropped")
+        == 12
+    )
     assert value(found, "pyez_junos_ddos_packets_total", group="ospf", counter="policer-violation-count") == 1
     assert value(found, "pyez_junos_ddos_rate_pps", group="ospf", counter="packet-arrival-rate") == 47
     assert value(found, "pyez_junos_ddos_violations") == 0
@@ -59,4 +64,6 @@ def test_vxlan_without_remote_vteps_is_zero(found):
 
 def test_ospf_interface_with_two_addresses(found):
     assert value(found, "pyez_junos_ospf_interface_state", interface="lo0.0", address="192.0.2.1", state="DRother") == 1
-    assert value(found, "pyez_junos_ospf_interface_state", interface="lo0.0", address="192.0.2.254", state="DRother") == 1
+    assert (
+        value(found, "pyez_junos_ospf_interface_state", interface="lo0.0", address="192.0.2.254", state="DRother") == 1
+    )

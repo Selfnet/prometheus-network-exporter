@@ -28,9 +28,7 @@ class Application(_Application):
         with open(config_path, "r") as f:
             self.CONFIG = yaml.safe_load(f)
         Configuration().validate(self.CONFIG)
-        multiprocess.MultiProcessCollector(
-            registry=self.multiprocess_registry, path=COUNTER_DIR
-        )
+        multiprocess.MultiProcessCollector(registry=self.multiprocess_registry, path=COUNTER_DIR)
         self.max_workers = kwargs.pop("max_workers", 10)
         self.debug = kwargs.pop("debug", False)
         buckets = kwargs.pop("prometheus_buckets", None)
@@ -70,9 +68,7 @@ class Application(_Application):
         if buckets is not None:
             histogram_kwargs["buckets"] = buckets
         self.request_time_histogram = Histogram(
-            "tornado_http_request_duration_seconds",
-            "Tornado HTTP request duration in seconds",
-            **histogram_kwargs
+            "tornado_http_request_duration_seconds", "Tornado HTTP request duration in seconds", **histogram_kwargs
         )
 
     def log_request(self, handler):

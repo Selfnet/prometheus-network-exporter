@@ -239,7 +239,10 @@ class IsolatedCollector:
             except (TypeError, ValueError):
                 LOGGER.warning(
                     "%s :: collector %s: dropped %s, value %r",
-                    self.device.hostname, self.label, family.name, sample.value,
+                    self.device.hostname,
+                    self.label,
+                    family.name,
+                    sample.value,
                 )
                 self.device.collector_failed.add(self.label)
                 return False
@@ -254,9 +257,7 @@ class IsolatedCollector:
         except FATAL_ERRORS:
             raise
         except Exception as exception:  # noqa: B902 - isolation is the point
-            LOGGER.warning(
-                "%s :: collector %s failed: %r", self.device.hostname, self.label, exception
-            )
+            LOGGER.warning("%s :: collector %s failed: %r", self.device.hostname, self.label, exception)
             self.device.collector_failed.add(self.label)
             self.device._count_exception(exception)
         finally:
@@ -269,14 +270,7 @@ class IsolatedCollector:
 
 class JuniperNetworkDevice(basedevice.Device):
     def __init__(
-        self,
-        hostname,
-        user=None,
-        password=None,
-        port=22,
-        ssh_private_key_file=None,
-        ssh_config=None,
-        **kwargs
+        self, hostname, user=None, password=None, port=22, ssh_private_key_file=None, ssh_config=None, **kwargs
     ) -> JuniperNetworkDevice:
         device = Device(
             host=hostname,
@@ -362,9 +356,7 @@ class JuniperNetworkDevice(basedevice.Device):
                 )
             )
         if "system" in types:
-            self._register(
-                StorageCollector(self, mounts=self.options.get("storage_mounts", DEFAULT_STORAGE_MOUNTS))
-            )
+            self._register(StorageCollector(self, mounts=self.options.get("storage_mounts", DEFAULT_STORAGE_MOUNTS)))
         if "interface_errors" in types:
             self._register(
                 InterfaceErrorCollector(
@@ -398,9 +390,7 @@ class JuniperNetworkDevice(basedevice.Device):
         if "interface" in types and "interface_specifics" not in types:
             self._register(InterfaceCollector(self, ospf=ospf, optics=optics))
         if "interface_specifics" in types and "interface" not in types:
-            self._register(
-                InterfaceCollector(self, access=True, ospf=ospf, optics=optics)
-            )
+            self._register(InterfaceCollector(self, access=True, ospf=ospf, optics=optics))
         if optics and "interface" not in types and "interface_specifics" not in types:
             # optics on its own, e.g. in a slow module next to a fast interface job
             self._register(StandaloneOpticsCollector(self))
@@ -424,9 +414,7 @@ class JuniperNetworkDevice(basedevice.Device):
                 self._register(OSPFInterfaceCollector(self, protocol))
                 self._register(OSPFOverviewCollector(self, protocol))
                 self._register(OSPFDatabaseCollector(self, protocol))
-                self._register(
-                    OSPFRouteCollector(self, protocol, watch=self.watch_prefixes)
-                )
+                self._register(OSPFRouteCollector(self, protocol, watch=self.watch_prefixes))
         if "routes" in types:
             self._register(RouteSummaryCollector(self))
             self._register(
@@ -490,7 +478,10 @@ class JuniperNetworkDevice(basedevice.Device):
         except RpcError as error:
             LOGGER.info(
                 "%s :: %s failed, not asked again for %ds: %s",
-                self.hostname, name, self.rpc_retry_seconds, error,
+                self.hostname,
+                name,
+                self.rpc_retry_seconds,
+                error,
             )
             self.rpc_failed.add(name)
             self._rpc_denied[name] = time.monotonic() + self.rpc_retry_seconds
@@ -543,10 +534,7 @@ class JuniperNetworkDevice(basedevice.Device):
         software = SoftwareTable(self.device).get()
         rengine = RoutingEngineTable(self.device).get()
         rengine_dict = {
-            available_key: dict(v)
-            for k, v in rengine.items()
-            for available_key in k
-            if available_key is not None
+            available_key: dict(v) for k, v in rengine.items() for available_key in k if available_key is not None
         }
         temperatures = EnvironmentTable(self.device).get()
         return {
@@ -561,27 +549,9 @@ class JuniperNetworkDevice(basedevice.Device):
                 else {}
             ),
             **{"re_loads": rengine_dict},
-            **{
-                "Temp": {
-                    k: dict(v)
-                    for k, v in temperatures.items()
-                    if "Temp" == dict(v)["class"]
-                }
-            },
-            **{
-                "Fans": {
-                    k: dict(v)
-                    for k, v in temperatures.items()
-                    if "Fans" == dict(v)["class"]
-                }
-            },
-            **{
-                "Power": {
-                    k: dict(v)
-                    for k, v in temperatures.items()
-                    if "Power" == dict(v)["class"]
-                }
-            },
+            **{"Temp": {k: dict(v) for k, v in temperatures.items() if "Temp" == dict(v)["class"]}},
+            **{"Fans": {k: dict(v) for k, v in temperatures.items() if "Fans" == dict(v)["class"]}},
+            **{"Power": {k: dict(v) for k, v in temperatures.items() if "Power" == dict(v)["class"]}},
         }
 
     def get_igmp(self):
@@ -617,9 +587,7 @@ class JuniperNetworkDevice(basedevice.Device):
                 self._count_exception(e)
                 continue
             result.setdefault(interface, {ospf_type.value: []})
-            result[interface][ospf_type.value].append(
-                {**{"unit": unit}, **self.lookup_ospf(dict(values))}
-            )
+            result[interface][ospf_type.value].append({**{"unit": unit}, **self.lookup_ospf(dict(values))})
         return result
 
     def get_ospf(self, interface_regex: str = None):
@@ -644,9 +612,7 @@ class JuniperNetworkDevice(basedevice.Device):
 
     def get_optics(self, interface_regex=None):
         command, args = RPCS["optics"]
-        reply = self.rpc_reply(
-            command, **args, interface_name=interface_regex or "[efgx][et]-*"
-        )
+        reply = self.rpc_reply(command, **args, interface_name=interface_regex or "[efgx][et]-*")
         return parse_optics(reply) if reply is not None else {}
 
     def is_connected(self):
@@ -710,9 +676,7 @@ class JuniperNetworkDevice(basedevice.Device):
                 has_slot = slot.acquire(timeout=self.session_wait_seconds)
                 if not has_slot:
                     raise DeviceBusy(
-                        "{} is busy with another module for {}s".format(
-                            self.hostname, self.session_wait_seconds
-                        )
+                        "{} is busy with another module for {}s".format(self.hostname, self.session_wait_seconds)
                     )
             self.begin_scrape()
             if self.keep_session and self.is_connected():

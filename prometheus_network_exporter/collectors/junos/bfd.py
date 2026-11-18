@@ -29,9 +29,7 @@ class BFDCollector(Collector):
         add(clients, [], read.number(reply, "clients", required=False))
         yield from read.unique((sessions, clients))
 
-        up = GaugeMetricFamily(
-            f"{self.base_name}_session_up", "1 when the BFD session is Up", labels=LABELS
-        )
+        up = GaugeMetricFamily(f"{self.base_name}_session_up", "1 when the BFD session is Up", labels=LABELS)
         detection = GaugeMetricFamily(
             f"{self.base_name}_session_detection_time_seconds",
             "Negotiated detection time",
@@ -56,12 +54,7 @@ class BFDCollector(Collector):
             labels = [
                 label(read.text(session, "session-neighbor")),
                 label(read.text(session, "session-interface", required=False)),
-                ",".join(
-                    sorted(
-                        label(text(client, "client-name"))
-                        for client in findall(session, "bfd-client")
-                    )
-                ),
+                ",".join(sorted(label(text(client, "client-name")) for client in findall(session, "bfd-client"))),
             ]
             state = read.text(session, "session-state")
             up.add_metric(labels, 1.0 if (state or "").lower() == "up" else 0.0)
@@ -77,12 +70,8 @@ class BFDCollector(Collector):
                 {
                     "state": label(state),
                     "remote_state": label(read.text(session, "remote-state", required=False)),
-                    "local_diagnostic": label(
-                        read.text(session, "local-diagnostic", required=False)
-                    ),
-                    "remote_diagnostic": label(
-                        read.text(session, "remote-diagnostic", required=False)
-                    ),
+                    "local_diagnostic": label(read.text(session, "local-diagnostic", required=False)),
+                    "remote_diagnostic": label(read.text(session, "remote-diagnostic", required=False)),
                 },
             )
         yield from read.unique((up, detection, transmit, up_seconds, info))

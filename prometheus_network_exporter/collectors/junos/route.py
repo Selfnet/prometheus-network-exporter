@@ -54,9 +54,7 @@ class RouteSummaryCollector(Collector):
         yield info
 
         gauges = {
-            suffix: GaugeMetricFamily(
-                f"{self.base_name}_table_{suffix}", doc, labels=["table"]
-            )
+            suffix: GaugeMetricFamily(f"{self.base_name}_table_{suffix}", doc, labels=["table"])
             for suffix, _, doc in TABLE_GAUGES
         }
         protocol_routes = GaugeMetricFamily(
@@ -80,9 +78,7 @@ class RouteSummaryCollector(Collector):
         yield from read.unique((*gauges.values(), protocol_routes, protocol_active))
 
 
-class WatchFamilies(collections.namedtuple(
-    "WatchFamilies", "present age metric preference nexthops info"
-)):
+class WatchFamilies(collections.namedtuple("WatchFamilies", "present age metric preference nexthops info")):
     """The metric families a watched prefix is exported into."""
 
 
@@ -195,8 +191,7 @@ class RouteTableCollector(Collector):
         threshold.add_metric([], self.young_seconds)
         newest = GaugeMetricFamily(
             f"{self.base_name}_newest_age_seconds",
-            "Age of the youngest active route; small values mean the table "
-            "changed recently",
+            "Age of the youngest active route; small values mean the table " "changed recently",
             labels=["table", "protocol"],
         )
         young = GaugeMetricFamily(
@@ -242,9 +237,7 @@ class RouteTableCollector(Collector):
 
         # Without a watch list the families stay out of the output, so that
         # RouteWatchCollector can own them without duplicate metadata.
-        yield from read.unique(
-            (threshold, newest, young, *(families if self.watch else ()))
-        )
+        yield from read.unique((threshold, newest, young, *(families if self.watch else ())))
 
 
 class RouteWatchCollector(Collector):
@@ -286,7 +279,10 @@ class RouteWatchCollector(Collector):
             if entry is None:
                 continue
             emit_watch(
-                read, families, labels, entry,
+                read,
+                families,
+                labels,
+                entry,
                 label(read.text(entry, "protocol-name")),
                 read.seconds(entry, "age"),
             )

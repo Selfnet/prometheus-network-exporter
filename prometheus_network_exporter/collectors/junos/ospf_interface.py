@@ -34,9 +34,7 @@ class OSPFInterfaceCollector(Collector):
         self.reader = Reader(device.schema, f"{protocol}_interface")
 
     def collect(self):
-        reply = self.device.rpc_reply(
-            f"get_{self.protocol}_interface_information", detail=True
-        )
+        reply = self.device.rpc_reply(f"get_{self.protocol}_interface_information", detail=True)
         if reply is None:
             return
         read = self.reader
@@ -46,12 +44,9 @@ class OSPFInterfaceCollector(Collector):
             labels=LABELS + ["state"],
         )
         gauges = {
-            suffix: GaugeMetricFamily(f"{self.base_name}_{suffix}", doc, labels=LABELS)
-            for suffix, _, doc in GAUGES
+            suffix: GaugeMetricFamily(f"{self.base_name}_{suffix}", doc, labels=LABELS) for suffix, _, doc in GAUGES
         }
-        info = InfoMetricFamily(
-            self.base_name, "OSPF interface configuration", labels=LABELS
-        )
+        info = InfoMetricFamily(self.base_name, "OSPF interface configuration", labels=LABELS)
         for interface in iter_items(reply, ITEMS):
             labels = [
                 label(read.text(interface, "interface-name")),
@@ -69,16 +64,10 @@ class OSPFInterfaceCollector(Collector):
                 {
                     "type": label(read.text(interface, "interface-type")),
                     "dr_id": label(read.first_text(interface, ("dr-id", "dr-address"))),
-                    "bdr_id": label(
-                        read.first_text(interface, ("bdr-id", "bdr-address"))
-                    ),
+                    "bdr_id": label(read.first_text(interface, ("bdr-id", "bdr-address"))),
                     "passive": "yes" if find(interface, "passive") is not None else "no",
-                    "authentication": label(
-                        read.text(interface, "authentication-type", required=False)
-                    ),
-                    "stub_type": label(
-                        read.text(interface, "ospf-stub-type", required=False)
-                    ),
+                    "authentication": label(read.text(interface, "authentication-type", required=False)),
+                    "stub_type": label(read.text(interface, "ospf-stub-type", required=False)),
                 },
             )
         yield from read.unique((state, *gauges.values(), info))

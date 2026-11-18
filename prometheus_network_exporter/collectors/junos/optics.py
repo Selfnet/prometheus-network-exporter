@@ -36,15 +36,9 @@ class OpticsCollector(Collector):
 
     def collect(self, interfaces: dict, access: bool = False):
         assert isinstance(self.device, junosdevice.JuniperNetworkDevice)
-        optics = (
-            self.device.get_optics(interface_regex=self.interface_regex)
-            if access
-            else self.device.get_optics()
-        )
+        optics = self.device.get_optics(interface_regex=self.interface_regex) if access else self.device.get_optics()
         interfaces_optics_dict = merge_dicts_by_key(interfaces, optics)
-        interfaces_optics_list = create_list_from_dict(
-            interfaces_optics_dict, "interface_name"
-        )
+        interfaces_optics_list = create_list_from_dict(interfaces_optics_dict, "interface_name")
         for prometheus in self.prometheus_metrics.values():
             assert isinstance(prometheus, JunosMetricConfiguration)
             for interface in interfaces_optics_list:
@@ -61,7 +55,8 @@ class OpticsCollector(Collector):
 
     def lane_metrics(self, interfaces):
         available = GaugeMetricFamily(
-            f"{self.base_name}_optics_available", "1 if Junos supplies diagnostics, 0 for explicit N/A",
+            f"{self.base_name}_optics_available",
+            "1 if Junos supplies diagnostics, 0 for explicit N/A",
             labels=["interface"],
         )
         count = GaugeMetricFamily(
@@ -70,7 +65,8 @@ class OpticsCollector(Collector):
             labels=["interface"],
         )
         flags = GaugeMetricFamily(
-            f"{self.base_name}_lane_optics_alarm", "1 while the reported lane alarm or warning is on",
+            f"{self.base_name}_lane_optics_alarm",
+            "1 while the reported lane alarm or warning is on",
             labels=["interface", "lane", "alarm"],
         )
         for interface in interfaces:
@@ -128,7 +124,7 @@ class OpticsCollector(Collector):
                 if not key.startswith("flag_") or value is None:
                     continue
                 flags.add_metric(
-                    [str(interface.get("interface_name")), key[len("flag_"):]],
+                    [str(interface.get("interface_name")), key[len("flag_") :]],
                     1.0 if str(value).strip().lower() == "on" else 0.0,
                 )
         return flags

@@ -15,7 +15,9 @@ def test_pfe_traffic(found):
     assert value(found, name, section="pfe-traffic-statistics", counter="software-input-control-plane-drops") == 42
     assert value(found, name, section="pfe-traffic-statistics", counter="hardware-input-drops") == 1000
     assert value(found, name, section="pfe-hardware-discard-statistics", counter="nexthop-discard") == 17
-    assert value(found, "pyez_junos_pfe_statistics_rate", section="pfe-traffic-statistics", counter="input-pps") == 12000
+    assert (
+        value(found, "pyez_junos_pfe_statistics_rate", section="pfe-traffic-statistics", counter="input-pps") == 12000
+    )
 
 
 def test_pfe_exceptions_from_text(found):
@@ -30,8 +32,14 @@ def test_hardware_tables(found):
 
 
 def test_ddos(found):
-    assert value(found, "pyez_junos_ddos_packets_total", group="OSPF", packet_type="aggregate", counter="packet-dropped") == 5
-    assert value(found, "pyez_junos_ddos_rate_pps", group="ARP", packet_type="aggregate", counter="packet-arrival-rate") == 12
+    assert (
+        value(found, "pyez_junos_ddos_packets_total", group="OSPF", packet_type="aggregate", counter="packet-dropped")
+        == 5
+    )
+    assert (
+        value(found, "pyez_junos_ddos_rate_pps", group="ARP", packet_type="aggregate", counter="packet-arrival-rate")
+        == 12
+    )
     assert value(found, "pyez_junos_ddos_violations") == 1
     assert value(found, "pyez_junos_ddos_violation_active", group="OSPF", packet_type="aggregate") == 1
 

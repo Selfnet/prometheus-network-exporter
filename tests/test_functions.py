@@ -24,18 +24,32 @@ def by_label(family, label):
     return {sample.labels[label]: sample.value for sample in family.samples}
 
 
-@pytest.mark.parametrize("value, expected", [
-    (None, 0), ("3", 3.0), (2, 2.0), (["7", "8"], 7.0),
-])
+@pytest.mark.parametrize(
+    "value, expected",
+    [
+        (None, 0),
+        ("3", 3.0),
+        (2, 2.0),
+        (["7", "8"], 7.0),
+    ],
+)
 def test_default(value, expected):
     assert junos.default(value) == expected
     assert junos.none_to_zero(value) == expected
 
 
-@pytest.mark.parametrize("value, expected", [
-    (True, 1.0), (False, 0.0), ("Up", 1.0), (" ok ", 1.0), ("Established", 1.0),
-    ("down", 0.0), (None, 0.0),
-])
+@pytest.mark.parametrize(
+    "value, expected",
+    [
+        (True, 1.0),
+        (False, 0.0),
+        ("Up", 1.0),
+        (" ok ", 1.0),
+        ("Established", 1.0),
+        ("down", 0.0),
+        (None, 0.0),
+    ],
+)
 def test_is_ok(value, expected):
     assert junos.is_ok(value) == expected
 
@@ -63,9 +77,16 @@ def test_inf_defaults():
     assert junos.none_to_plus_inf(3) == 3
 
 
-@pytest.mark.parametrize("value, expected", [
-    ("- Inf", -math.inf), ("Inf", math.inf), ("-2.5", -2.5), (1, 1.0), (None, 0),
-])
+@pytest.mark.parametrize(
+    "value, expected",
+    [
+        ("- Inf", -math.inf),
+        ("Inf", math.inf),
+        ("-2.5", -2.5),
+        (1, 1.0),
+        (None, 0),
+    ],
+)
 def test_floatify(value, expected):
     assert junos.floatify(value) == expected
 
@@ -82,9 +103,14 @@ def test_temp_celsius_marks_missing_readings():
     assert by_label(family, "sensorname") == {"CPU": 45, "Absent": -math.inf}
 
 
-@pytest.mark.parametrize("reason, expected", [
-    ("Router rebooted after a normal shutdown.", 1), ("0x2:watchdog failure", 0), ("kernel error", 0),
-])
+@pytest.mark.parametrize(
+    "reason, expected",
+    [
+        ("Router rebooted after a normal shutdown.", 1),
+        ("0x2:watchdog failure", 0),
+        ("kernel error", 0),
+    ],
+)
 def test_reboot(reason, expected):
     family = junos.reboot(metric("reboot"), {"re0": {"last_reboot_reason": reason}})
     assert [sample.value for sample in family.samples] == [expected]
