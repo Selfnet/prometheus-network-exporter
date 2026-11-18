@@ -8,13 +8,14 @@ class Configuration(object):
         self.schema = Schema(
             {
                 Required(str): {
-                    Required("device"): Any("junos", "arubaos", "ios", "airmax"),
+                    Required("device"): "junos",
                     Required("auth"): {
                         Required("method"): Any("password", "ssh_key"),
-                        "username": str,
-                        Any("password", "ssh_key", "proxy"): str,
-                        "port": int,
-                        Any("http_secure", "verify"): bool,
+                        Optional("username"): str,
+                        Optional("password"): str,
+                        Optional("ssh_key"): str,
+                        Optional("ssh_config"): str,
+                        Optional("port"): int,
                     },
                     Required("metrics"): [
                         # Junos Metrics
@@ -55,15 +56,6 @@ class Configuration(object):
                         "transceivers",
                         "interface_addresses",
                         "vxlan",
-                        # AirMax Metrics
-                        "wireless statistics",
-                        # ArubaOS Metrics
-                        "clients",
-                        "cpu",
-                        "memory",
-                        "system information",
-                        "access point statistics",
-                        "access point state",
                     ],
                     # Junos only: route tables to dump, prefixes to watch and
                     # the age below which a route counts as young.

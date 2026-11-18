@@ -136,21 +136,3 @@ core_bgp:
   junos:
     rpc_timeout: 120
     session_wait_seconds: 60
-
-aruba_ac:
-  device: arubaos
-  auth:
-    method: password
-    username: username
-    password: password
-    # verify: no <default: no>
-    # port: 4343 <default: 4343>
-    # http_secure: yes <default: yes>
-    # proxy: socks5h://localhost:5050 <default: None>
-  metrics:
-    - clients
-    - cpu
-    - memory
-    - system information
-    - access point statistics
-    - access point state

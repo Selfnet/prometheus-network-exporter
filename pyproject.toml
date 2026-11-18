@@ -34,14 +34,6 @@ testpaths = ["tests"]
 
 [tool.coverage.run]
 source = ["prometheus_network_exporter"]
-# Legacy device types without a handler that creates them; only Junos
-# devices are scraped.
-omit = [
-    "prometheus_network_exporter/devices/arubadevice.py",
-    "prometheus_network_exporter/devices/ciscodevice.py",
-    "prometheus_network_exporter/devices/ubntdevice.py",
-    "prometheus_network_exporter/config/functions/unifi/*",
-]
 
 [tool.coverage.report]
 show_missing = true
