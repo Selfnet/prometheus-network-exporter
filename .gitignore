@@ -19,3 +19,4 @@ build/
 tests/fixtures/junos/*/
 !tests/fixtures/junos/synthetic/
 !tests/fixtures/junos/junos-21.4-shapes/
+.coverage

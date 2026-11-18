@@ -6,6 +6,23 @@
     pip install .
 ```
 
+## Tests
+
+The unit tests run without a switch: the collectors read hand-written Junos
+replies from `tests/fixtures/junos`. They use documentation values only
+(RFC 5737, RFC 3849, RFC 5398, RFC 7042, RFC 2606); real device captures do
+not belong in this repository.
+
+```bash
+pip install . pytest coverage
+coverage run -m pytest
+coverage report
+promtool check rules prometheus/rules/*.yml
+promtool test rules prometheus/tests/*.yml
+```
+
+GitHub Actions runs the same checks on every push and pull request.
+
 ## The Exporter
 
 ### Configuration
@@ -162,16 +179,8 @@ flags of a single reported lane. `JunosLaneOpticsAlarm` covers modules with
 several reported lanes, whose receive and bias alarms Junos only reports per
 lane.
 
-Tests run without a switch:
-
-```bash
-python -m unittest discover -s tests -v
-```
-
-The synthetic optics fixture covers four breakout lanes, scalar optics and
-explicit N/A replies. Synthetic tests cover other lane counts, missing
-fields, inventory and address replies. Inventory/PIC schemas and unbroken
-multi-lane modules still need validation on the deployed device models.
+Inventory/PIC schemas and unbroken multi-lane modules still need validation
+on the deployed device models.
 
 ## Routing metrics for Junos (BGP, OSPF, route tables, BFD)
 
