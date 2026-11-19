@@ -256,3 +256,10 @@ class DebugProxyEnabledTest(DebugProxyTest):
 
     def test_memstats_rejects_unknown_key_type(self):
         assert self.fetch("/memstats?key_type=nonsense", raise_error=False).code == 400
+
+
+def test_front_door_forwards_as_many_scrapes_as_all_workers_run(monkeypatch):
+    proxy = mock.Mock()
+    monkeypatch.setattr(processes, "ProxyApplication", proxy)
+    run_serve(monkeypatch)
+    assert proxy.call_args.kwargs["max_clients"] == _Args.worker * _Args.processes

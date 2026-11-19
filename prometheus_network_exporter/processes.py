@@ -170,7 +170,10 @@ def serve(args, build_application: Callable) -> None:
     """Main process: workers first, then the front door on the public port."""
     clear_counter_dir()
     workers, ports = start_workers(args.processes, build_application)
-    application = ProxyApplication(ports, max_clients=max(args.worker, 100), debug=args.debug)
+    # Every worker scrapes up to --worker devices at once. Fewer client slots
+    # would queue forwarded scrapes, and Tornado ends a queued request after
+    # its connect timeout with 599, which the front door answers with 502.
+    application = ProxyApplication(ports, max_clients=args.worker * args.processes, debug=args.debug)
     server = tornado.httpserver.HTTPServer(application)
     loop = tornado.ioloop.IOLoop.current()
 
