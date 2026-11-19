@@ -1,9 +1,12 @@
 import os
-import yaml
+from concurrent.futures import ThreadPoolExecutor
 from logging import getLogger
+
+import yaml
 from prometheus_client import Histogram, Gauge, Counter, multiprocess, CollectorRegistry
 from tornado.web import Application as _Application
-from prometheus_network_exporter import COUNTER_DIR
+
+from prometheus_network_exporter import COUNTER_DIR, MAX_WORKERS
 from prometheus_network_exporter.schema import Configuration
 
 log = getLogger("tornado_prometheus_exporter")
@@ -22,22 +25,21 @@ class Application(_Application):
         :param prometheus_buckets: Gets passed to prometheus_client.Histogram.
         """
         config_path = kwargs.pop("config_path", None) or os.path.join(CONF_DIR, "config.yml")
+        self.max_workers = int(kwargs.pop("max_workers", MAX_WORKERS))
+        buckets = kwargs.pop("prometheus_buckets", None)
+        # --debug only enables /memstats. Tornado's own debug setting would
+        # also turn on autoreload and tracebacks in error pages.
+        self.debug = bool(kwargs.pop("debug", False))
+        kwargs["memstats"] = self.debug
         super(Application, self).__init__(*args, **kwargs)
+        # Scrapes run here, one thread per device being scraped; --worker.
+        self.executor = ThreadPoolExecutor(max_workers=self.max_workers, thread_name_prefix="scrape")
         # self.registry = kwargs.pop('registry', REGISTRY)
         self.multiprocess_registry = CollectorRegistry(auto_describe=False)
         with open(config_path, "r") as f:
             self.CONFIG = yaml.safe_load(f)
         Configuration().validate(self.CONFIG)
-        multiprocess.MultiProcessCollector(
-            registry=self.multiprocess_registry, path=COUNTER_DIR
-        )
-        self.max_workers = kwargs.pop("max_workers", 10)
-        self.debug = kwargs.pop("debug", False)
-        buckets = kwargs.pop("prometheus_buckets", None)
-        histogram_kwargs = {
-            "labelnames": ["method", "path", "status"],
-            "registry": self.multiprocess_registry,
-        }
+        multiprocess.MultiProcessCollector(registry=self.multiprocess_registry, path=COUNTER_DIR)
         self.exception_counter = Counter(
             "network_exporter_raised_exceptions",
             "Count of raised Exceptions in the Exporter",
@@ -67,12 +69,12 @@ class Application(_Application):
             multiprocess_mode="livesum",
             registry=self.multiprocess_registry,
         )
-        if buckets is not None:
-            histogram_kwargs["buckets"] = buckets
         self.request_time_histogram = Histogram(
             "tornado_http_request_duration_seconds",
             "Tornado HTTP request duration in seconds",
-            **histogram_kwargs
+            labelnames=["method", "path", "status"],
+            registry=self.multiprocess_registry,
+            buckets=buckets if buckets is not None else Histogram.DEFAULT_BUCKETS,
         )
 
     def log_request(self, handler):

@@ -6,6 +6,7 @@ import socket
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
+from typing import Dict, Tuple
 
 from prometheus_client import CollectorRegistry
 
@@ -29,7 +30,7 @@ class Device:
         # Reverse DNS per address with its expiry. One dict per device and no
         # size limit, so the peers of a route reflector stay cached between
         # scrapes instead of evicting each other.
-        self._names = {}
+        self._names: Dict[str, Tuple[float, str]] = {}
         self._names_lock = threading.Lock()
         self.dns_ttl = float(self.options.get("dns_ttl_seconds", DNS_TTL_SECONDS))
 
@@ -72,12 +73,7 @@ class Device:
         now = time.monotonic()
         with self._names_lock:
             pending = sorted(
-                {
-                    ip
-                    for ip in addresses
-                    if ip and ip != "None"
-                    and (ip not in self._names or self._names[ip][0] <= now)
-                }
+                {ip for ip in addresses if ip and ip != "None" and (ip not in self._names or self._names[ip][0] <= now)}
             )
         if len(pending) > 1:
             # list() waits for all of them; lookup() stores every result.

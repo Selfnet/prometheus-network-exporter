@@ -1,4 +1,4 @@
-from voluptuous import Schema, Required, Optional, Any
+from voluptuous import Schema, Required, Optional, Any, All, Range
 
 import yaml
 
@@ -8,13 +8,14 @@ class Configuration(object):
         self.schema = Schema(
             {
                 Required(str): {
-                    Required("device"): Any("junos", "arubaos", "ios", "airmax"),
+                    Required("device"): "junos",
                     Required("auth"): {
                         Required("method"): Any("password", "ssh_key"),
-                        "username": str,
-                        Any("password", "ssh_key", "proxy"): str,
-                        "port": int,
-                        Any("http_secure", "verify"): bool,
+                        Optional("username"): str,
+                        Optional("password"): str,
+                        Optional("ssh_key"): str,
+                        Optional("ssh_config"): str,
+                        Optional("port"): int,
                     },
                     Required("metrics"): [
                         # Junos Metrics
@@ -52,16 +53,9 @@ class Configuration(object):
                         "logical_interfaces",
                         "lacp",
                         "lldp",
+                        "transceivers",
+                        "interface_addresses",
                         "vxlan",
-                        # AirMax Metrics
-                        "wireless statistics",
-                        # ArubaOS Metrics
-                        "clients",
-                        "cpu",
-                        "memory",
-                        "system information",
-                        "access point statistics",
-                        "access point state",
                     ],
                     # Junos only: route tables to dump, prefixes to watch and
                     # the age below which a route counts as young.
@@ -73,8 +67,11 @@ class Configuration(object):
                     # Junos only: knobs of the control plane and interface collectors.
                     Optional("junos"): {
                         Optional("rpc_timeout"): int,
+                        Optional("optics_interval_seconds"): All(int, Range(min=0)),
                         # Reuse the NETCONF session between scrapes (probe module).
                         Optional("keep_session"): bool,
+                        # SSH keepalive of a kept session in seconds, 0 for none.
+                        Optional("keepalive_seconds"): All(int, Range(min=0)),
                         # Share one session slot per switch with the other modules.
                         Optional("exclusive_session"): bool,
                         Optional("session_wait_seconds"): int,

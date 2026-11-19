@@ -1,0 +1,53 @@
+name: Tests
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+permissions:
+  contents: read
+
+env:
+  POETRY_VERSION: "2.5.1"
+
+jobs:
+  python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Poetry
+        run: pipx install "poetry==${POETRY_VERSION}"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: poetry
+      - name: Lock file matches pyproject.toml
+        run: poetry check --lock
+      - name: Install
+        run: poetry install --with dev
+      - name: Formatting
+        run: poetry run black --check prometheus_network_exporter tests
+      - name: Lint
+        run: poetry run flake8 prometheus_network_exporter tests
+      - name: Types
+        run: poetry run mypy
+      - name: Unit tests
+        run: poetry run coverage run -m pytest
+      - name: Coverage
+        run: poetry run coverage report
+
+  rules:
+    runs-on: ubuntu-latest
+    env:
+      PROMETHEUS_VERSION: "3.5.0"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install promtool
+        run: |
+          curl -sSfL "https://github.com/prometheus/prometheus/releases/download/v${PROMETHEUS_VERSION}/prometheus-${PROMETHEUS_VERSION}.linux-amd64.tar.gz" \
+            | tar -xz --strip-components=1 -C /usr/local/bin "prometheus-${PROMETHEUS_VERSION}.linux-amd64/promtool"
+      - name: Check rules
+        run: promtool check rules prometheus/rules/*.yml
+      - name: Test rules
+        run: promtool test rules prometheus/tests/*.yml

@@ -1,0 +1,21 @@
+<rpc-reply xmlns:junos="http://xml.juniper.net/junos/21.4R3/junos">
+  <l2circuit-connection-information xmlns="http://xml.juniper.net/junos/21.4R3/junos-l2ckt">
+    <l2circuit-neighbor>
+      <neighbor-address>192.0.2.102</neighbor-address>
+      <connection>
+        <connection-id>xe-0/0/22.0(vc 1)</connection-id>
+        <connection-type>rmt</connection-type>
+        <connection-status>Up</connection-status>
+        <last-change>Oct 11 22:20:00 2026</last-change>
+        <up-transitions>3</up-transitions>
+        <remote-pe>192.0.2.102</remote-pe>
+      </connection>
+      <connection>
+        <connection-id>xe-0/0/23.0(vc 2)</connection-id>
+        <connection-type>rmt</connection-type>
+        <connection-status>RD</connection-status>
+        <up-transitions>0</up-transitions>
+      </connection>
+    </l2circuit-neighbor>
+  </l2circuit-connection-information>
+</rpc-reply>

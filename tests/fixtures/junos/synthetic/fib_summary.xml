@@ -1,0 +1,24 @@
+<rpc-reply xmlns:junos="http://xml.juniper.net/junos/21.4R3/junos">
+  <forwarding-table-information xmlns="http://xml.juniper.net/junos/21.4R3/junos-routing">
+    <route-table>
+      <table-name>default.inet</table-name>
+      <address-family>Internet</address-family>
+      <route-table-summary>
+        <route-table-type>user</route-table-type>
+        <route-count>145</route-count>
+      </route-table-summary>
+      <route-table-summary>
+        <route-table-type>perm</route-table-type>
+        <route-count>5</route-count>
+      </route-table-summary>
+    </route-table>
+    <route-table>
+      <table-name>default.inet6</table-name>
+      <address-family>Internet6</address-family>
+      <route-table-summary>
+        <route-table-type>user</route-table-type>
+        <route-count>98</route-count>
+      </route-table-summary>
+    </route-table>
+  </forwarding-table-information>
+</rpc-reply>

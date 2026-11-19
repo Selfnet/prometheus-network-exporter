@@ -37,38 +37,47 @@ if not sys.warnoptions:
 SERVER = None
 
 
+def flag(value: str) -> bool:
+    """--debug, --debug true and --debug false; bool("false") would be True."""
+    if value.lower() in ("1", "true", "yes", "on"):
+        return True
+    if value.lower() in ("0", "false", "no", "off"):
+        return False
+    raise argparse.ArgumentTypeError(f"expected true or false, got {value!r}")
+
+
 def app():
-    global APP_LOGGER, MAX_WORKERS, SERVER, COUNTER_DIR
+    global SERVER
     parser = argparse.ArgumentParser(
         prog="prometheus-network-exporter",
         description="Prometheus exporter for JunOS switches and routers + Others",
     )
-    parser.add_argument(
-        "--version", action="version", version="%(prog)s: {}".format(VERSION)
-    )
+    parser.add_argument("--version", action="version", version="%(prog)s: {}".format(VERSION))
     parser.add_argument(
         "--port",
         type=int,
         default=9332,
-        help="Specifys the port on which the exporter is running.(Default=9332)",
+        help="Port the exporter listens on. (Default=9332)",
     )
     parser.add_argument(
         "--ip",
         type=str,
         default="::1",
-        help="Specifys the port on which the exporter is running.(Default=::1)",
+        help="Address the exporter listens on. (Default=::1)",
     )
     parser.add_argument(
         "--worker",
         type=int,
-        default=10,
-        help="Specifys the max concurrent threads running for the metrics collection. (Default=150)",
+        default=MAX_WORKERS,
+        help=f"Devices scraped at the same time, threads per process. (Default={MAX_WORKERS})",
     )
     parser.add_argument(
         "--debug",
-        type=bool,
+        type=flag,
+        nargs="?",
+        const=True,
         default=False,
-        help="Enables the Debug Tracemalloc interface.",
+        help="Enable the tracemalloc interface /memstats. (Default=false)",
     )
     parser.add_argument(
         "--config",
@@ -109,7 +118,6 @@ def app():
 
     processes.clear_counter_dir()
     app = build_application()
-    MAX_WORKERS = app.max_workers
     signal.signal(signal.SIGTERM, sig_handler)
     signal.signal(signal.SIGINT, sig_handler)
     SERVER = tornado.httpserver.HTTPServer(app)
@@ -121,13 +129,11 @@ def app():
 
 
 def sig_handler(sig, frame):
-    global APP_LOGGER
     APP_LOGGER.info("Caught signal: {}".format(sig))
     tornado.ioloop.IOLoop.current().add_callback_from_signal(shutdown)
 
 
 def shutdown():
-    global SERVER, GLOBAL_GUARD, APP_LOGGER
     GLOBAL_GUARD.acquire(True)
     APP_LOGGER.info("Sleeping for 60s")
     time.sleep(5)
@@ -146,7 +152,8 @@ def shutdown():
         finally:
             data.lock.release()
         APP_LOGGER.info(f"{key} :: Disconnected")
-    SERVER.stop()
+    if SERVER is not None:
+        SERVER.stop()
     GLOBAL_GUARD.release()
     sys.exit(0)
 

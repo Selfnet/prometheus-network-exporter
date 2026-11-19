@@ -1,0 +1,12 @@
+<rpc-reply xmlns:junos="http://xml.juniper.net/junos/21.4R3/junos">
+  <ddos-protocols-information>
+    <total-violations>1</total-violations>
+    <ddos-protocol-group>
+      <group-name>OSPF</group-name>
+      <ddos-protocol>
+        <packet-type>aggregate</packet-type>
+        <protocol-states-locale>Routing Engine</protocol-states-locale>
+      </ddos-protocol>
+    </ddos-protocol-group>
+  </ddos-protocols-information>
+</rpc-reply>

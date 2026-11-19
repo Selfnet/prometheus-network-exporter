@@ -32,14 +32,10 @@ class OSPFNeighborCollector(Collector):
         self.reader = Reader(device.schema, f"{protocol}_neighbor")
 
     def _gauge(self, suffix, doc, extra=()):
-        return GaugeMetricFamily(
-            f"{self.base_name}_{suffix}", doc, labels=LABELS + list(extra)
-        )
+        return GaugeMetricFamily(f"{self.base_name}_{suffix}", doc, labels=LABELS + list(extra))
 
     def collect(self):
-        reply = self.device.rpc_reply(
-            f"get_{self.protocol}_neighbor_information", extensive=True
-        )
+        reply = self.device.rpc_reply(f"get_{self.protocol}_neighbor_information", extensive=True)
         if reply is None:
             return
         read = self.reader
@@ -50,12 +46,8 @@ class OSPFNeighborCollector(Collector):
             ["state"],
         )
         up = self._gauge("up_seconds", "Seconds since the neighbour came up")
-        adjacency = self._gauge(
-            "adjacency_seconds", "Seconds since the adjacency reached Full"
-        )
-        dead = self._gauge(
-            "dead_timer_seconds", "Seconds left on the neighbour dead timer"
-        )
+        adjacency = self._gauge("adjacency_seconds", "Seconds since the adjacency reached Full")
+        dead = self._gauge("dead_timer_seconds", "Seconds left on the neighbour dead timer")
         priority = self._gauge("priority", "Router priority announced by the neighbour")
         info = InfoMetricFamily(
             self.base_name,

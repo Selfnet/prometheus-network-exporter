@@ -7,6 +7,7 @@ from __future__ import annotations
 import logging
 import threading
 import time
+from typing import Any, Dict, Optional, Set, Tuple
 
 from jnpr.junos import Device
 from jnpr.junos.exception import (
@@ -33,7 +34,10 @@ from prometheus_network_exporter.collectors.junos.environment import (
 )
 from prometheus_network_exporter.collectors.junos.igmp import IGMPCollector
 from prometheus_network_exporter.collectors.junos.interface import InterfaceCollector
+from prometheus_network_exporter.collectors.junos.interface_addresses import InterfaceAddressCollector
 from prometheus_network_exporter.collectors.junos.optics import StandaloneOpticsCollector
+from prometheus_network_exporter.collectors.junos.optics_xml import parse_optics
+from prometheus_network_exporter.collectors.junos.optics_cache import OpticsCache
 from prometheus_network_exporter.collectors.junos.ospf_database import (
     OSPFDatabaseCollector,
 )
@@ -98,9 +102,11 @@ from prometheus_network_exporter.collectors.junos.system import (
 )
 from prometheus_network_exporter.collectors.junos.rpcs import (
     OSPF_PROTOCOLS,
+    RPCS,
     fixture_name,
 )
 from prometheus_network_exporter.collectors.junos.status import StatusCollector
+from prometheus_network_exporter.collectors.junos.transceivers import TransceiverCollector
 from prometheus_network_exporter.collectors.junos.xmlutil import SchemaWatch
 from prometheus_network_exporter.devices import basedevice
 from prometheus_network_exporter.views.junos.bgp import BGPNeighborTable
@@ -111,7 +117,6 @@ from prometheus_network_exporter.views.junos.environment import (
 )
 from prometheus_network_exporter.views.junos.igmp import IGMPGroupTable
 from prometheus_network_exporter.views.junos.interface_metrics import MetricsTable
-from prometheus_network_exporter.views.junos.optic import PhyPortDiagTable
 from prometheus_network_exporter.views.junos.ospf import (
     Ospf3NeighborTable,
     OspfNeighborTable,
@@ -125,6 +130,8 @@ DEFAULT_ROUTE_TABLES = ("inet.0", "inet6.0")
 DEFAULT_YOUNG_ROUTE_SECONDS = 300
 DEFAULT_RPC_TIMEOUT = 60
 DEFAULT_SESSION_WAIT_SECONDS = 30
+# SSH keepalive of kept sessions, so that a dead link is noticed between scrapes.
+DEFAULT_KEEPALIVE_SECONDS = 30
 # An RPC Junos rejected (no permission, protocol not configured) is not
 # asked again for this long; every attempt costs a round trip.
 DEFAULT_RPC_RETRY_SECONDS = 900
@@ -132,7 +139,7 @@ DEFAULT_RPC_RETRY_SECONDS = 900
 # One "heavy" NETCONF session per switch at a time, across all modules of
 # this exporter process. Without it a fast, a slow and the legacy module
 # would open up to three sessions on the same routing engine at once.
-_SESSION_SLOTS = {}
+_SESSION_SLOTS: Dict[str, threading.Semaphore] = {}
 _SESSION_SLOTS_LOCK = threading.Lock()
 
 
@@ -179,6 +186,8 @@ SIMPLE_COLLECTORS = {
     "neighbor_tables": (NeighborTableCollector,),
     "lacp": (LACPCollector,),
     "lldp": (LLDPCollector,),
+    "transceivers": (TransceiverCollector,),
+    "interface_addresses": (InterfaceAddressCollector,),
     "vxlan": (VxlanCollector,),
 }
 
@@ -233,7 +242,10 @@ class IsolatedCollector:
             except (TypeError, ValueError):
                 LOGGER.warning(
                     "%s :: collector %s: dropped %s, value %r",
-                    self.device.hostname, self.label, family.name, sample.value,
+                    self.device.hostname,
+                    self.label,
+                    family.name,
+                    sample.value,
                 )
                 self.device.collector_failed.add(self.label)
                 return False
@@ -248,9 +260,7 @@ class IsolatedCollector:
         except FATAL_ERRORS:
             raise
         except Exception as exception:  # noqa: B902 - isolation is the point
-            LOGGER.warning(
-                "%s :: collector %s failed: %r", self.device.hostname, self.label, exception
-            )
+            LOGGER.warning("%s :: collector %s failed: %r", self.device.hostname, self.label, exception)
             self.device.collector_failed.add(self.label)
             self.device._count_exception(exception)
         finally:
@@ -263,15 +273,8 @@ class IsolatedCollector:
 
 class JuniperNetworkDevice(basedevice.Device):
     def __init__(
-        self,
-        hostname,
-        user=None,
-        password=None,
-        port=22,
-        ssh_private_key_file=None,
-        ssh_config=None,
-        **kwargs
-    ) -> JuniperNetworkDevice:
+        self, hostname, user=None, password=None, port=22, ssh_private_key_file=None, ssh_config=None, **kwargs
+    ) -> None:
         device = Device(
             host=hostname,
             user=user,
@@ -284,17 +287,22 @@ class JuniperNetworkDevice(basedevice.Device):
         )
         # Per scrape bookkeeping, reset by begin_scrape().
         self.schema = SchemaWatch()
-        self._rpc_cache = {}
-        self.rpc_failed = set()
-        self.rpc_durations = {}
-        self.collector_failed = set()
-        self.collector_durations = {}
-        self.connect_duration = None
+        self._rpc_cache: Dict[Tuple[str, Tuple[Tuple[str, Any], ...]], Any] = {}
+        self.rpc_failed: Set[str] = set()
+        self.rpc_durations: Dict[str, float] = {}
+        self.collector_failed: Set[str] = set()
+        self.collector_durations: Dict[str, float] = {}
+        self.connect_duration: Optional[float] = None
         self.session_reused = False
-        self.aborted = None
+        self.aborted: Optional[str] = None
+        # Kept sessions found dead before a scrape, since the exporter started.
+        self.sessions_lost = 0
+        # PyEZ can mark a kept session disconnected before the next scrape.
+        self._session_kept = False
         # RPC name -> monotonic time until which it is not asked again.
-        self._rpc_denied = {}
+        self._rpc_denied: Dict[str, float] = {}
         super(JuniperNetworkDevice, self).__init__(hostname, device, **kwargs)
+        self.optics_cache = OpticsCache(self.options.get("optics_interval_seconds", 300))
         self.register_collectors(self.types)
 
     # ------------------------------------------------------------------
@@ -326,6 +334,15 @@ class JuniperNetworkDevice(basedevice.Device):
         return bool(self.options.get("keep_session", False))
 
     @property
+    def keepalive_seconds(self) -> int:
+        """SSH keepalive interval of a kept session; 0 sends none.
+
+        A link that goes down without closing the TCP connection would
+        otherwise leave a session that looks alive until the next RPC fails.
+        """
+        return int(self.options.get("keepalive_seconds", DEFAULT_KEEPALIVE_SECONDS))
+
+    @property
     def exclusive_session(self) -> bool:
         """Wait for the per switch session slot before connecting (default)."""
         return bool(self.options.get("exclusive_session", True))
@@ -355,9 +372,7 @@ class JuniperNetworkDevice(basedevice.Device):
                 )
             )
         if "system" in types:
-            self._register(
-                StorageCollector(self, mounts=self.options.get("storage_mounts", DEFAULT_STORAGE_MOUNTS))
-            )
+            self._register(StorageCollector(self, mounts=self.options.get("storage_mounts", DEFAULT_STORAGE_MOUNTS)))
         if "interface_errors" in types:
             self._register(
                 InterfaceErrorCollector(
@@ -382,21 +397,24 @@ class JuniperNetworkDevice(basedevice.Device):
         self.status_registry.register(StatusCollector(self))
 
     def _register_legacy_and_routing(self, types: list):
-        ospf = True
-        optics = True
-        if "ospf" not in types:
-            ospf = False
-        if "optics" not in types:
-            optics = False
-        if "interface" in types and "interface_specifics" not in types:
+        self._register_interface_types(types)
+        self._register_protocol_types(types)
+
+    def _register_interface_types(self, types: list):
+        ospf = "ospf" in types
+        optics = "optics" in types
+        # interface queries every interface, interface_specifics only the
+        # uplinks; with both the superset wins, both at once would export
+        # the same series twice.
+        if "interface" in types:
             self._register(InterfaceCollector(self, ospf=ospf, optics=optics))
-        if "interface_specifics" in types and "interface" not in types:
-            self._register(
-                InterfaceCollector(self, access=True, ospf=ospf, optics=optics)
-            )
+        elif "interface_specifics" in types:
+            self._register(InterfaceCollector(self, access=True, ospf=ospf, optics=optics))
         if optics and "interface" not in types and "interface_specifics" not in types:
             # optics on its own, e.g. in a slow module next to a fast interface job
             self._register(StandaloneOpticsCollector(self))
+
+    def _register_protocol_types(self, types: list):
         if "environment" in types:
             self._register(EnvironmentCollector(self))
         # bgp and ospf are the cheap legacy views of 1.2.5: one show bgp
@@ -417,9 +435,7 @@ class JuniperNetworkDevice(basedevice.Device):
                 self._register(OSPFInterfaceCollector(self, protocol))
                 self._register(OSPFOverviewCollector(self, protocol))
                 self._register(OSPFDatabaseCollector(self, protocol))
-                self._register(
-                    OSPFRouteCollector(self, protocol, watch=self.watch_prefixes)
-                )
+                self._register(OSPFRouteCollector(self, protocol, watch=self.watch_prefixes))
         if "routes" in types:
             self._register(RouteSummaryCollector(self))
             self._register(
@@ -452,6 +468,9 @@ class JuniperNetworkDevice(basedevice.Device):
         self._rpc_cache.clear()
 
     def rpc_reply(self, rpc: str, **args):
+        return self.optics_cache.reply(rpc, args, self._rpc_reply)
+
+    def _rpc_reply(self, rpc: str, **args):
         """Run one RPC and return the reply element, None when Junos rejects it.
 
         Replies are cached for the current scrape so that collectors sharing
@@ -480,7 +499,10 @@ class JuniperNetworkDevice(basedevice.Device):
         except RpcError as error:
             LOGGER.info(
                 "%s :: %s failed, not asked again for %ds: %s",
-                self.hostname, name, self.rpc_retry_seconds, error,
+                self.hostname,
+                name,
+                self.rpc_retry_seconds,
+                error,
             )
             self.rpc_failed.add(name)
             self._rpc_denied[name] = time.monotonic() + self.rpc_retry_seconds
@@ -533,10 +555,7 @@ class JuniperNetworkDevice(basedevice.Device):
         software = SoftwareTable(self.device).get()
         rengine = RoutingEngineTable(self.device).get()
         rengine_dict = {
-            available_key: dict(v)
-            for k, v in rengine.items()
-            for available_key in k
-            if available_key is not None
+            available_key: dict(v) for k, v in rengine.items() for available_key in k if available_key is not None
         }
         temperatures = EnvironmentTable(self.device).get()
         return {
@@ -551,27 +570,9 @@ class JuniperNetworkDevice(basedevice.Device):
                 else {}
             ),
             **{"re_loads": rengine_dict},
-            **{
-                "Temp": {
-                    k: dict(v)
-                    for k, v in temperatures.items()
-                    if "Temp" == dict(v)["class"]
-                }
-            },
-            **{
-                "Fans": {
-                    k: dict(v)
-                    for k, v in temperatures.items()
-                    if "Fans" == dict(v)["class"]
-                }
-            },
-            **{
-                "Power": {
-                    k: dict(v)
-                    for k, v in temperatures.items()
-                    if "Power" == dict(v)["class"]
-                }
-            },
+            **{"Temp": {k: dict(v) for k, v in temperatures.items() if "Temp" == dict(v)["class"]}},
+            **{"Fans": {k: dict(v) for k, v in temperatures.items() if "Fans" == dict(v)["class"]}},
+            **{"Power": {k: dict(v) for k, v in temperatures.items() if "Power" == dict(v)["class"]}},
         }
 
     def get_igmp(self):
@@ -593,7 +594,7 @@ class JuniperNetworkDevice(basedevice.Device):
         The tables are keyed by (interface-name, neighbor-id) so that several
         neighbours on one broadcast segment do not overwrite each other.
         """
-        result = {}
+        result: Dict[str, Dict[str, list]] = {}
         self.prefetch(dict(values).get("neighbor_id") for values in ospf.values())
         for key, values in ospf.items():
             interface_name = key[0] if isinstance(key, tuple) else key
@@ -607,12 +608,10 @@ class JuniperNetworkDevice(basedevice.Device):
                 self._count_exception(e)
                 continue
             result.setdefault(interface, {ospf_type.value: []})
-            result[interface][ospf_type.value].append(
-                {**{"unit": unit}, **self.lookup_ospf(dict(values))}
-            )
+            result[interface][ospf_type.value].append({**{"unit": unit}, **self.lookup_ospf(dict(values))})
         return result
 
-    def get_ospf(self, interface_regex: str = None):
+    def get_ospf(self, interface_regex: str | None = None):
         return self.manipulate_ospf(
             dict(
                 OspfNeighborTable(self.device).get(interface=interface_regex)
@@ -622,7 +621,7 @@ class JuniperNetworkDevice(basedevice.Device):
             ospf_type=OSPFType.OSPF,
         )
 
-    def get_ospf3(self, interface_regex: str = None):
+    def get_ospf3(self, interface_regex: str | None = None):
         return self.manipulate_ospf(
             dict(
                 Ospf3NeighborTable(self.device).get(interface=interface_regex)
@@ -633,11 +632,9 @@ class JuniperNetworkDevice(basedevice.Device):
         )
 
     def get_optics(self, interface_regex=None):
-        return dict(
-            PhyPortDiagTable(self.device).get(interface_name=interface_regex)
-            if interface_regex
-            else PhyPortDiagTable(self.device).get()
-        )
+        command, args = RPCS["optics"]
+        reply = self.rpc_reply(command, **args, interface_name=interface_regex or "[efgx][et]-*")
+        return parse_optics(reply) if reply is not None else {}
 
     def is_connected(self):
         return self.device.connected
@@ -652,6 +649,7 @@ class JuniperNetworkDevice(basedevice.Device):
         close-session either, so ``force`` drops the transport right away.
         An exception here must not keep the scrape lock taken.
         """
+        self._session_kept = False
         try:
             if self.is_connected():
                 if force:
@@ -670,6 +668,24 @@ class JuniperNetworkDevice(basedevice.Device):
         except Exception:  # noqa: B902
             return False
 
+    def _session_alive(self) -> bool:
+        """Whether the open NETCONF session still has a working SSH transport."""
+        try:
+            conn = getattr(self.device, "_conn", None)
+            if conn is None:
+                return bool(self.is_connected())
+            transport = getattr(getattr(conn, "_session", None), "_transport", None)
+            return bool(conn.connected) and (transport is None or transport.is_active())
+        except Exception:  # noqa: B902 - a broken session is simply not alive
+            return False
+
+    def _enable_keepalive(self) -> None:
+        try:
+            transport = self.device._conn._session._transport
+            transport.set_keepalive(self.keepalive_seconds)
+        except Exception as exception:  # noqa: B902 - keepalives are best effort
+            LOGGER.info("%s :: no SSH keepalive: %r", self.hostname, exception)
+
     def _drop_transport(self) -> None:
         """Close the SSH transport without a NETCONF round trip."""
         try:
@@ -683,6 +699,26 @@ class JuniperNetworkDevice(basedevice.Device):
             self.device.connected = False
         except Exception:  # noqa: B902
             pass
+
+    def _open_session(self) -> None:
+        """Reuse a kept session that is still alive, otherwise log in."""
+        if self.keep_session and self.is_connected() and self._session_alive():
+            self._session_kept = True
+            self.session_reused = True
+            return
+        if self.keep_session and self._session_kept:
+            # Link down or closed by the device since the last scrape.
+            LOGGER.info("%s :: kept session is dead, logging in again", self.hostname)
+            self.sessions_lost += 1
+            self._drop_transport()
+        self._session_kept = False
+        self.session_reused = False
+        started = time.monotonic()
+        self.connect()
+        self._session_kept = self.keep_session
+        self.connect_duration = time.monotonic() - started
+        if self.keep_session and self.keepalive_seconds > 0:
+            self._enable_keepalive()
 
     def collect(self):
         # The lock serialises scrapes of one device. It must only be released,
@@ -700,18 +736,10 @@ class JuniperNetworkDevice(basedevice.Device):
                 has_slot = slot.acquire(timeout=self.session_wait_seconds)
                 if not has_slot:
                     raise DeviceBusy(
-                        "{} is busy with another module for {}s".format(
-                            self.hostname, self.session_wait_seconds
-                        )
+                        "{} is busy with another module for {}s".format(self.hostname, self.session_wait_seconds)
                     )
             self.begin_scrape()
-            if self.keep_session and self.is_connected():
-                self.session_reused = True
-            else:
-                self.session_reused = False
-                started = time.monotonic()
-                self.connect()
-                self.connect_duration = time.monotonic() - started
+            self._open_session()
             self.device.timeout = self.rpc_timeout
             try:
                 body = generate_latest(self.registry)
@@ -740,6 +768,6 @@ class JuniperNetworkDevice(basedevice.Device):
                 if not (self.keep_session and healthy):
                     self.disconnect(force=not healthy)
             finally:
-                if has_slot:
+                if slot is not None and has_slot:
                     slot.release()
                 self.lock.release()

@@ -23,9 +23,9 @@ class OpticsCollector(Collector):
     def __init__(
         self,
         device: junosdevice.JuniperNetworkDevice,
-        interface_regex: str = None,
-        config_path: str = None,
-    ) -> OpticsCollector:
+        interface_regex: str | None = None,
+        config_path: str | None = None,
+    ) -> None:
         self.interface_regex = interface_regex
         config = self.default
         if config_path is not None:
@@ -34,20 +34,16 @@ class OpticsCollector(Collector):
         super(OpticsCollector, self).__init__(self.base_name, device, config)
         self._init_prometheus_metrics(metric_configuration=JunosMetricConfiguration)
 
-    def collect(self, interfaces: dict, access: bool = False):
+    def collect(self, interfaces: dict | None = None, access: bool = False):
         assert isinstance(self.device, junosdevice.JuniperNetworkDevice)
-        optics = (
-            self.device.get_optics(interface_regex=self.interface_regex)
-            if access
-            else self.device.get_optics()
-        )
-        interfaces_optics_dict = merge_dicts_by_key(interfaces, optics)
-        interfaces_optics_list = create_list_from_dict(
-            interfaces_optics_dict, "interface_name"
-        )
+        optics = self.device.get_optics(interface_regex=self.interface_regex) if access else self.device.get_optics()
+        interfaces_optics_dict = merge_dicts_by_key(interfaces or {}, optics)
+        interfaces_optics_list = create_list_from_dict(interfaces_optics_dict, "interface_name")
         for prometheus in self.prometheus_metrics.values():
             assert isinstance(prometheus, JunosMetricConfiguration)
             for interface in interfaces_optics_list:
+                if interface.get(prometheus.json_key) is None:
+                    continue
                 prometheus.metric.add_metric(
                     labels=self.get_labels(interface),
                     value=prometheus.function(interface.get(prometheus.json_key)),
@@ -55,6 +51,67 @@ class OpticsCollector(Collector):
             yield prometheus.metric
             prometheus.flush()
         yield self.alarm_flags(interfaces_optics_list)
+        yield from self.lane_metrics(interfaces_optics_list)
+
+    def lane_metrics(self, interfaces):
+        available = GaugeMetricFamily(
+            f"{self.base_name}_optics_available",
+            "1 if Junos supplies diagnostics, 0 for explicit N/A",
+            labels=["interface"],
+        )
+        count = GaugeMetricFamily(
+            f"{self.base_name}_optics_reported_lanes",
+            "Number of explicitly reported lane records, not module capacity",
+            labels=["interface"],
+        )
+        flags = GaugeMetricFamily(
+            f"{self.base_name}_lane_optics_alarm",
+            "1 while the reported lane alarm or warning is on",
+            labels=["interface", "lane", "alarm"],
+        )
+        for interface in interfaces:
+            name = str(interface["interface_name"])
+            if "diagnostics_available" in interface:
+                available.add_metric([name], interface["diagnostics_available"])
+            lanes = interface.get("lanes", {})
+            if lanes:
+                count.add_metric([name], len(lanes))
+            for lane, values in lanes.items():
+                for key, value in values.items():
+                    if key.startswith("flag_"):
+                        flags.add_metric([name, lane, key[5:]], int(value == "on"))
+        yield available
+        yield count
+        yield flags
+        yield from self.lane_values(interfaces)
+
+    def lane_values(self, interfaces):
+        for metric in self.prometheus_metrics.values():
+            key = metric.json_key
+            if not key.startswith(("rx_optic_power", "tx_optic_power", "laser_bias")):
+                continue
+            # The legacy bias metrics carry the wrong unit suffix _dbm; the
+            # lane metrics only follow their milliamps aliases.
+            if key.startswith("laser_bias") and metric.config.get("type") == "dbm":
+                continue
+            name = metric.base_name.replace(self.base_name + "_", self.base_name + "_lane_", 1)
+            if not metric.config.get("type"):
+                # The legacy receive low alarm threshold has no unit suffix;
+                # the new lane metric gets the _dbm of its siblings.
+                name += "_dbm"
+            family = GaugeMetricFamily(
+                name,
+                "Reported lane value; module thresholds apply unless overridden by the lane",
+                labels=[label.label for label in self.labels] + ["lane"],
+            )
+            for interface in interfaces:
+                for lane, values in interface.get("lanes", {}).items():
+                    value = values.get(key)
+                    if value is None and key.endswith(("_high_alarm", "_low_alarm", "_high_warn", "_low_warn")):
+                        value = interface.get(key)
+                    if value is not None:
+                        family.add_metric(self.get_labels(interface) + (lane,), metric.function(value))
+            yield family
 
     def alarm_flags(self, interfaces: list) -> GaugeMetricFamily:
         """One sample per alarm or warning flag the transceiver reports.
@@ -72,7 +129,7 @@ class OpticsCollector(Collector):
                 if not key.startswith("flag_") or value is None:
                     continue
                 flags.add_metric(
-                    [str(interface.get("interface_name")), key[len("flag_"):]],
+                    [str(interface.get("interface_name")), key[len("flag_") :]],
                     1.0 if str(value).strip().lower() == "on" else 0.0,
                 )
         return flags
@@ -89,7 +146,7 @@ class StandaloneOpticsCollector(OpticsCollector):
 
     INTERFACES = "[efgx][et]-*"
 
-    def collect(self, interfaces: dict = None, access: bool = False):
+    def collect(self, interfaces: dict | None = None, access: bool = False):
         command, args = RPCS["interfaces_brief"]
         reply = self.device.rpc_reply(command, **args, interface_name=self.INTERFACES)
         interfaces = {}

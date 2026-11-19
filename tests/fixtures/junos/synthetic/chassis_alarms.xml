@@ -1,0 +1,21 @@
+<rpc-reply xmlns:junos="http://xml.juniper.net/junos/21.4R3/junos">
+  <alarm-information xmlns="http://xml.juniper.net/junos/21.4R3/junos-alarm">
+    <alarm-summary>
+      <active-alarm-count>2</active-alarm-count>
+    </alarm-summary>
+    <alarm-detail>
+      <alarm-time junos:seconds="1791800000">2026-10-12 10:13:20 CEST</alarm-time>
+      <alarm-class>Major</alarm-class>
+      <alarm-description>FPC 0 PEM 1 Not Powered</alarm-description>
+      <alarm-short-description>PEM 1 Not Powered</alarm-short-description>
+      <alarm-type>Chassis</alarm-type>
+    </alarm-detail>
+    <alarm-detail>
+      <alarm-time junos:seconds="1791810000">2026-10-12 13:00:00 CEST</alarm-time>
+      <alarm-class>Minor</alarm-class>
+      <alarm-description>xe-0/2/0: Rx power low</alarm-description>
+      <alarm-short-description>Rx power low</alarm-short-description>
+      <alarm-type>Interface</alarm-type>
+    </alarm-detail>
+  </alarm-information>
+</rpc-reply>

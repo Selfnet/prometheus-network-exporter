@@ -9,6 +9,7 @@ change; a jump in the own router LSA sequence number or in LSA counts is.
 from __future__ import annotations
 
 import collections
+from typing import Dict, Optional, Tuple
 
 from prometheus_client.core import GaugeMetricFamily
 
@@ -35,16 +36,12 @@ class OSPFDatabaseCollector(Collector):
         super().__init__(f"{base}_{protocol}_database", device, config={})
         self.reader = Reader(device.schema, f"{protocol}_database")
 
-    def collect(self):
-        reply = self.device.rpc_reply(f"get_{self.protocol}_database_information")
-        if reply is None:
-            return
-        read = self.reader
-
-        counts = collections.Counter()
-        own = collections.Counter()
-        youngest = {}
-        own_router = {}
+    def _count(self, reply):
+        """LSAs per area and type, the own ones, the youngest age and the own router LSA."""
+        counts: collections.Counter = collections.Counter()
+        own: collections.Counter = collections.Counter()
+        youngest: Dict[Tuple[str, str], float] = {}
+        own_router: Dict[str, Tuple[Optional[float], Optional[float]]] = {}
         area = ""
         # Area and interface headers precede the entries they apply to.
         for element in reply.iter():
@@ -52,33 +49,36 @@ class OSPFDatabaseCollector(Collector):
                 continue
             name = localname(element)
             if name in HEADERS:
-                header_area = text(element, "ospf-area")
-                if header_area is not None:
-                    area = header_area
+                area = text(element, "ospf-area") or area
             elif name in ENTRIES:
-                lsa_type = label(read.text(element, "lsa-type"))
-                scope = EXTERNAL_SCOPE if lsa_type.lower() == "extern" else area
-                key = (scope, lsa_type)
-                counts[key] += 1
-                own[key] += 0
-                age = read.number(element, "age")
-                if age is not None:
-                    youngest[key] = min(youngest.get(key, age), age)
-                if find(element, "our-entry") is not None:
-                    own[key] += 1
-                    if lsa_type.lower() == "router":
-                        own_router[scope] = (
-                            read.number(element, "sequence-number"),
-                            age,
-                        )
+                self._count_entry(element, area, counts, own, youngest, own_router)
+        return counts, own, youngest, own_router
+
+    def _count_entry(self, element, area, counts, own, youngest, own_router):
+        read = self.reader
+        lsa_type = label(read.text(element, "lsa-type"))
+        scope = EXTERNAL_SCOPE if lsa_type.lower() == "extern" else area
+        key = (scope, lsa_type)
+        counts[key] += 1
+        own[key] += 0
+        age = read.number(element, "age")
+        if age is not None:
+            youngest[key] = min(youngest.get(key, age), age)
+        if find(element, "our-entry") is not None:
+            own[key] += 1
+            if lsa_type.lower() == "router":
+                own_router[scope] = (read.number(element, "sequence-number"), age)
+
+    def collect(self):
+        reply = self.device.rpc_reply(f"get_{self.protocol}_database_information")
+        if reply is None:
+            return
+        read = self.reader
+        counts, own, youngest, own_router = self._count(reply)
 
         labels = ["area", "lsa_type"]
-        lsas = GaugeMetricFamily(
-            f"{self.base_name}_lsas", "LSAs in the database", labels=labels
-        )
-        own_lsas = GaugeMetricFamily(
-            f"{self.base_name}_own_lsas", "LSAs originated by this router", labels=labels
-        )
+        lsas = GaugeMetricFamily(f"{self.base_name}_lsas", "LSAs in the database", labels=labels)
+        own_lsas = GaugeMetricFamily(f"{self.base_name}_own_lsas", "LSAs originated by this router", labels=labels)
         age_min = GaugeMetricFamily(
             f"{self.base_name}_lsa_age_seconds_min",
             "Age of the youngest LSA; LSAs are refreshed about every 30 minutes",

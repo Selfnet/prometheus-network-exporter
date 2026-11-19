@@ -1,0 +1,15 @@
+<rpc-reply xmlns:junos="http://xml.juniper.net/junos/21.4R3/junos">
+<output>
+Slot 0
+
+PFE State Invalid
+----------------------
+sw error                                 5    1024
+invalid fabric token                     0       0
+
+Packet Exceptions
+----------------------
+discard route                          100   12000
+hold route                               2     128
+</output>
+</rpc-reply>

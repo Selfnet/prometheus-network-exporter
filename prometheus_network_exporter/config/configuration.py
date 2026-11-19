@@ -1,14 +1,22 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import List, Union
+from typing import Any, Callable, List, Optional, Protocol, Sequence, Union
 
 from prometheus_client.core import (
     CounterMetricFamily,
     GaugeMetricFamily,
     InfoMetricFamily,
 )
-from prometheus_client.core import Metric as PrometheusMetric
+
+
+class MetricFamily(Protocol):
+    """What the collectors use of the prometheus_client metric families."""
+
+    name: str
+    samples: list
+
+    def add_metric(self, labels: Sequence[str], value: Any, timestamp: Optional[float] = None) -> None: ...
 
 
 class _Configuration(object):
@@ -36,7 +44,7 @@ class LabelConfiguration(_Configuration):
     def json_key(self) -> str:
         return self.config["key"]
 
-    def get_label(self, data: dict) -> Union[str, None]:
+    def get_label(self, data: dict) -> str:
         return str(data.get(self.json_key, ""))
 
     def __repr__(self):
@@ -60,12 +68,8 @@ class MetricConfiguration(_Configuration):
         metric_type: Union[str, Metric],
         labels: List[LabelConfiguration],
         config: dict,
-    ) -> MetricConfiguration:
-        self.__metric_type = (
-            metric_type
-            if isinstance(metric_type, Metric)
-            else Metric(metric_type.lower())
-        )
+    ) -> None:
+        self.__metric_type = metric_type if isinstance(metric_type, Metric) else Metric(metric_type.lower())
         self.__base_name = base_name
         self.labels = labels
         super().__init__(config=config)
@@ -75,15 +79,21 @@ class MetricConfiguration(_Configuration):
     def base_name(self) -> str:
         if self.config.get("type") is None:
             return "{0}_{1}".format(self.__base_name, self.config["metric"])
-        return "{0}_{1}_{2}".format(
-            self.__base_name, self.config["metric"], self.config["type"]
-        )
+        return "{0}_{1}_{2}".format(self.__base_name, self.config["metric"], self.config["type"])
 
     @property
     def description(self) -> str:
         return self.config["description"]
 
-    def build_metric(self) -> PrometheusMetric:
+    @property
+    def function(self) -> Callable:
+        raise NotImplementedError
+
+    @property
+    def complex(self) -> bool:
+        return bool(self.config.get("complex", False))
+
+    def build_metric(self) -> MetricFamily:
         return self.metric_family[self.__metric_type](
             self.base_name,
             self.description,

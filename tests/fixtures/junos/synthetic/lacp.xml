@@ -1,0 +1,26 @@
+<rpc-reply xmlns:junos="http://xml.juniper.net/junos/21.4R3/junos">
+  <lacp-interface-information-list xmlns="http://xml.juniper.net/junos/21.4R3/junos-lacpd">
+    <lacp-interface-information>
+      <lag-lacp-header>
+        <aggregate-name>ae0</aggregate-name>
+      </lag-lacp-header>
+      <lag-lacp-state>
+        <name>xe-0/0/0</name>
+        <lacp-role>Actor</lacp-role>
+        <lacp-activity>Active</lacp-activity>
+      </lag-lacp-state>
+      <lag-lacp-protocol>
+        <name>xe-0/0/0</name>
+        <lacp-receive-state>Current</lacp-receive-state>
+        <lacp-transmit-state>Fast periodic</lacp-transmit-state>
+        <lacp-mux-state>Collecting distributing</lacp-mux-state>
+      </lag-lacp-protocol>
+      <lag-lacp-protocol>
+        <name>xe-0/0/1</name>
+        <lacp-receive-state>Defaulted</lacp-receive-state>
+        <lacp-transmit-state>Fast periodic</lacp-transmit-state>
+        <lacp-mux-state>Attached</lacp-mux-state>
+      </lag-lacp-protocol>
+    </lacp-interface-information>
+  </lacp-interface-information-list>
+</rpc-reply>

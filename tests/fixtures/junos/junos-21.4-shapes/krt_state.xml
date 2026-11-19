@@ -1,0 +1,21 @@
+<rpc-reply xmlns:junos="http://xml.juniper.net/junos/21.4R0/junos">
+    <krt-state-information>
+        <krt-options></krt-options>
+        <krt-re-mode>Master</krt-re-mode>
+        <krt-install-job-not-running/>
+        <krt-io-tx-job-state><krt-io-tx-job-not-running/></krt-io-tx-job-state>
+        <krt-queue-state>
+            <krtq-operations-queued>3</krtq-operations-queued>
+            <krtq-rt-table-adds>3</krtq-rt-table-adds>
+            <krtq-operations-deferred>0</krtq-operations-deferred>
+            <krtq-async-count>0</krtq-async-count>
+            <krtq-kernel-rt-learnt>39</krtq-kernel-rt-learnt>
+        </krt-queue-state>
+        <rtsock-time-until-next-scan>51</rtsock-time-until-next-scan>
+        <krt-dfwd-connection-state>
+            <krt-dfwd-connection-status>Not Connected</krt-dfwd-connection-status>
+            <krt-dfwd-connection-timestamp>0</krt-dfwd-connection-timestamp>
+        </krt-dfwd-connection-state>
+        <krt-mcnh-delete-defer-timeout>0</krt-mcnh-delete-defer-timeout>
+    </krt-state-information>
+</rpc-reply>

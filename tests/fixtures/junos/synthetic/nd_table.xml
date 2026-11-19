@@ -1,0 +1,19 @@
+<rpc-reply xmlns:junos="http://xml.juniper.net/junos/21.4R3/junos">
+  <ipv6-nd-information xmlns="http://xml.juniper.net/junos/21.4R3/junos-routing">
+    <ipv6-nd-entry>
+      <ipv6-nd-neighbor-address>2001:db8:2100:401::1d</ipv6-nd-neighbor-address>
+      <ipv6-nd-state>reachable</ipv6-nd-state>
+      <ipv6-nd-interface-name>xe-0/0/16.0</ipv6-nd-interface-name>
+    </ipv6-nd-entry>
+    <ipv6-nd-entry>
+      <ipv6-nd-neighbor-address>fe80::1</ipv6-nd-neighbor-address>
+      <ipv6-nd-state>stale</ipv6-nd-state>
+      <ipv6-nd-interface-name>et-0/0/26.0</ipv6-nd-interface-name>
+    </ipv6-nd-entry>
+    <ipv6-nd-entry>
+      <ipv6-nd-neighbor-address>fe80::2</ipv6-nd-neighbor-address>
+      <ipv6-nd-state>stale</ipv6-nd-state>
+      <ipv6-nd-interface-name>xe-0/0/0.0</ipv6-nd-interface-name>
+    </ipv6-nd-entry>
+  </ipv6-nd-information>
+</rpc-reply>

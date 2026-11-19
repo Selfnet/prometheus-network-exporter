@@ -1,0 +1,19 @@
+<rpc-reply xmlns:junos="http://xml.juniper.net/junos/21.4R3/junos">
+  <route-information xmlns="http://xml.juniper.net/junos/21.4R3/junos-routing">
+    <route-table>
+      <table-name>inet6.0</table-name>
+      <rt junos:style="brief">
+        <rt-destination>::/0</rt-destination>
+        <rt-entry>
+          <active-tag>*</active-tag>
+          <current-active/>
+          <protocol-name>BGP</protocol-name>
+          <preference>170</preference>
+          <age junos:seconds="600">600</age>
+          <metric>10</metric>
+          <nh><to>2001:db8:0:8000::21</to><via>et-0/0/26.0</via></nh>
+        </rt-entry>
+      </rt>
+    </route-table>
+  </route-information>
+</rpc-reply>

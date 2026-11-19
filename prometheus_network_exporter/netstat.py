@@ -7,7 +7,6 @@ import socket
 import struct
 import codecs
 
-
 PROC_TCP = "/proc/net/tcp"
 PROC_TCP6 = "/proc/net/tcp6"
 STATE = {
@@ -152,6 +151,6 @@ def _get_pid_of_inode(inode):
         try:
             if re.search(inode, os.readlink(item)):
                 return item.split("/")[2]
-        except:
+        except OSError:
             pass
     return None

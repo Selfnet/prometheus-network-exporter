@@ -1,12 +1,16 @@
-from prometheus_network_exporter.devices.basedevice import Device
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Dict, List, Type
+
 from prometheus_network_exporter.config.configuration import LabelConfiguration
 from prometheus_network_exporter.config.configuration import MetricConfiguration
 
-from typing import Dict, List
+if TYPE_CHECKING:  # junosdevice imports the collectors
+    from prometheus_network_exporter.devices.junosdevice import JuniperNetworkDevice
 
 
 class Collector(object):
-    def __init__(self, base_name: str, device: Device, config: dict):
+    def __init__(self, base_name: str, device: JuniperNetworkDevice, config: dict):
         self.base_name = base_name
         self.device = device
         self.config = config
@@ -23,14 +27,12 @@ class Collector(object):
         self,
         label_config_key="LABELS",
         metric_config_key="METRICS",
-        metric_configuration: MetricConfiguration = MetricConfiguration,
+        metric_configuration: Type[MetricConfiguration] = MetricConfiguration,
     ):
         for label in self.config.get(label_config_key, []):
             self.labels.append(LabelConfiguration(config=label))
 
-        for metric_type, possible_metrics in self.config.get(
-            metric_config_key, {}
-        ).items():
+        for metric_type, possible_metrics in self.config.get(metric_config_key, {}).items():
             for possible_metric in possible_metrics:
                 prometheus_metric = metric_configuration(
                     base_name=self.base_name,

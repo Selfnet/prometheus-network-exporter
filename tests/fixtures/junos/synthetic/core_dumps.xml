@@ -1,0 +1,27 @@
+<rpc-reply xmlns:junos="http://xml.juniper.net/junos/21.4R3/junos">
+  <directory-list xmlns="http://xml.juniper.net/junos/21.4R3/junos-directory" junos:style="lslong">
+    <directory>
+      <directory-name>/var/crash/</directory-name>
+      <file-information>
+        <file-name>/var/crash/core.rpd.0.gz</file-name>
+        <file-size>1234567</file-size>
+        <file-date junos:seconds="1791700000">Oct 11 08:26</file-date>
+      </file-information>
+      <file-information>
+        <file-name>/var/crash/core.rpd.1.gz</file-name>
+        <file-size>1234567</file-size>
+        <file-date junos:seconds="1791750000">Oct 11 22:20</file-date>
+      </file-information>
+      <file-information>
+        <file-name>/var/crash/fxpc.core.0.gz</file-name>
+        <file-size>2234567</file-size>
+        <file-date junos:seconds="1791600000">Oct 10 04:40</file-date>
+      </file-information>
+      <file-information>
+        <file-name>/var/crash/README</file-name>
+        <file-size>12</file-size>
+        <file-date junos:seconds="1700000000">Nov 14 2023</file-date>
+      </file-information>
+    </directory>
+  </directory-list>
+</rpc-reply>

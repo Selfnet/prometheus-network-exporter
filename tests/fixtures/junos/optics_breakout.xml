@@ -1,0 +1,270 @@
+<rpc-reply xmlns:junos="http://xml.juniper.net/junos/*/junos">
+    <interface-information xmlns="http://xml.juniper.net/junos/*/junos-interface" junos:style="normal">
+        <physical-interface>
+            <name>xe-0/1/0:0</name>
+            <optics-diagnostics>
+                <optic-diagnostics-not-available>N/A</optic-diagnostics-not-available>
+            </optics-diagnostics>
+        </physical-interface>
+        <physical-interface>
+            <name>xe-0/1/0:1</name>
+            <optics-diagnostics>
+                <optic-diagnostics-not-available>N/A</optic-diagnostics-not-available>
+            </optics-diagnostics>
+        </physical-interface>
+        <physical-interface>
+            <name>xe-0/1/1:0</name>
+            <optics-diagnostics>
+                <module-temperature junos:celsius="35.0">35 degrees C</module-temperature>
+                <module-voltage>3.3000</module-voltage>
+                <module-temperature-high-alarm>off</module-temperature-high-alarm>
+                <module-temperature-high-warn>off</module-temperature-high-warn>
+                <module-temperature-low-alarm>off</module-temperature-low-alarm>
+                <module-temperature-low-warn>off</module-temperature-low-warn>
+                <module-voltage-high-alarm>off</module-voltage-high-alarm>
+                <module-voltage-high-warn>off</module-voltage-high-warn>
+                <module-voltage-low-alarm>off</module-voltage-low-alarm>
+                <module-voltage-low-warn>off</module-voltage-low-warn>
+                <module-temperature-high-alarm-threshold junos:celsius="75.0">75 degrees C</module-temperature-high-alarm-threshold>
+                <module-temperature-low-alarm-threshold junos:celsius="-5.0">-5 degrees C</module-temperature-low-alarm-threshold>
+                <module-temperature-high-warn-threshold junos:celsius="70.0">70 degrees C</module-temperature-high-warn-threshold>
+                <module-temperature-low-warn-threshold junos:celsius="0.0">0 degrees C</module-temperature-low-warn-threshold>
+                <module-voltage-high-alarm-threshold>3.600</module-voltage-high-alarm-threshold>
+                <module-voltage-low-alarm-threshold>3.000</module-voltage-low-alarm-threshold>
+                <module-voltage-high-warn-threshold>3.500</module-voltage-high-warn-threshold>
+                <module-voltage-low-warn-threshold>3.100</module-voltage-low-warn-threshold>
+                <laser-bias-current-high-alarm-threshold>80.000</laser-bias-current-high-alarm-threshold>
+                <laser-bias-current-low-alarm-threshold>10.000</laser-bias-current-low-alarm-threshold>
+                <laser-bias-current-high-warn-threshold>70.000</laser-bias-current-high-warn-threshold>
+                <laser-bias-current-low-warn-threshold>15.000</laser-bias-current-low-warn-threshold>
+                <laser-tx-power-high-alarm-threshold-dbm>4.00</laser-tx-power-high-alarm-threshold-dbm>
+                <laser-tx-power-low-alarm-threshold-dbm>-8.00</laser-tx-power-low-alarm-threshold-dbm>
+                <laser-tx-power-high-warn-threshold-dbm>3.00</laser-tx-power-high-warn-threshold-dbm>
+                <laser-tx-power-low-warn-threshold-dbm>-7.00</laser-tx-power-low-warn-threshold-dbm>
+                <laser-rx-power-high-alarm-threshold-dbm>4.00</laser-rx-power-high-alarm-threshold-dbm>
+                <laser-rx-power-low-alarm-threshold-dbm>-14.00</laser-rx-power-low-alarm-threshold-dbm>
+                <laser-rx-power-high-warn-threshold-dbm>3.00</laser-rx-power-high-warn-threshold-dbm>
+                <laser-rx-power-low-warn-threshold-dbm>-13.00</laser-rx-power-low-warn-threshold-dbm>
+                <optics-diagnostics-lane-values>
+                    <lane-index>0</lane-index>
+                    <laser-bias-current>30.000</laser-bias-current>
+                    <laser-output-power-dbm>-1.00</laser-output-power-dbm>
+                    <laser-rx-optical-power-dbm>-5.00</laser-rx-optical-power-dbm>
+                    <laser-bias-current-high-alarm>off</laser-bias-current-high-alarm>
+                    <laser-bias-current-high-warn>off</laser-bias-current-high-warn>
+                    <laser-bias-current-low-alarm>off</laser-bias-current-low-alarm>
+                    <laser-bias-current-low-warn>off</laser-bias-current-low-warn>
+                    <laser-rx-power-high-alarm>off</laser-rx-power-high-alarm>
+                    <laser-rx-power-high-warn>off</laser-rx-power-high-warn>
+                    <laser-rx-power-low-alarm>off</laser-rx-power-low-alarm>
+                    <laser-rx-power-low-warn>off</laser-rx-power-low-warn>
+                    <rx-loss-of-signal-alarm>off</rx-loss-of-signal-alarm>
+                    <tx-laser-disabled-alarm>off</tx-laser-disabled-alarm>
+                </optics-diagnostics-lane-values>
+            </optics-diagnostics>
+        </physical-interface>
+        <physical-interface>
+            <name>xe-0/1/1:1</name>
+            <optics-diagnostics>
+                <module-temperature junos:celsius="35.0">35 degrees C</module-temperature>
+                <module-voltage>3.3000</module-voltage>
+                <module-temperature-high-alarm>off</module-temperature-high-alarm>
+                <module-temperature-high-warn>off</module-temperature-high-warn>
+                <module-temperature-low-alarm>off</module-temperature-low-alarm>
+                <module-temperature-low-warn>off</module-temperature-low-warn>
+                <module-voltage-high-alarm>off</module-voltage-high-alarm>
+                <module-voltage-high-warn>off</module-voltage-high-warn>
+                <module-voltage-low-alarm>off</module-voltage-low-alarm>
+                <module-voltage-low-warn>off</module-voltage-low-warn>
+                <module-temperature-high-alarm-threshold junos:celsius="75.0">75 degrees C</module-temperature-high-alarm-threshold>
+                <module-temperature-low-alarm-threshold junos:celsius="-5.0">-5 degrees C</module-temperature-low-alarm-threshold>
+                <module-temperature-high-warn-threshold junos:celsius="70.0">70 degrees C</module-temperature-high-warn-threshold>
+                <module-temperature-low-warn-threshold junos:celsius="0.0">0 degrees C</module-temperature-low-warn-threshold>
+                <module-voltage-high-alarm-threshold>3.600</module-voltage-high-alarm-threshold>
+                <module-voltage-low-alarm-threshold>3.000</module-voltage-low-alarm-threshold>
+                <module-voltage-high-warn-threshold>3.500</module-voltage-high-warn-threshold>
+                <module-voltage-low-warn-threshold>3.100</module-voltage-low-warn-threshold>
+                <laser-bias-current-high-alarm-threshold>80.000</laser-bias-current-high-alarm-threshold>
+                <laser-bias-current-low-alarm-threshold>10.000</laser-bias-current-low-alarm-threshold>
+                <laser-bias-current-high-warn-threshold>70.000</laser-bias-current-high-warn-threshold>
+                <laser-bias-current-low-warn-threshold>15.000</laser-bias-current-low-warn-threshold>
+                <laser-tx-power-high-alarm-threshold-dbm>4.00</laser-tx-power-high-alarm-threshold-dbm>
+                <laser-tx-power-low-alarm-threshold-dbm>-8.00</laser-tx-power-low-alarm-threshold-dbm>
+                <laser-tx-power-high-warn-threshold-dbm>3.00</laser-tx-power-high-warn-threshold-dbm>
+                <laser-tx-power-low-warn-threshold-dbm>-7.00</laser-tx-power-low-warn-threshold-dbm>
+                <laser-rx-power-high-alarm-threshold-dbm>4.00</laser-rx-power-high-alarm-threshold-dbm>
+                <laser-rx-power-low-alarm-threshold-dbm>-14.00</laser-rx-power-low-alarm-threshold-dbm>
+                <laser-rx-power-high-warn-threshold-dbm>3.00</laser-rx-power-high-warn-threshold-dbm>
+                <laser-rx-power-low-warn-threshold-dbm>-13.00</laser-rx-power-low-warn-threshold-dbm>
+                <optics-diagnostics-lane-values>
+                    <lane-index>1</lane-index>
+                    <laser-bias-current>31.000</laser-bias-current>
+                    <laser-output-power-dbm>-0.50</laser-output-power-dbm>
+                    <laser-rx-optical-power-dbm>-4.00</laser-rx-optical-power-dbm>
+                    <laser-bias-current-high-alarm>off</laser-bias-current-high-alarm>
+                    <laser-bias-current-high-warn>off</laser-bias-current-high-warn>
+                    <laser-bias-current-low-alarm>off</laser-bias-current-low-alarm>
+                    <laser-bias-current-low-warn>off</laser-bias-current-low-warn>
+                    <laser-rx-power-high-alarm>off</laser-rx-power-high-alarm>
+                    <laser-rx-power-high-warn>off</laser-rx-power-high-warn>
+                    <laser-rx-power-low-alarm>off</laser-rx-power-low-alarm>
+                    <laser-rx-power-low-warn>off</laser-rx-power-low-warn>
+                    <rx-loss-of-signal-alarm>off</rx-loss-of-signal-alarm>
+                    <tx-laser-disabled-alarm>off</tx-laser-disabled-alarm>
+                </optics-diagnostics-lane-values>
+            </optics-diagnostics>
+        </physical-interface>
+        <physical-interface>
+            <name>xe-0/1/1:2</name>
+            <optics-diagnostics>
+                <module-temperature junos:celsius="35.0">35 degrees C</module-temperature>
+                <module-voltage>3.3000</module-voltage>
+                <module-temperature-high-alarm>off</module-temperature-high-alarm>
+                <module-temperature-high-warn>off</module-temperature-high-warn>
+                <module-temperature-low-alarm>off</module-temperature-low-alarm>
+                <module-temperature-low-warn>off</module-temperature-low-warn>
+                <module-voltage-high-alarm>off</module-voltage-high-alarm>
+                <module-voltage-high-warn>off</module-voltage-high-warn>
+                <module-voltage-low-alarm>off</module-voltage-low-alarm>
+                <module-voltage-low-warn>off</module-voltage-low-warn>
+                <module-temperature-high-alarm-threshold junos:celsius="75.0">75 degrees C</module-temperature-high-alarm-threshold>
+                <module-temperature-low-alarm-threshold junos:celsius="-5.0">-5 degrees C</module-temperature-low-alarm-threshold>
+                <module-temperature-high-warn-threshold junos:celsius="70.0">70 degrees C</module-temperature-high-warn-threshold>
+                <module-temperature-low-warn-threshold junos:celsius="0.0">0 degrees C</module-temperature-low-warn-threshold>
+                <module-voltage-high-alarm-threshold>3.600</module-voltage-high-alarm-threshold>
+                <module-voltage-low-alarm-threshold>3.000</module-voltage-low-alarm-threshold>
+                <module-voltage-high-warn-threshold>3.500</module-voltage-high-warn-threshold>
+                <module-voltage-low-warn-threshold>3.100</module-voltage-low-warn-threshold>
+                <laser-bias-current-high-alarm-threshold>80.000</laser-bias-current-high-alarm-threshold>
+                <laser-bias-current-low-alarm-threshold>10.000</laser-bias-current-low-alarm-threshold>
+                <laser-bias-current-high-warn-threshold>70.000</laser-bias-current-high-warn-threshold>
+                <laser-bias-current-low-warn-threshold>15.000</laser-bias-current-low-warn-threshold>
+                <laser-tx-power-high-alarm-threshold-dbm>4.00</laser-tx-power-high-alarm-threshold-dbm>
+                <laser-tx-power-low-alarm-threshold-dbm>-8.00</laser-tx-power-low-alarm-threshold-dbm>
+                <laser-tx-power-high-warn-threshold-dbm>3.00</laser-tx-power-high-warn-threshold-dbm>
+                <laser-tx-power-low-warn-threshold-dbm>-7.00</laser-tx-power-low-warn-threshold-dbm>
+                <laser-rx-power-high-alarm-threshold-dbm>4.00</laser-rx-power-high-alarm-threshold-dbm>
+                <laser-rx-power-low-alarm-threshold-dbm>-14.00</laser-rx-power-low-alarm-threshold-dbm>
+                <laser-rx-power-high-warn-threshold-dbm>3.00</laser-rx-power-high-warn-threshold-dbm>
+                <laser-rx-power-low-warn-threshold-dbm>-13.00</laser-rx-power-low-warn-threshold-dbm>
+                <optics-diagnostics-lane-values>
+                    <lane-index>2</lane-index>
+                    <laser-bias-current>32.000</laser-bias-current>
+                    <laser-output-power-dbm>0.00</laser-output-power-dbm>
+                    <laser-rx-optical-power-dbm>-3.00</laser-rx-optical-power-dbm>
+                    <laser-bias-current-high-alarm>off</laser-bias-current-high-alarm>
+                    <laser-bias-current-high-warn>off</laser-bias-current-high-warn>
+                    <laser-bias-current-low-alarm>off</laser-bias-current-low-alarm>
+                    <laser-bias-current-low-warn>off</laser-bias-current-low-warn>
+                    <laser-rx-power-high-alarm>off</laser-rx-power-high-alarm>
+                    <laser-rx-power-high-warn>off</laser-rx-power-high-warn>
+                    <laser-rx-power-low-alarm>off</laser-rx-power-low-alarm>
+                    <laser-rx-power-low-warn>off</laser-rx-power-low-warn>
+                    <rx-loss-of-signal-alarm>off</rx-loss-of-signal-alarm>
+                    <tx-laser-disabled-alarm>off</tx-laser-disabled-alarm>
+                </optics-diagnostics-lane-values>
+            </optics-diagnostics>
+        </physical-interface>
+        <physical-interface>
+            <name>xe-0/1/1:3</name>
+            <optics-diagnostics>
+                <module-temperature junos:celsius="35.0">35 degrees C</module-temperature>
+                <module-voltage>3.3000</module-voltage>
+                <module-temperature-high-alarm>off</module-temperature-high-alarm>
+                <module-temperature-high-warn>off</module-temperature-high-warn>
+                <module-temperature-low-alarm>off</module-temperature-low-alarm>
+                <module-temperature-low-warn>off</module-temperature-low-warn>
+                <module-voltage-high-alarm>off</module-voltage-high-alarm>
+                <module-voltage-high-warn>off</module-voltage-high-warn>
+                <module-voltage-low-alarm>off</module-voltage-low-alarm>
+                <module-voltage-low-warn>off</module-voltage-low-warn>
+                <module-temperature-high-alarm-threshold junos:celsius="75.0">75 degrees C</module-temperature-high-alarm-threshold>
+                <module-temperature-low-alarm-threshold junos:celsius="-5.0">-5 degrees C</module-temperature-low-alarm-threshold>
+                <module-temperature-high-warn-threshold junos:celsius="70.0">70 degrees C</module-temperature-high-warn-threshold>
+                <module-temperature-low-warn-threshold junos:celsius="0.0">0 degrees C</module-temperature-low-warn-threshold>
+                <module-voltage-high-alarm-threshold>3.600</module-voltage-high-alarm-threshold>
+                <module-voltage-low-alarm-threshold>3.000</module-voltage-low-alarm-threshold>
+                <module-voltage-high-warn-threshold>3.500</module-voltage-high-warn-threshold>
+                <module-voltage-low-warn-threshold>3.100</module-voltage-low-warn-threshold>
+                <laser-bias-current-high-alarm-threshold>80.000</laser-bias-current-high-alarm-threshold>
+                <laser-bias-current-low-alarm-threshold>10.000</laser-bias-current-low-alarm-threshold>
+                <laser-bias-current-high-warn-threshold>70.000</laser-bias-current-high-warn-threshold>
+                <laser-bias-current-low-warn-threshold>15.000</laser-bias-current-low-warn-threshold>
+                <laser-tx-power-high-alarm-threshold-dbm>4.00</laser-tx-power-high-alarm-threshold-dbm>
+                <laser-tx-power-low-alarm-threshold-dbm>-8.00</laser-tx-power-low-alarm-threshold-dbm>
+                <laser-tx-power-high-warn-threshold-dbm>3.00</laser-tx-power-high-warn-threshold-dbm>
+                <laser-tx-power-low-warn-threshold-dbm>-7.00</laser-tx-power-low-warn-threshold-dbm>
+                <laser-rx-power-high-alarm-threshold-dbm>4.00</laser-rx-power-high-alarm-threshold-dbm>
+                <laser-rx-power-low-alarm-threshold-dbm>-14.00</laser-rx-power-low-alarm-threshold-dbm>
+                <laser-rx-power-high-warn-threshold-dbm>3.00</laser-rx-power-high-warn-threshold-dbm>
+                <laser-rx-power-low-warn-threshold-dbm>-13.00</laser-rx-power-low-warn-threshold-dbm>
+                <optics-diagnostics-lane-values>
+                    <lane-index>3</lane-index>
+                    <laser-bias-current>33.000</laser-bias-current>
+                    <laser-output-power-dbm>0.50</laser-output-power-dbm>
+                    <laser-rx-optical-power-dbm>-2.00</laser-rx-optical-power-dbm>
+                    <laser-bias-current-high-alarm>off</laser-bias-current-high-alarm>
+                    <laser-bias-current-high-warn>off</laser-bias-current-high-warn>
+                    <laser-bias-current-low-alarm>off</laser-bias-current-low-alarm>
+                    <laser-bias-current-low-warn>off</laser-bias-current-low-warn>
+                    <laser-rx-power-high-alarm>off</laser-rx-power-high-alarm>
+                    <laser-rx-power-high-warn>off</laser-rx-power-high-warn>
+                    <laser-rx-power-low-alarm>off</laser-rx-power-low-alarm>
+                    <laser-rx-power-low-warn>off</laser-rx-power-low-warn>
+                    <rx-loss-of-signal-alarm>off</rx-loss-of-signal-alarm>
+                    <tx-laser-disabled-alarm>off</tx-laser-disabled-alarm>
+                </optics-diagnostics-lane-values>
+            </optics-diagnostics>
+        </physical-interface>
+        <physical-interface>
+            <name>xe-0/2/0</name>
+            <optics-diagnostics>
+                <laser-bias-current>40.000</laser-bias-current>
+                <laser-output-power-dbm>-2.00</laser-output-power-dbm>
+                <module-temperature junos:celsius="40.0">40 degrees C</module-temperature>
+                <module-voltage>3.2500</module-voltage>
+                <rx-signal-avg-optical-power-dbm>-8.00</rx-signal-avg-optical-power-dbm>
+                <module-temperature-high-alarm>off</module-temperature-high-alarm>
+                <module-temperature-high-warn>off</module-temperature-high-warn>
+                <module-temperature-low-alarm>off</module-temperature-low-alarm>
+                <module-temperature-low-warn>off</module-temperature-low-warn>
+                <module-voltage-high-alarm>off</module-voltage-high-alarm>
+                <module-voltage-high-warn>off</module-voltage-high-warn>
+                <module-voltage-low-alarm>off</module-voltage-low-alarm>
+                <module-voltage-low-warn>off</module-voltage-low-warn>
+                <laser-bias-current-high-alarm>off</laser-bias-current-high-alarm>
+                <laser-bias-current-high-warn>off</laser-bias-current-high-warn>
+                <laser-bias-current-low-alarm>off</laser-bias-current-low-alarm>
+                <laser-bias-current-low-warn>off</laser-bias-current-low-warn>
+                <laser-tx-power-high-alarm>off</laser-tx-power-high-alarm>
+                <laser-tx-power-high-warn>off</laser-tx-power-high-warn>
+                <laser-tx-power-low-alarm>off</laser-tx-power-low-alarm>
+                <laser-tx-power-low-warn>off</laser-tx-power-low-warn>
+                <laser-rx-power-high-alarm>off</laser-rx-power-high-alarm>
+                <laser-rx-power-high-warn>off</laser-rx-power-high-warn>
+                <laser-rx-power-low-alarm>off</laser-rx-power-low-alarm>
+                <laser-rx-power-low-warn>off</laser-rx-power-low-warn>
+                <module-temperature-high-alarm-threshold junos:celsius="75.0">75 degrees C</module-temperature-high-alarm-threshold>
+                <module-temperature-low-alarm-threshold junos:celsius="-5.0">-5 degrees C</module-temperature-low-alarm-threshold>
+                <module-temperature-high-warn-threshold junos:celsius="70.0">70 degrees C</module-temperature-high-warn-threshold>
+                <module-temperature-low-warn-threshold junos:celsius="0.0">0 degrees C</module-temperature-low-warn-threshold>
+                <module-voltage-high-alarm-threshold>3.600</module-voltage-high-alarm-threshold>
+                <module-voltage-low-alarm-threshold>3.000</module-voltage-low-alarm-threshold>
+                <module-voltage-high-warn-threshold>3.500</module-voltage-high-warn-threshold>
+                <module-voltage-low-warn-threshold>3.100</module-voltage-low-warn-threshold>
+                <laser-bias-current-high-alarm-threshold>80.000</laser-bias-current-high-alarm-threshold>
+                <laser-bias-current-low-alarm-threshold>10.000</laser-bias-current-low-alarm-threshold>
+                <laser-bias-current-high-warn-threshold>70.000</laser-bias-current-high-warn-threshold>
+                <laser-bias-current-low-warn-threshold>15.000</laser-bias-current-low-warn-threshold>
+                <laser-tx-power-high-alarm-threshold-dbm>4.00</laser-tx-power-high-alarm-threshold-dbm>
+                <laser-tx-power-low-alarm-threshold-dbm>-8.00</laser-tx-power-low-alarm-threshold-dbm>
+                <laser-tx-power-high-warn-threshold-dbm>3.00</laser-tx-power-high-warn-threshold-dbm>
+                <laser-tx-power-low-warn-threshold-dbm>-7.00</laser-tx-power-low-warn-threshold-dbm>
+                <laser-rx-power-high-alarm-threshold-dbm>4.00</laser-rx-power-high-alarm-threshold-dbm>
+                <laser-rx-power-low-alarm-threshold-dbm>-16.00</laser-rx-power-low-alarm-threshold-dbm>
+                <laser-rx-power-high-warn-threshold-dbm>3.00</laser-rx-power-high-warn-threshold-dbm>
+                <laser-rx-power-low-warn-threshold-dbm>-15.00</laser-rx-power-low-warn-threshold-dbm>
+            </optics-diagnostics>
+        </physical-interface>
+    </interface-information>
+</rpc-reply>

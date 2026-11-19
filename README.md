@@ -6,6 +6,28 @@
     pip install .
 ```
 
+## Tests
+
+The unit tests run without a switch: the collectors read hand-written Junos
+replies from `tests/fixtures/junos`. They use documentation values only
+(RFC 5737, RFC 3849, RFC 5398, RFC 7042, RFC 2606); real device captures do
+not belong in this repository.
+
+```bash
+poetry install --with dev
+poetry run black --check prometheus_network_exporter tests
+poetry run flake8 prometheus_network_exporter tests
+poetry run mypy
+poetry run coverage run -m pytest
+poetry run coverage report
+promtool check rules prometheus/rules/*.yml
+promtool test rules prometheus/tests/*.yml
+```
+
+GitHub Actions runs the same checks on every push and pull request. The tool
+versions are pinned in the dev group of `pyproject.toml`, so a local run
+reports the same findings. Coverage below 95 percent fails the run.
+
 ## The Exporter
 
 ### Configuration
@@ -20,30 +42,147 @@ The SSH config is also used.
     python -m prometheus_network_exporter.app
 ```
 
-## HowTo: Query for junos_devices
+## Query a device
 
     http://localhost:9332/device?target=device.example.com&module=default
 
-If access is True only the interfaces for the ports specified in
-`config/metrics_definitions.yml` are queried and if access is False everything is queried.
-The default definition for access=True is:
+`module` names a block of the config file; its `metrics` list selects the
+collectors. `interface` exports every interface, `interface_specifics` only
+the uplinks matching `[gxe][et]-*/1/*`; with both in one module `interface`
+wins. `ospf` and `optics` next to one of them add the OSPF neighbours and
+the optics to the interface collector, `optics` alone uses its own collector.
 
-## HowTo: disconnect all devices in Connection Pool?
+## Drop a session
 
-This curl disconnects all devices currently in the exporter_connection_pool.
+    http://localhost:9332/unlock/device.example.com
+    http://localhost:9332/unlock/device.example.com?module=core_probe
 
-```bash
-    curl "localhost:9332/disconnect"
-```
+Disconnects and drops the device objects of the target, all modules or only
+the one given; the next scrape logs in again. A scrape still running is
+waited for up to 10 seconds, after that the answer is 409 and the device
+object stays.
 
+## Optics, transceiver inventory and link endpoints
 
-```yml
-NETWORK_REGEXES:
-    - ge-*/1/*
-    - xe-*/*/*
-```
+The `optics` collector reads module diagnostics and every reported
+`optics-diagnostics-lane-values` record from one RPC reply. The lane IDs and
+count come from the reply, never from the interface speed. Breakout ports
+keep their interface names, such as `xe-0/1/1:2`, and the reported lane ID.
+A non-breakout interface can have one, four or another number of reported
+lanes. A scalar-only reply does not establish the number of optical lanes.
 
-Those are backbone ports on our access switches. So access defines if it is a backbone switch/router or a access switch.
+Existing `pyez_junos_interface_*` optic metric names and labels remain.
+Missing readings, including explicit `N/A`, are no longer emitted as zero.
+A real zero remains zero; a reported `-Inf` remains `-Inf`. A single lane
+also supplies the legacy interface readings when the mapping is unambiguous
+(for breakout ports the suffix must match the lane ID). Multiple lanes are
+never averaged into one interface reading.
+
+Additional metrics (prefix `pyez_junos_interface_`):
+
+| Metric | Meaning |
+|---|---|
+| `optics_available{interface}` | 1 for reported diagnostics, 0 for explicit N/A; absent when no usable diagnostic structure was returned |
+| `optics_reported_lanes{interface}` | number of explicitly reported lane records on this interface; absent for scalar-only or unavailable diagnostics, not total module lane capacity |
+| `lane_receiving_optic_power_dbm`, `lane_sending_optic_power_dbm` | RX/TX per `interface` and `lane`, with the existing description, MAC and speed labels |
+| `lane_receiving_optic_power_*`, `lane_sending_optic_power_*` | reported alarm/warning thresholds; lane-specific thresholds override common module thresholds |
+| `lane_laser_bias_current_milliamps`, `lane_laser_bias_*_threshold_milliamps` | bias current and thresholds per lane |
+| `lane_optics_alarm{interface,lane,alarm}` | reported lane alarm and warning flags, 1=on and 0=off |
+| `voltage_volts`, `voltage_*_threshold_volts` | module voltage and its alarm/warning thresholds |
+| `laser_bias_current_milliamps`, `laser_bias_*_threshold_milliamps` | correctly named aliases for the legacy bias metrics |
+
+The old voltage/bias metric names ending in `_dbm` are retained for existing
+dashboards, but their values are volts/milliamps, not dBm. The historical
+`receiving_optic_power_low_alarm_threshold` name still has no `_dbm` suffix;
+its lane metric is `lane_receiving_optic_power_low_alarm_threshold_dbm` like
+the other lane power metrics. The legacy
+`sending_laser_fault_alarm` uses 1=OK, 0=fault. Generic `optics_alarm` flags
+use 1=alarm, 0=clear and include additional flags Junos reports.
+
+Two optional types add inventory and addressing:
+
+| Type | Metrics | Source and cost |
+|---|---|---|
+| `transceivers` | `pyez_junos_transceiver_info{module,manufacturer,part_number,serial_number,transceiver_type}` and `pyez_junos_interface_transceiver_info{interface,module}` | one chassis inventory RPC, one PIC detail RPC per PIC with transceivers, and one brief interface RPC |
+| `interface_addresses` | `pyez_junos_interface_address_info{interface,parent_interface,routing_instance,address,family,prefix_length,network}` | one terse interface RPC, including logical units and IPv4/IPv6 |
+
+`module` is the FPC/PIC/port location, e.g. `0/1/1`. Several breakout
+interfaces map to the same module; serial numbers are not treated as unique
+keys. PIC detail supplies vendor name and part number when available;
+chassis inventory supplies serial number and reported type. Missing fields
+are blank, not inferred from the switch vendor. Unresolvable chassis
+locations are skipped. A failed PIC RPC leaves the chassis inventory usable.
+Each PIC is asked separately and reported as `transceiver_pic_<fpc>_<pic>` in
+`pyez_junos_rpc_failed`, so a PIC that rejects the RPC does not block the
+others. The part number is read from `sfp-vendor-pno`, the element Junos
+documents, or from `sfp-vendor-part-number`.
+If the chassis inventory reports two different modules at one location, that
+location is skipped and logged; the other modules are still exported.
+
+Addresses without a known prefix retain a blank `prefix_length` and
+`network`. A peer address without a prefix is not interpreted as a subnet.
+An absent routing instance is unknown, not proof of the default instance.
+`parent_interface` is the containing physical interface from the XML;
+a LAG such as `ae0` is not assigned to an arbitrary member. These are inputs
+for endpoint comparisons, not a proof that a cable or subnet is correct.
+Link-local and loopback addresses are not exported, nor the internal units
+`lo0.16384` and up, `bme*` and `jsrv*`.
+
+The existing `lldp` type now retains `remote_port_id`,
+`remote_port_description` and `remote_port_subtype` separately in
+`pyez_junos_lldp_neighbor_info`. Its existing `remote_port` label keeps the
+old description-first fallback. The extra labels create new LLDP series
+on upgrade; update joins that explicitly list all labels if needed.
+
+Enable `lldp`, `transceivers` and `interface_addresses` in the relevant
+module's `metrics` list. For split core scrapes, add inventory/addressing
+only to `core_slow`; do not collect the same type in multiple modules for
+the same target. Access and legacy backbone modules need their own entries.
+The example config enables them in `core_slow` only. RPC replies with identical
+arguments are cached within each scrape, including brief interface replies
+shared by standalone optics and inventory. No additional optics RPC is
+issued per lane. The NETCONF login class must permit the new chassis/PIC
+and interface queries. Rejected RPCs remain visible in `pyez_junos_rpc_failed`.
+
+These collectors report device data; they do not infer a DAC from a hostname,
+SFP-T label, N/A response or zero measurement. A lane record without an
+index or with an index already seen is skipped and logged instead of
+overwriting another lane.
+
+Optical RPC replies are cached inside the exporter for 300 seconds by default.
+Existing Prometheus jobs and scrape intervals can stay unchanged: `optics`
+and `transceivers` remain in the modules already being scraped, while
+interface counters continue to refresh on every scrape. Split core targets
+continue to use `core_slow`; no additional optical job is needed.
+
+`junos.optics_interval_seconds` changes this refresh interval (0 disables
+caching). Refresh happens on the first scrape after the interval expires,
+not on a background timer. A reply counts as expired a tenth of the interval
+early, so a scrape interval equal to the cache interval refreshes on every
+scrape instead of every second one. The cache only saves RPCs in modules
+scraped more often than the interval; `core_slow` is scraped every 300s and
+sets it to 0. The first scrape after an exporter restart also
+refreshes the data. Caches belong to the target/module's device object;
+do not enable the same optical collectors in multiple modules for a target.
+An expired reply is discarded before refresh. Failed queries do not extend
+its lifetime or return stale data; existing RPC failure metrics still apply.
+
+`pyez_junos_optics_cache_age_seconds` and
+`pyez_junos_optics_last_refresh_timestamp_seconds` expose the source data's
+age/time, with RPC, interface selection and FPC/PIC labels. Prometheus sample
+timestamps alone indicate scrape time, not a fresh optical measurement.
+Module swaps and optical alarms can take until the next refresh to appear.
+This only caches optical diagnostics, chassis inventory and PIC details;
+interface traffic, addresses, status and LLDP are not delayed by this cache.
+
+The alert `JunosOpticsAlarm` covers the interface flags, which include the
+flags of a single reported lane when its index matches the breakout port.
+`JunosLaneOpticsAlarm` covers every lane flag the interface does not raise
+itself: the receive and bias alarms of modules with several lanes, which
+Junos only reports per lane, and a breakout lane with a different index.
+
+Inventory/PIC schemas and unbroken multi-lane modules still need validation
+on the deployed device models.
 
 ## Routing metrics for Junos (BGP, OSPF, route tables, BFD)
 
@@ -123,6 +262,7 @@ An optional `junos` block in the module tunes these collectors:
   junos:
     rpc_timeout: 20                          # seconds per RPC, default 60
     keep_session: false                      # reuse the NETCONF session between scrapes (probe)
+    keepalive_seconds: 30                    # SSH keepalive of a kept session, 0 for none
     exclusive_session: true                  # one session slot per switch across modules
     session_wait_seconds: 30                 # wait this long for the slot, else fail the scrape
     rpc_retry_seconds: 900                   # an RPC Junos rejected is not asked again for this long
@@ -149,8 +289,21 @@ then fail with `DeviceBusy` instead of opening a parallel session. The probe
 module opts out and keeps one long lived session (`keep_session`), so a 15s
 probe costs one small RPC instead of an SSH login and a new mgd process.
 
+A kept session stays open until it fails. Before each scrape the exporter
+checks that its SSH transport is still alive; a session the device closed
+or lost with the link is dropped and replaced by a new login instead of
+failing the scrape. SSH keepalives every `keepalive_seconds` let a dead link
+show up between scrapes. `pyez_junos_netconf_session_reused` is 1 when a
+scrape used the kept session, `pyez_junos_netconf_sessions_lost_total`
+counts the kept sessions found dead. `/unlock/<target>?module=<module>`
+drops one module's session by hand.
+
 `--config` selects another config file, which allows a second exporter
 instance next to the production one.
+
+`--worker N` (default 90) is the number of devices one process scrapes at
+the same time; further scrapes wait for a free thread. `--debug` enables
+`/memstats`, the top memory allocations from tracemalloc.
 
 `--processes N` starts N worker processes behind the one port. A Python
 process runs its collectors on one CPU core, however many threads it has;

@@ -66,7 +66,14 @@ def clear_counter_dir(path: str = COUNTER_DIR) -> None:
 class ProxyHandler(tornado.web.RequestHandler):
     """Forwards one request to the worker that owns its target."""
 
-    async def get(self, hostname: str = None):
+    application: ProxyApplication
+
+    def _unreachable(self, target: str, port: int, reason) -> None:
+        APP_LOGGER.error("%s :: worker on port %s did not answer: %s", target, port, reason)
+        self.set_status(502, reason="worker unreachable")
+        self.write(f"{target}: worker process did not answer".encode("utf-8"))
+
+    async def get(self, hostname: str | None = None):
         target = hostname if hostname is not None else self.get_argument("target", "")
         port = self.application.port_for(target)
         url = f"http://127.0.0.1:{port}{self.request.uri}"
@@ -77,14 +84,10 @@ class ProxyHandler(tornado.web.RequestHandler):
                 url, raise_error=False, connect_timeout=5, request_timeout=FORWARD_TIMEOUT_SECONDS
             )
         except TRANSPORT_ERRORS as error:
-            response = None
-            reason = error
-        else:
-            reason = response.error if response.code == 599 else None
-        if response is None or reason is not None:
-            APP_LOGGER.error("%s :: worker on port %s did not answer: %s", target, port, reason)
-            self.set_status(502, reason="worker unreachable")
-            self.write(f"{target}: worker process did not answer".encode("utf-8"))
+            self._unreachable(target, port, error)
+            return
+        if response.code == 599:
+            self._unreachable(target, port, response.error)
             return
         self.set_status(response.code, reason=response.reason)
         content_type = response.headers.get("Content-Type")
@@ -103,7 +106,8 @@ class ProxyApplication(tornado.web.Application):
             (r"^/unlock/(.*?)$", ProxyHandler),
             (r"^/memstats$", TraceMallocHandler),
         ]
-        super().__init__(urls, debug=debug)
+        # Only /memstats, not Tornado's debug mode with autoreload.
+        super().__init__(urls, memstats=debug)
         self.ports = list(ports)
         tornado.httpclient.AsyncHTTPClient.configure(None, max_clients=max_clients)
         self.client = tornado.httpclient.AsyncHTTPClient()
@@ -166,7 +170,10 @@ def serve(args, build_application: Callable) -> None:
     """Main process: workers first, then the front door on the public port."""
     clear_counter_dir()
     workers, ports = start_workers(args.processes, build_application)
-    application = ProxyApplication(ports, max_clients=max(args.worker, 100), debug=args.debug)
+    # Every worker scrapes up to --worker devices at once. Fewer client slots
+    # would queue forwarded scrapes, and Tornado ends a queued request after
+    # its connect timeout with 599, which the front door answers with 502.
+    application = ProxyApplication(ports, max_clients=args.worker * args.processes, debug=args.debug)
     server = tornado.httpserver.HTTPServer(application)
     loop = tornado.ioloop.IOLoop.current()
 
@@ -195,9 +202,7 @@ def serve(args, build_application: Callable) -> None:
     signal.signal(signal.SIGTERM, stop)
     signal.signal(signal.SIGINT, stop)
     tornado.ioloop.PeriodicCallback(watch, 5000).start()
-    APP_LOGGER.info(
-        "Starting HTTP Server on http://%s:%s with %d worker processes", args.ip, args.port, len(workers)
-    )
+    APP_LOGGER.info("Starting HTTP Server on http://%s:%s with %d worker processes", args.ip, args.port, len(workers))
     server.listen(args.port, address=args.ip)
     loop.start()
     APP_LOGGER.info("Exiting ...")

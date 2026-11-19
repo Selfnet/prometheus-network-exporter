@@ -1,0 +1,182 @@
+<rpc-reply xmlns:junos="http://xml.juniper.net/junos/21.4R3/junos">
+  <bgp-information xmlns="http://xml.juniper.net/junos/21.4R3/junos-routing">
+    <bgp-peer junos:style="detail">
+      <peer-address>192.0.2.102+179</peer-address>
+      <peer-as>64497</peer-as>
+      <local-address>192.0.2.101+58012</local-address>
+      <local-as>64497</local-as>
+      <peer-group>iBGP-RR</peer-group>
+      <peer-cfg-rti>master</peer-cfg-rti>
+      <peer-fwd-rti>master</peer-fwd-rti>
+      <peer-type>Internal</peer-type>
+      <peer-state>Established</peer-state>
+      <peer-flags>Sync RSync</peer-flags>
+      <last-state>OpenConfirm</last-state>
+      <last-event>RecvKeepAlive</last-event>
+      <last-error>None</last-error>
+      <description>core-2</description>
+      <bgp-option-information>
+        <bgp-options>Preference LocalAddress HoldTime Cluster AddressFamily PeerAS Refresh</bgp-options>
+        <address-families>inet-unicast evpn</address-families>
+        <local-address>192.0.2.101</local-address>
+        <holdtime>90</holdtime>
+        <preference>170</preference>
+      </bgp-option-information>
+      <flap-count>3</flap-count>
+      <last-flap-event>HoldTime</last-flap-event>
+      <bgp-error>
+        <name>Hold Timer Expired Error</name>
+        <send-count>1</send-count>
+        <receive-count>2</receive-count>
+      </bgp-error>
+      <bgp-error>
+        <name>Cease</name>
+        <send-count>0</send-count>
+        <receive-count>1</receive-count>
+      </bgp-error>
+      <peer-id>192.0.2.102</peer-id>
+      <local-id>192.0.2.101</local-id>
+      <active-holdtime>90</active-holdtime>
+      <keepalive-interval>30</keepalive-interval>
+      <nlri-type-peer>inet-unicast evpn</nlri-type-peer>
+      <nlri-type-session>inet-unicast evpn</nlri-type-session>
+      <bgp-rib junos:style="detail">
+        <name>inet.0</name>
+        <rib-bit>20000</rib-bit>
+        <bgp-rib-state>BGP restart is complete</bgp-rib-state>
+        <send-state>in sync</send-state>
+        <active-prefix-count>12</active-prefix-count>
+        <received-prefix-count>15</received-prefix-count>
+        <accepted-prefix-count>15</accepted-prefix-count>
+        <suppressed-prefix-count>0</suppressed-prefix-count>
+        <advertised-prefix-count>7</advertised-prefix-count>
+      </bgp-rib>
+      <bgp-rib junos:style="detail">
+        <name>bgp.evpn.0</name>
+        <rib-bit>30000</rib-bit>
+        <bgp-rib-state>BGP restart is complete</bgp-rib-state>
+        <send-state>in sync</send-state>
+        <active-prefix-count>40</active-prefix-count>
+        <received-prefix-count>42</received-prefix-count>
+        <accepted-prefix-count>42</accepted-prefix-count>
+        <suppressed-prefix-count>0</suppressed-prefix-count>
+        <advertised-prefix-count>18</advertised-prefix-count>
+      </bgp-rib>
+      <last-received>12</last-received>
+      <last-sent>3</last-sent>
+      <last-checked>13</last-checked>
+      <input-messages>12345</input-messages>
+      <input-updates>234</input-updates>
+      <input-refreshes>1</input-refreshes>
+      <input-octets>456789</input-octets>
+      <output-messages>12300</output-messages>
+      <output-updates>120</output-updates>
+      <output-refreshes>0</output-refreshes>
+      <output-octets>400000</output-octets>
+      <bgp-output-queue>
+        <number>0</number>
+        <count>0</count>
+        <table-name>inet.0</table-name>
+        <rib-adv-nlri>inet-unicast</rib-adv-nlri>
+      </bgp-output-queue>
+      <bgp-output-queue>
+        <number>1</number>
+        <count>2</count>
+        <table-name>bgp.evpn.0</table-name>
+        <rib-adv-nlri>evpn</rib-adv-nlri>
+      </bgp-output-queue>
+    </bgp-peer>
+    <bgp-peer junos:style="detail">
+      <peer-address>2001:db8:0:8000::2+179</peer-address>
+      <peer-as>64497</peer-as>
+      <local-address>2001:db8:0:8000::1+60000</local-address>
+      <local-as>64497</local-as>
+      <peer-group>iBGP-RR</peer-group>
+      <peer-cfg-rti>master</peer-cfg-rti>
+      <peer-fwd-rti>master</peer-fwd-rti>
+      <peer-type>Internal</peer-type>
+      <peer-state>Established</peer-state>
+      <peer-flags>Sync</peer-flags>
+      <last-state>OpenConfirm</last-state>
+      <last-event>RecvKeepAlive</last-event>
+      <last-error>None</last-error>
+      <bgp-option-information>
+        <bgp-options>Preference LocalAddress HoldTime Cluster AddressFamily PeerAS Refresh</bgp-options>
+        <address-families>inet6-unicast</address-families>
+        <local-address>2001:db8:0:8000::1</local-address>
+        <holdtime>90</holdtime>
+        <preference>170</preference>
+      </bgp-option-information>
+      <flap-count>0</flap-count>
+      <peer-id>192.0.2.102</peer-id>
+      <local-id>192.0.2.101</local-id>
+      <active-holdtime>90</active-holdtime>
+      <keepalive-interval>30</keepalive-interval>
+      <bgp-rib junos:style="detail">
+        <name>inet6.0</name>
+        <rib-bit>20001</rib-bit>
+        <bgp-rib-state>BGP restart is complete</bgp-rib-state>
+        <send-state>in sync</send-state>
+        <active-prefix-count>30</active-prefix-count>
+        <received-prefix-count>31</received-prefix-count>
+        <accepted-prefix-count>31</accepted-prefix-count>
+        <suppressed-prefix-count>0</suppressed-prefix-count>
+        <advertised-prefix-count>9</advertised-prefix-count>
+      </bgp-rib>
+      <input-messages>4000</input-messages>
+      <input-updates>50</input-updates>
+      <input-refreshes>0</input-refreshes>
+      <input-octets>90000</input-octets>
+      <output-messages>3990</output-messages>
+      <output-updates>20</output-updates>
+      <output-refreshes>0</output-refreshes>
+      <output-octets>80000</output-octets>
+      <bgp-output-queue>
+        <number>0</number>
+        <count>0</count>
+        <table-name>inet6.0</table-name>
+        <rib-adv-nlri>inet6-unicast</rib-adv-nlri>
+      </bgp-output-queue>
+    </bgp-peer>
+    <bgp-peer junos:style="detail">
+      <peer-address>192.0.2.105+179</peer-address>
+      <peer-as>64497</peer-as>
+      <local-address>192.0.2.101</local-address>
+      <local-as>64497</local-as>
+      <peer-group>iBGP-RR</peer-group>
+      <peer-cfg-rti>master</peer-cfg-rti>
+      <peer-fwd-rti>master</peer-fwd-rti>
+      <peer-type>Internal</peer-type>
+      <peer-state>Active</peer-state>
+      <peer-flags></peer-flags>
+      <last-state>Idle</last-state>
+      <last-event>Start</last-event>
+      <last-error>Hold Timer Expired Error</last-error>
+      <bgp-option-information>
+        <bgp-options>Preference LocalAddress HoldTime Cluster AddressFamily PeerAS Refresh</bgp-options>
+        <address-families>inet-unicast evpn</address-families>
+        <local-address>192.0.2.101</local-address>
+        <holdtime>90</holdtime>
+        <preference>170</preference>
+      </bgp-option-information>
+      <flap-count>7</flap-count>
+      <last-flap-event>HoldTime</last-flap-event>
+      <bgp-error>
+        <name>Hold Timer Expired Error</name>
+        <send-count>0</send-count>
+        <receive-count>7</receive-count>
+      </bgp-error>
+      <input-messages>500</input-messages>
+      <input-updates>40</input-updates>
+      <input-refreshes>0</input-refreshes>
+      <input-octets>12000</input-octets>
+      <output-messages>480</output-messages>
+      <output-updates>10</output-updates>
+      <output-refreshes>0</output-refreshes>
+      <output-octets>11000</output-octets>
+    </bgp-peer>
+  </bgp-information>
+  <cli>
+    <banner></banner>
+  </cli>
+</rpc-reply>

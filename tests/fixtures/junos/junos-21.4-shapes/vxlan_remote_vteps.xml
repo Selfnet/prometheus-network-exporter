@@ -1,0 +1,12 @@
+<rpc-reply xmlns:junos="http://xml.juniper.net/junos/21.4R0/junos">
+    <vxlan-source-vtep-information xmlns="http://xml.juniper.net/junos/21.4R0/junos-l2al">
+        <svtep-format>
+            <vtep-logical-system-name>&lt;default&gt;</vtep-logical-system-name>
+            <vtep-logical-system-id>0</vtep-logical-system-id>
+            <source-vtep-address>192.0.2.17</source-vtep-address>
+            <source-vtep-interface>lo0.0</source-vtep-interface>
+            <source-vtep-interface-id>547</source-vtep-interface-id>
+            <l3-id>0</l3-id>
+        </svtep-format>
+    </vxlan-source-vtep-information>
+</rpc-reply>

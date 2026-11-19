@@ -1,0 +1,40 @@
+<rpc-reply xmlns:junos="http://xml.juniper.net/junos/21.4R3/junos">
+  <bgp-group-information xmlns="http://xml.juniper.net/junos/21.4R3/junos-routing">
+    <bgp-group>
+      <name>iBGP-RR</name>
+      <group-type>Internal</group-type>
+      <group-index>0</group-index>
+      <peer-as>64497</peer-as>
+      <group-flags>Export Eval</group-flags>
+      <peer-count>3</peer-count>
+      <established-count>2</established-count>
+      <peer-address>192.0.2.102+179</peer-address>
+      <peer-address>2001:db8:0:8000::2+179</peer-address>
+      <peer-address>192.0.2.105+179</peer-address>
+      <bgp-rib>
+        <name>inet.0</name>
+        <active-prefix-count>12</active-prefix-count>
+        <received-prefix-count>15</received-prefix-count>
+        <accepted-prefix-count>15</accepted-prefix-count>
+        <suppressed-prefix-count>0</suppressed-prefix-count>
+        <advertised-prefix-count>7</advertised-prefix-count>
+      </bgp-rib>
+    </bgp-group>
+    <bgp-group>
+      <name>eBGP-upstream</name>
+      <group-type>External</group-type>
+      <group-index>1</group-index>
+      <group-flags>Export Eval</group-flags>
+      <peer-count>0</peer-count>
+      <established-count>0</established-count>
+    </bgp-group>
+    <bgp-information>
+      <group-count>2</group-count>
+      <peer-count>3</peer-count>
+      <down-peer-count>1</down-peer-count>
+    </bgp-information>
+  </bgp-group-information>
+  <cli>
+    <banner></banner>
+  </cli>
+</rpc-reply>

@@ -1,0 +1,22 @@
+<rpc-reply xmlns:junos="http://xml.juniper.net/junos/21.4R0/junos">
+    <pim-neighbors-information junos:style="basic">
+        <neighbor-option-banner><banner-first/><banner-second/><banner-third/><banner-fourth/></neighbor-option-banner>
+        <pim-instance>PIM.master</pim-instance>
+        <pim-interface>
+            <pim-neighbor>
+                <pim-interface-name>et-0/0/24.0</pim-interface-name><ip-protocol-version>4</ip-protocol-version>
+                <protocol-version>2</protocol-version><pim-neighbor-flags></pim-neighbor-flags>
+                <pim-neighbor-uptime junos:seconds="89059">1d 00:44:19</pim-neighbor-uptime>
+                <pim-neighbor-address>198.51.100.70</pim-neighbor-address>
+            </pim-neighbor>
+        </pim-interface>
+        <pim-interface>
+            <pim-neighbor>
+                <pim-interface-name>et-0/0/24.0</pim-interface-name><ip-protocol-version>6</ip-protocol-version>
+                <protocol-version>2</protocol-version><pim-neighbor-flags></pim-neighbor-flags>
+                <pim-neighbor-uptime junos:seconds="89059">1d 00:44:19</pim-neighbor-uptime>
+                <pim-neighbor-address>fe80::1</pim-neighbor-address>
+            </pim-neighbor>
+        </pim-interface>
+    </pim-neighbors-information>
+</rpc-reply>

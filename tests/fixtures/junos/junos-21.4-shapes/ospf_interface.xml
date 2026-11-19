@@ -1,0 +1,26 @@
+<rpc-reply xmlns:junos="http://xml.juniper.net/junos/21.4R0/junos">
+    <ospf-interface-information xmlns="http://xml.juniper.net/junos/21.4R0/junos-routing">
+        <ospf-interface junos:style="detail">
+            <interface-name>lo0.0</interface-name><ospf-interface-state>DRother</ospf-interface-state>
+            <ospf-area>0.0.0.0</ospf-area><dr-id>0.0.0.0</dr-id><bdr-id>0.0.0.0</bdr-id>
+            <neighbor-count>0</neighbor-count><interface-type>LAN</interface-type>
+            <interface-address>192.0.2.254</interface-address><address-mask>255.255.255.255</address-mask>
+            <mtu>65535</mtu><interface-cost>0</interface-cost><dr-address>0.0.0.0</dr-address>
+            <bdr-address>0.0.0.0</bdr-address><router-priority>128</router-priority><adj-count>0</adj-count>
+            <hello-interval>10</hello-interval><dead-interval>40</dead-interval><retransmit-interval>5</retransmit-interval>
+            <ospf-stub-type>Not Stub</ospf-stub-type><authentication-type>None</authentication-type>
+            <ospf-interface-protection-type>None</ospf-interface-protection-type>
+        </ospf-interface>
+        <ospf-interface junos:style="detail">
+            <interface-name>lo0.0</interface-name><ospf-interface-state>DRother</ospf-interface-state>
+            <ospf-area>0.0.0.0</ospf-area><dr-id>0.0.0.0</dr-id><bdr-id>0.0.0.0</bdr-id>
+            <neighbor-count>0</neighbor-count><interface-type>LAN</interface-type>
+            <interface-address>192.0.2.1</interface-address><address-mask>255.255.255.255</address-mask>
+            <mtu>65535</mtu><interface-cost>0</interface-cost><dr-address>0.0.0.0</dr-address>
+            <bdr-address>0.0.0.0</bdr-address><router-priority>128</router-priority><adj-count>0</adj-count>
+            <hello-interval>10</hello-interval><dead-interval>40</dead-interval><retransmit-interval>5</retransmit-interval>
+            <ospf-stub-type>Not Stub</ospf-stub-type><authentication-type>None</authentication-type>
+            <ospf-interface-protection-type>None</ospf-interface-protection-type>
+        </ospf-interface>
+    </ospf-interface-information>
+</rpc-reply>

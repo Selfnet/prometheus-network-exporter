@@ -1,0 +1,51 @@
+<rpc-reply xmlns:junos="http://xml.juniper.net/junos/21.4R3/junos">
+  <bfd-session-information xmlns="http://xml.juniper.net/junos/21.4R3/junos-routing">
+    <bfd-session junos:style="extensive">
+      <session-neighbor>198.51.100.2</session-neighbor>
+      <session-state>Up</session-state>
+      <session-interface>ae0.0</session-interface>
+      <session-detection-time>1.500</session-detection-time>
+      <session-transmission-interval>0.500</session-transmission-interval>
+      <session-adaptive-multiplier>3</session-adaptive-multiplier>
+      <bfd-client>
+        <client-name>OSPF</client-name>
+        <client-transmission-interval>0.500</client-transmission-interval>
+        <client-reception-interval>0.500</client-reception-interval>
+      </bfd-client>
+      <session-up-time junos:seconds="86400">1d 00:00:00</session-up-time>
+      <local-diagnostic>None</local-diagnostic>
+      <remote-diagnostic>None</remote-diagnostic>
+      <remote-state>Up</remote-state>
+      <session-version>1</session-version>
+      <minimum-asynchronous-interval>0.500</minimum-asynchronous-interval>
+      <minimum-slow-interval>1.000</minimum-slow-interval>
+      <local-discriminator>12</local-discriminator>
+      <remote-discriminator>34</remote-discriminator>
+    </bfd-session>
+    <bfd-session junos:style="extensive">
+      <session-neighbor>192.0.2.105</session-neighbor>
+      <session-state>Down</session-state>
+      <session-detection-time>3.000</session-detection-time>
+      <session-transmission-interval>1.000</session-transmission-interval>
+      <session-adaptive-multiplier>3</session-adaptive-multiplier>
+      <bfd-client>
+        <client-name>BGP</client-name>
+        <client-transmission-interval>1.000</client-transmission-interval>
+        <client-reception-interval>1.000</client-reception-interval>
+      </bfd-client>
+      <local-diagnostic>CtlExpire</local-diagnostic>
+      <remote-diagnostic>None</remote-diagnostic>
+      <remote-state>Down</remote-state>
+      <session-version>1</session-version>
+      <local-discriminator>13</local-discriminator>
+      <remote-discriminator>0</remote-discriminator>
+    </bfd-session>
+    <sessions>2</sessions>
+    <clients>2</clients>
+    <cumulative-transmission-rate>3.0</cumulative-transmission-rate>
+    <cumulative-reception-rate>3.0</cumulative-reception-rate>
+  </bfd-session-information>
+  <cli>
+    <banner></banner>
+  </cli>
+</rpc-reply>

@@ -17,9 +17,7 @@ class BGPCollector(Collector):
     name = "bgp"
     base_name = "{0}_{1}".format(base, name)
 
-    def __init__(
-        self, device: junosdevice.JuniperNetworkDevice, config_path: str = None
-    ) -> "BGPCollector":
+    def __init__(self, device: junosdevice.JuniperNetworkDevice, config_path: str | None = None) -> None:
         config = self.default
         if config_path is not None:
             with open(config_path, "r") as file:

@@ -1,7 +1,6 @@
 import getpass
 import threading
 from concurrent.futures import ThreadPoolExecutor
-from paramiko import RSAKey
 
 import tornado
 from fqdn import FQDN
@@ -9,10 +8,9 @@ from prometheus_network_exporter import (
     APP_LOGGER,
     CONNECTION_POOL,
     GLOBAL_GUARD,
-    MAX_WORKERS,
 )
+from prometheus_network_exporter.baseapp import Application
 from prometheus_network_exporter.devices.junosdevice import JuniperNetworkDevice
-
 
 # Serialises get-or-create of pool entries; two concurrent first scrapes of
 # one target and module would otherwise create two device objects whose
@@ -21,8 +19,12 @@ POOL_LOCK = threading.Lock()
 
 
 class ExporterHandler(tornado.web.RequestHandler):
-    global MAX_WORKERS
-    executor = ThreadPoolExecutor(max_workers=MAX_WORKERS)
+    application: Application
+
+    @property
+    def executor(self) -> ThreadPoolExecutor:
+        """The scrape pool of the application, sized by --worker."""
+        return self.application.executor
 
     @staticmethod
     def pool_key(hostname: str, module_name) -> str:
@@ -35,7 +37,6 @@ class ExporterHandler(tornado.web.RequestHandler):
 
     @tornado.concurrent.run_on_executor
     def get_device_information(self, hostname, key):
-        global CONNECTION_POOL, APP_LOGGER
         try:
             module = self.application.CONFIG[self.get_argument("module")]
         except tornado.web.MissingArgumentError:
@@ -44,11 +45,7 @@ class ExporterHandler(tornado.web.RequestHandler):
                 "you're holding it wrong!",
                 """you're holding it wrong!:
                 {}
-                /metrics?module=default&target=target.example.com""".format(
-                    self.request.uri
-                ).encode(
-                    "utf8"
-                ),
+                /metrics?module=default&target=target.example.com""".format(self.request.uri).encode("utf8"),
             )
         except KeyError:
             return (
@@ -113,15 +110,12 @@ class ExporterHandler(tornado.web.RequestHandler):
         return CONNECTION_POOL[key]
 
     async def get(self):
-        global CONNECTION_POOL, GLOBAL_GUARD
         self.set_header("Content-type", "text/plain")
 
         hostname = self.get_argument("target")
         if GLOBAL_GUARD.locked():
             self.set_status(503, reason="Service Unavailable Service blocked")
-            self.write(
-                bytes(f"{hostname} GLOBAL_GUARD active Shutdown!".encode("utf8"))
-            )
+            self.write(bytes(f"{hostname} GLOBAL_GUARD active Shutdown!".encode("utf8")))
             return
         if not FQDN(hostname).is_valid:
             self.set_status(409, reason="FQDN is invalid!")
@@ -133,9 +127,7 @@ class ExporterHandler(tornado.web.RequestHandler):
             key = self.pool_key(hostname, self.get_argument("module", None))
             self.application.used_workers.inc()
             try:
-                code, status, data = await self.get_device_information(
-                    hostname=hostname, key=key
-                )
+                code, status, data = await self.get_device_information(hostname=hostname, key=key)
             except Exception as e:
                 APP_LOGGER.info(f"{hostname} :: {e} {e.__traceback__}")
                 raise e

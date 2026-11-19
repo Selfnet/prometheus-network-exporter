@@ -1,30 +1,61 @@
-[tool.poetry]
+[project]
 name = "prometheus-network-exporter"
-version = "1.4.2"
+version = "1.4.3"
 description = "A Prometheus Network Exporter which connects via netconf ssh to the devices"
-authors = ["Cellebyte <marcel.fest@live.de>"]
+authors = [{ name = "Cellebyte", email = "marcel.fest@live.de" }]
 license = "MIT"
-
-[tool.poetry.dependencies]
-# pinned due to telnetlib being removed
-python = "^3.12"
-junos-eznc = "2.7.5"
-PyYAML = "*"
-tornado = "*"
-prometheus_client = "*"
-fqdn = "*"
-voluptuous = "*"
-paramiko = "*"
-cached-property = "*"
-pygnmi = "^0.8.15"
+readme = "README.md"
+requires-python = ">=3.12,<4.0"
+dependencies = [
+    # pinned due to telnetlib being removed
+    "junos-eznc==2.7.5",
+    "ncclient",
+    "lxml",
+    "PyYAML",
+    "tornado",
+    "prometheus_client",
+    "fqdn",
+    "voluptuous",
+    "cached-property",
+]
 
 [tool.poetry.group.dev.dependencies]
-flake8 = "*"
-PySocks = "*"
+# Pinned so that CI and a local run report the same findings.
+pytest = "9.2.0"
+coverage = "7.17.1"
+flake8 = "7.5.0"
+black = "26.10.1"
+mypy = "2.4.1"
+types-PyYAML = "6.0.12.20261103"
 pyinstaller = "*"
-mypy = "*"
-black = "^21.8b0"
 
 [build-system]
-requires = ["poetry-core>=1.0.0"]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 120
+target-version = ["py312"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.coverage.run]
+source = ["prometheus_network_exporter"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+fail_under = 95
+
+[tool.mypy]
+python_version = "3.12"
+packages = ["prometheus_network_exporter"]
+warn_unused_ignores = true
+warn_redundant_casts = true
+check_untyped_defs = true
+
+[[tool.mypy.overrides]]
+# No type information published for these packages.
+module = ["jnpr.*", "lxml.*", "fqdn", "voluptuous", "cached_property", "ncclient.*"]
+ignore_missing_imports = true

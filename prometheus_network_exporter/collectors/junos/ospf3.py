@@ -23,9 +23,9 @@ class OSPF3Collector(Collector):
     def __init__(
         self,
         device: junosdevice.JuniperNetworkDevice,
-        interface_regex: str = None,
-        config_path: str = None,
-    ) -> OSPF3Collector:
+        interface_regex: str | None = None,
+        config_path: str | None = None,
+    ) -> None:
         self.interface_regex = interface_regex
         config = self.default
         if config_path is not None:
@@ -34,17 +34,11 @@ class OSPF3Collector(Collector):
         super(OSPF3Collector, self).__init__(self.base_name, device, config)
         self._init_prometheus_metrics(metric_configuration=JunosMetricConfiguration)
 
-    def collect(self, interfaces: dict, access: bool = False):
+    def collect(self, interfaces: dict | None = None, access: bool = False):
         assert isinstance(self.device, junosdevice.JuniperNetworkDevice)
-        ospf3 = (
-            self.device.get_ospf3(interface_regex=self.interface_regex)
-            if access
-            else self.device.get_ospf3()
-        )
-        interfaces_ospf3_dict = merge_dicts_by_key(interfaces, ospf3)
-        interfaces_ospf3_list = create_list_from_dict(
-            interfaces_ospf3_dict, "interface_name"
-        )
+        ospf3 = self.device.get_ospf3(interface_regex=self.interface_regex) if access else self.device.get_ospf3()
+        interfaces_ospf3_dict = merge_dicts_by_key(interfaces or {}, ospf3)
+        interfaces_ospf3_list = create_list_from_dict(interfaces_ospf3_dict, "interface_name")
         interfaces_ospf3_enriched_list = enrich_dict_from_upper_dict_by_labels(
             interfaces_ospf3_list, self.labels, OSPFType.OSPF3.value
         )
@@ -54,9 +48,7 @@ class OSPF3Collector(Collector):
                 for ospf3_interface in interface.get(OSPFType.OSPF3.value, []):
                     prometheus.metric.add_metric(
                         labels=self.get_labels(ospf3_interface),
-                        value=prometheus.function(
-                            ospf3_interface.get(prometheus.json_key)
-                        ),
+                        value=prometheus.function(ospf3_interface.get(prometheus.json_key)),
                     )
             yield prometheus.metric
             prometheus.flush()

@@ -9,6 +9,7 @@ label, instead of hard coding field names that may not exist.
 from __future__ import annotations
 
 import re
+from typing import Dict
 
 from prometheus_client.core import CounterMetricFamily, GaugeMetricFamily
 
@@ -22,9 +23,7 @@ HW_TABLE_ROW = re.compile(
 )
 # "sw error      5    1024": name, packets and optionally bytes; the name
 # ends in a letter or bracket so that a number column is never part of it.
-EXCEPTION_ROW = re.compile(
-    r"^\s*(?P<name>[A-Za-z][\w ()/.,-]*?[A-Za-z)])\s{2,}(?P<count>\d+)(\s+\d+)*\s*$"
-)
+EXCEPTION_ROW = re.compile(r"^\s*(?P<name>[A-Za-z][\w ()/.,-]*?[A-Za-z)])\s{2,}(?P<count>\d+)(\s+\d+)*\s*$")
 
 
 class PFEStatisticsCollector(Collector):
@@ -83,10 +82,8 @@ class PFEExceptionCollector(Collector):
         reply = self.device.rpc_reply(command, **args)
         if reply is None:
             return
-        exceptions = CounterMetricFamily(
-            self.base_name, "PFE exception counters by type", labels=["type"]
-        )
-        found = {}
+        exceptions = CounterMetricFamily(self.base_name, "PFE exception counters by type", labels=["type"])
+        found: Dict[str, float] = {}
         structured = [
             element
             for element in reply.iter()
@@ -127,12 +124,8 @@ class HardwareTableCollector(Collector):
         if reply is None:
             return
         labels = ["unit", "table"]
-        maximum = GaugeMetricFamily(
-            f"{self.base_name}_max_entries", "Capacity of the hardware table", labels=labels
-        )
-        used = GaugeMetricFamily(
-            f"{self.base_name}_used_entries", "Used entries of the hardware table", labels=labels
-        )
+        maximum = GaugeMetricFamily(f"{self.base_name}_max_entries", "Capacity of the hardware table", labels=labels)
+        used = GaugeMetricFamily(f"{self.base_name}_used_entries", "Used entries of the hardware table", labels=labels)
         unit = "0"
         rows = 0
         for line in all_text(reply).splitlines():
@@ -204,9 +197,7 @@ class DDoSCollector(Collector):
         if reply is not None:
             self._statistics(reply, packets, rates)
 
-        violations = GaugeMetricFamily(
-            f"{self.base_name}_violations", "Protocols currently in violation"
-        )
+        violations = GaugeMetricFamily(f"{self.base_name}_violations", "Protocols currently in violation")
         violating = GaugeMetricFamily(
             f"{self.base_name}_violation_active",
             "1 for each protocol currently in violation",
@@ -219,8 +210,6 @@ class DDoSCollector(Collector):
             for protocol in iter_items(reply, ("ddos-protocol",)):
                 violating.add_metric(self._protocol_labels(protocol), 1.0)
                 entries += 1
-            total = number(
-                text(reply, ".//packet-types-in-violation") or text(reply, ".//total-violations")
-            )
+            total = number(text(reply, ".//packet-types-in-violation") or text(reply, ".//total-violations"))
             add(violations, [], total if total is not None else float(entries))
         yield from read.unique((packets, rates, violations, violating))

@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import collections
 import re
+from typing import Dict
 
 from prometheus_client.core import CounterMetricFamily, GaugeMetricFamily, InfoMetricFamily
 
@@ -84,7 +85,7 @@ class KRTCollector(Collector):
             self.reader.record("krt-queue")
 
     def _state(self, reply, state) -> None:
-        fields = {}
+        fields: Dict[str, float] = {}
         # Junos 21.4 nests the queue counters in krt-queue-state below
         # krt-state-information; older layouts used a flat krt-state.
         for item in iter_items(reply, ("krt-state", "krt-state-information", "krt-queue-state")):
@@ -119,7 +120,7 @@ class TaskMemoryCollector(Collector):
             "Numeric fields of the overall report of show task memory, field name as label",
             labels=["field"],
         )
-        fields = {}
+        fields: Dict[str, float] = {}
         for element in reply.iter():
             if isinstance(element.tag, str) and localname(element).endswith("overall-report"):
                 fields.update(numeric_leaves(element))
@@ -220,11 +221,9 @@ class LDPCollector(Collector):
         command, args = RPCS["ldp_neighbor"]
         reply = self.device.rpc_reply(command, **args)
         if reply is not None:
-            per_interface = collections.Counter()
+            per_interface: collections.Counter = collections.Counter()
             for neighbor in iter_items(reply, ("ldp-neighbor",)):
-                interface = label(
-                    read.first_text(neighbor, ("ldp-neighbor-interface", "interface-name"))
-                )
+                interface = label(read.first_text(neighbor, ("ldp-neighbor-interface", "interface-name")))
                 per_interface[interface] += 1
                 add(
                     hold,
@@ -300,7 +299,7 @@ class PIMCollector(Collector):
         )
         # Junos 21.4 names the interface inside each pim-neighbor; an
         # interface without neighbours may carry the name itself.
-        counts = collections.Counter()
+        counts: collections.Counter = collections.Counter()
         for interface in iter_items(reply, ("pim-interface",)):
             found = list(iter_items(interface, ("pim-neighbor",)))
             if not found:
@@ -310,8 +309,7 @@ class PIMCollector(Collector):
                 continue
             for neighbor in found:
                 name = label(
-                    read.text(neighbor, "pim-interface-name", required=False)
-                    or text(interface, "pim-interface-name")
+                    read.text(neighbor, "pim-interface-name", required=False) or text(interface, "pim-interface-name")
                 )
                 counts[name] += 1
                 add(
@@ -344,9 +342,7 @@ class NeighborTableCollector(Collector):
                 total = float(sum(1 for _ in iter_items(reply, ("arp-table-entry",))))
             arp.add_metric([], total)
 
-        nd = GaugeMetricFamily(
-            f"{self.base_name}_nd_entries", "IPv6 neighbour entries per state", labels=["state"]
-        )
+        nd = GaugeMetricFamily(f"{self.base_name}_nd_entries", "IPv6 neighbour entries per state", labels=["state"])
         command, args = RPCS["nd_table"]
         reply = self.device.rpc_reply(command, **args)
         if reply is not None:

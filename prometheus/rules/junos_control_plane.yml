@@ -172,6 +172,25 @@ groups:
         annotations:
           summary: "{{ $labels.interface }} on {{ $labels.instance }} raises {{ $labels.alarm }}"
 
+      - alert: JunosLaneOpticsAlarm
+        # Lane flags the interface does not raise itself; those reach
+        # JunosOpticsAlarm, e.g. the flags of a single lane copied to its
+        # breakout port. Lanes of multi-lane modules and a lane whose index
+        # does not match its breakout port are left to this rule.
+        expr: |
+          pyez_junos_interface_lane_optics_alarm{alarm=~".*_alarm"} == 1
+          and on (instance, interface) pyez_junos_interface_is_operational == 1
+          unless on (instance, interface, alarm) pyez_junos_interface_optics_alarm == 1
+          unless on (instance, interface, lane) (
+            pyez_junos_interface_lane_optics_alarm{alarm="laser_rx_power_high_alarm"} == 1
+            and on (instance, interface, lane) pyez_junos_interface_lane_optics_alarm{alarm="laser_rx_power_low_alarm"} == 1
+          )
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "{{ $labels.interface }} lane {{ $labels.lane }} on {{ $labels.instance }} raises {{ $labels.alarm }}"
+
   - name: junos-underlay
     rules:
       - alert: JunosLdpSessionDown

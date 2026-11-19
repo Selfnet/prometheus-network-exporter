@@ -1,0 +1,28 @@
+<rpc-reply xmlns:junos="http://xml.juniper.net/junos/21.4R3/junos">
+  <system-storage-information>
+    <filesystem>
+      <filesystem-name>/dev/gpt/junos</filesystem-name>
+      <total-blocks junos:format="2.7G">5662640</total-blocks>
+      <used-blocks junos:format="1.4G">2919888</used-blocks>
+      <available-blocks junos:format="1.1G">2289744</available-blocks>
+      <used-percent> 56</used-percent>
+      <mounted-on>/.mount</mounted-on>
+    </filesystem>
+    <filesystem>
+      <filesystem-name>/dev/gpt/var</filesystem-name>
+      <total-blocks junos:format="5.7G">11926000</total-blocks>
+      <used-blocks junos:format="4.9G">10300000</used-blocks>
+      <available-blocks junos:format="380M">780000</available-blocks>
+      <used-percent> 93</used-percent>
+      <mounted-on>/.mount/var</mounted-on>
+    </filesystem>
+    <filesystem>
+      <filesystem-name>/dev/md5</filesystem-name>
+      <total-blocks junos:format="20M">40000</total-blocks>
+      <used-blocks junos:format="20M">40000</used-blocks>
+      <available-blocks junos:format="0B">0</available-blocks>
+      <used-percent>100</used-percent>
+      <mounted-on>/.mount/packages/mnt/jbase</mounted-on>
+    </filesystem>
+  </system-storage-information>
+</rpc-reply>

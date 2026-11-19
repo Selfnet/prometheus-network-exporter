@@ -34,16 +34,13 @@ class OSPFRouteCollector(Collector):
         self.reader = Reader(device.schema, f"{protocol}_route")
 
     def collect(self):
-        reply = self.device.rpc_reply(
-            f"get_{self.protocol}_route_information", detail=True
-        )
+        reply = self.device.rpc_reply(f"get_{self.protocol}_route_information", detail=True)
         if reply is None:
             return
         read = self.reader
         routes = GaugeMetricFamily(
             f"{self.base_name}_routes",
-            "OSPF routes by type and next-hop interface; an ECMP route counts "
-            "once per interface",
+            "OSPF routes by type and next-hop interface; an ECMP route counts " "once per interface",
             labels=COUNT_LABELS,
         )
         cost = GaugeMetricFamily(
@@ -51,7 +48,7 @@ class OSPFRouteCollector(Collector):
             "Cost of a watched prefix per next hop",
             labels=COST_LABELS,
         )
-        counts = collections.Counter()
+        counts: collections.Counter = collections.Counter()
         for entry in iter_items(reply, ENTRIES):
             prefix = read.text(entry, "address-prefix")
             path_type = label(read.text(entry, "route-path-type"))

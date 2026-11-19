@@ -24,9 +24,7 @@ class OSPFStatisticsCollector(Collector):
         "linkstate_request_queue_entries": "total-linkstate-request",
     }
 
-    def __init__(
-        self, device: junosdevice.JuniperNetworkDevice, protocol: str = "ospf"
-    ):
+    def __init__(self, device: junosdevice.JuniperNetworkDevice, protocol: str = "ospf"):
         if protocol not in ("ospf", "ospf3"):
             raise ValueError(f"Unsupported OSPF protocol: {protocol}")
         self.protocol = protocol
@@ -55,12 +53,8 @@ class OSPFStatisticsCollector(Collector):
         )
         for packet in statistics.findall("{*}packet-statistics"):
             packet_type = packet.findtext("{*}ospf-packet-type") or "unknown"
-            packets_sent.add_metric(
-                [packet_type], self._number(packet, "packets-sent")
-            )
-            packets_received.add_metric(
-                [packet_type], self._number(packet, "packets-received")
-            )
+            packets_sent.add_metric([packet_type], self._number(packet, "packets-sent"))
+            packets_received.add_metric([packet_type], self._number(packet, "packets-received"))
         yield packets_sent
         yield packets_received
 
@@ -73,9 +67,9 @@ class OSPFStatisticsCollector(Collector):
             yield metric
 
         for metric_name, xml_field in self.gauge_fields.items():
-            metric = GaugeMetricFamily(
+            gauge = GaugeMetricFamily(
                 f"{self.base_name}_{metric_name}",
                 f"Junos {self.protocol.upper()} statistic {xml_field}",
             )
-            metric.add_metric([], self._number(statistics, xml_field))
-            yield metric
+            gauge.add_metric([], self._number(statistics, xml_field))
+            yield gauge

@@ -1,0 +1,6 @@
+<rpc-reply xmlns:junos="http://xml.juniper.net/junos/21.4R0/junos">
+    <krt-queue-information xmlns="http://xml.juniper.net/junos/21.4R0/junos-routing">
+        <krt-queue><krtq-type>Routing table add queue</krtq-type><krtq-queue-length>0</krtq-queue-length></krt-queue>
+        <krt-queue><krtq-type>Normal-priority add queue</krtq-type><krtq-queue-length>3</krtq-queue-length></krt-queue>
+    </krt-queue-information>
+</rpc-reply>

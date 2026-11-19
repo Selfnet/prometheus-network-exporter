@@ -1,0 +1,296 @@
+"""Load protection: one session slot per switch, kept probe sessions."""
+
+import threading
+from types import SimpleNamespace
+from unittest import mock
+
+import pytest
+from jnpr.junos.device import DeviceSessionListener
+
+from prometheus_network_exporter.devices import junosdevice
+from prometheus_network_exporter.devices.junosdevice import DeviceBusy
+
+from .conftest import SYNTHETIC, make_device, samples
+
+
+def collect(device):
+    code, _, body = device.collect()
+    assert code == 200
+    return samples(body.decode("utf-8"))
+
+
+@pytest.fixture(autouse=True)
+def fresh_slots(monkeypatch):
+    monkeypatch.setattr(junosdevice, "_SESSION_SLOTS", {})
+
+
+def test_default_logs_in_and_out_per_scrape():
+    device = make_device(SYNTHETIC, types=["probe"])
+    device.device.connected = False
+    collect(device)
+    collect(device)
+    assert (device.device.opened, device.device.closed) == (2, 2)
+
+
+def test_kept_session_logs_in_once():
+    device = make_device(SYNTHETIC, types=["probe"], options={"keep_session": True})
+    device.device.connected = False
+    first = collect(device)
+    second = collect(device)
+    assert (device.device.opened, device.device.closed) == (1, 0)
+    assert first["pyez_junos_netconf_session_reused"][0][1] == 0
+    assert second["pyez_junos_netconf_session_reused"][0][1] == 1
+    assert "pyez_junos_netconf_connect_seconds" not in second
+
+
+def test_kept_session_is_closed_after_a_failure(monkeypatch):
+    device = make_device(SYNTHETIC, types=["probe"], options={"keep_session": True})
+    device.device.connected = False
+    collect(device)
+
+    def boom(*args, **kwargs):
+        raise junosdevice.TransportError("session gone")
+
+    monkeypatch.setattr(junosdevice, "generate_latest", boom)
+    with pytest.raises(junosdevice.TransportError):
+        device.collect()
+    assert device.device.connected is False
+
+
+def test_second_module_waits_for_the_session_slot():
+    fast = make_device(SYNTHETIC, types=["fpc"], options={"session_wait_seconds": 0})
+    slot = junosdevice.session_slot(fast.hostname)
+    slot.acquire()
+    try:
+        with pytest.raises(DeviceBusy):
+            fast.collect()
+        # Never connected while another module held the slot.
+        assert fast.device.opened == 0
+    finally:
+        slot.release()
+    collect(fast)
+
+
+def test_probe_bypasses_the_slot():
+    probe = make_device(SYNTHETIC, types=["probe"], options={"exclusive_session": False, "keep_session": True})
+    slot = junosdevice.session_slot(probe.hostname)
+    slot.acquire()
+    try:
+        collect(probe)
+    finally:
+        slot.release()
+
+
+def test_slot_is_released_after_errors(monkeypatch):
+    device = make_device(SYNTHETIC, types=["fpc"], options={"session_wait_seconds": 0})
+
+    def boom(*args, **kwargs):
+        raise junosdevice.TransportError("session gone")
+
+    monkeypatch.setattr(junosdevice, "generate_latest", boom)
+    with pytest.raises(junosdevice.TransportError):
+        device.collect()
+    assert junosdevice.session_slot(device.hostname).acquire(blocking=False)
+
+
+def test_slots_are_per_switch():
+    assert junosdevice.session_slot("a") is junosdevice.session_slot("a")
+    assert junosdevice.session_slot("a") is not junosdevice.session_slot("b")
+    assert isinstance(junosdevice.session_slot("a"), type(threading.Semaphore()))
+
+
+def _timeout_on(device, rpc_name):
+    from jnpr.junos.exception import RpcTimeoutError
+
+    rpc = device.device.rpc
+    original = type(rpc).__getattr__
+
+    class TimingOut(type(rpc)):
+        def __getattr__(self, name):
+            if name == rpc_name:
+
+                def call(**kwargs):
+                    raise RpcTimeoutError(None, name, 10)
+
+                return call
+            return original(self, name)
+
+    rpc.__class__ = TimingOut
+
+
+def test_timeout_returns_status_instead_of_500():
+    device = make_device(SYNTHETIC, types=["probe"], options={"keep_session": True, "exclusive_session": False})
+    device.device.connected = False
+    _timeout_on(device, "get_software_information")
+    found = collect(device)
+    assert found["pyez_junos_scrape_aborted"] == [({"reason": "RpcTimeoutError"}, 1.0)]
+    assert ({"rpc": "probe"}, 1.0) in found["pyez_junos_rpc_failed"]
+    assert "pyez_junos_probe_success" not in found
+    # The half dead session is dropped and the lock is free again.
+    assert device.device.connected is False
+    assert device.lock.acquire(blocking=False)
+    device.lock.release()
+
+
+def test_failing_close_does_not_leak_the_lock(monkeypatch):
+    device = make_device(SYNTHETIC, types=["fpc"])
+
+    def close():
+        raise RuntimeError("close-session timed out")
+
+    monkeypatch.setattr(device.device, "close", close)
+    collect(device)
+    assert device.lock.acquire(blocking=False)
+    device.lock.release()
+    assert junosdevice.session_slot(device.hostname).acquire(blocking=False)
+
+
+class FakeTransport:
+    def __init__(self):
+        self.active = True
+        self.keepalive = None
+
+    def is_active(self):
+        return self.active
+
+    def set_keepalive(self, seconds):
+        self.keepalive = seconds
+
+
+def attach_transport(device):
+    """Give the fake PyEZ device the ncclient session layout of a real one.
+
+    Every login gets a new transport; the list holds them in order.
+    """
+    transports = []
+    original_open = device.device.open
+
+    def open_with_transport():
+        original_open()
+        transports.append(FakeTransport())
+        session = SimpleNamespace(_transport=transports[-1], close=lambda: None)
+        device.device._conn = SimpleNamespace(connected=True, _session=session)
+        return device.device
+
+    device.device.open = open_with_transport
+    return transports
+
+
+def test_dead_kept_session_is_replaced_before_the_scrape():
+    device = make_device(SYNTHETIC, types=["probe"], options={"keep_session": True})
+    device.device.connected = False
+    transports = attach_transport(device)
+    collect(device)
+    assert transports[0].keepalive == 30
+    # The link went down between two scrapes; PyEZ still believes it is connected.
+    transports[0].active = False
+    found = collect(device)
+    assert device.device.opened == 2
+    assert found["pyez_junos_netconf_session_reused"][0][1] == 0
+    assert found["pyez_junos_netconf_sessions_lost_total"][0][1] == 1
+    # The new session is alive again and gets reused.
+    assert collect(device)["pyez_junos_netconf_session_reused"][0][1] == 1
+    assert device.device.opened == 2
+
+
+def test_session_closed_by_the_device_is_noticed():
+    device = make_device(SYNTHETIC, types=["probe"], options={"keep_session": True})
+    device.device.connected = False
+    attach_transport(device)
+    collect(device)
+    device.device._conn.connected = False
+    collect(device)
+    assert device.device.opened == 2
+
+
+def test_session_loss_reported_by_pyez_is_counted_once():
+    device = make_device(SYNTHETIC, types=["probe"], options={"keep_session": True})
+    device.device.connected = False
+    attach_transport(device)
+    first = collect(device)
+    assert first["pyez_junos_netconf_sessions_lost_total"][0][1] == 0
+
+    DeviceSessionListener(device.device).errback(junosdevice.TransportError("session gone"))
+    assert device.device.connected is False
+    found = collect(device)
+    assert device.device.opened == 2
+    assert found["pyez_junos_netconf_session_reused"][0][1] == 0
+    assert found["pyez_junos_netconf_sessions_lost_total"][0][1] == 1
+
+    reused = collect(device)
+    assert reused["pyez_junos_netconf_session_reused"][0][1] == 1
+    assert reused["pyez_junos_netconf_sessions_lost_total"][0][1] == 1
+    assert device.device.opened == 2
+
+
+@pytest.mark.parametrize("force", [False, True])
+def test_explicit_disconnect_is_not_counted_as_session_loss(force):
+    device = make_device(SYNTHETIC, types=["probe"], options={"keep_session": True})
+    device.device.connected = False
+    attach_transport(device)
+    collect(device)
+    device.disconnect(force=force)
+    found = collect(device)
+    assert device.device.opened == 2
+    assert found["pyez_junos_netconf_sessions_lost_total"][0][1] == 0
+
+
+def test_failed_reconnect_does_not_count_the_same_session_loss_again(monkeypatch):
+    device = make_device(SYNTHETIC, types=["probe"], options={"keep_session": True})
+    device.device.connected = False
+    attach_transport(device)
+    collect(device)
+    DeviceSessionListener(device.device).errback(junosdevice.TransportError("session gone"))
+
+    def fail_connect():
+        raise junosdevice.TransportError("login failed")
+
+    with monkeypatch.context() as patch:
+        patch.setattr(device, "connect", fail_connect)
+        with pytest.raises(junosdevice.TransportError, match="login failed"):
+            device.collect()
+    assert device.sessions_lost == 1
+    found = collect(device)
+    assert device.device.opened == 2
+    assert found["pyez_junos_netconf_sessions_lost_total"][0][1] == 1
+
+
+@pytest.mark.parametrize("options, expected", [({"keep_session": True, "keepalive_seconds": 0}, None), ({}, None)])
+def test_no_keepalive_without_kept_session_or_when_disabled(options, expected):
+    device = make_device(SYNTHETIC, types=["probe"], options=options)
+    device.device.connected = False
+    transports = attach_transport(device)
+    collect(device)
+    assert transports[0].keepalive is expected
+
+
+def test_missing_transport_does_not_fail_the_scrape():
+    device = make_device(SYNTHETIC, types=["probe"], options={"keep_session": True})
+    device.device.connected = False
+    collect(device)  # the fake has no ncclient session: keepalive is skipped
+    assert collect(device)["pyez_junos_netconf_session_reused"][0][1] == 1
+
+
+def test_broken_session_object_counts_as_dead():
+    device = make_device(SYNTHETIC, types=["probe"], options={"keep_session": True})
+    device.device._conn = object()  # no connected attribute
+    assert device._session_alive() is False
+
+
+def test_disconnect_tolerates_a_broken_connection_and_transport():
+    device = make_device(SYNTHETIC, types=[])
+    connection = mock.Mock()
+    type(connection).connected = mock.PropertyMock(side_effect=RuntimeError("broken connection state"))
+    connection._conn._session.close.side_effect = OSError("transport already closed")
+    device.device = connection
+    assert device.disconnect() is False
+    connection._conn._session.close.assert_called_once_with()
+    assert device._session_kept is False
+
+
+def test_reconnect_closes_the_old_session_before_opening_a_new_one():
+    device = make_device(SYNTHETIC, types=["probe"])
+    device.reconnect()
+    assert (device.device.closed, device.device.opened) == (1, 1)
+    assert device.is_connected()
+    assert collect(device)["pyez_junos_probe_success"][0][1] == 1

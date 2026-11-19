@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
-from prometheus_client.core import GaugeMetricFamily
+import time
+
+from prometheus_client.core import CounterMetricFamily, GaugeMetricFamily
 
 from ..base import Collector
 from . import base
@@ -15,6 +17,7 @@ class StatusCollector(Collector):
         super().__init__(base, device, config={})
 
     def collect(self):
+        yield from self.optics_freshness()
         failed = GaugeMetricFamily(
             f"{base}_rpc_failed",
             "1 when the RPC raised an error during this scrape",
@@ -35,8 +38,7 @@ class StatusCollector(Collector):
 
         connect = GaugeMetricFamily(
             f"{base}_netconf_connect_seconds",
-            "Time to open the NETCONF session for this scrape; slow when the "
-            "routing engine is busy",
+            "Time to open the NETCONF session for this scrape; slow when the " "routing engine is busy",
         )
         if self.device.connect_duration is not None:
             connect.add_metric([], self.device.connect_duration)
@@ -59,6 +61,13 @@ class StatusCollector(Collector):
         )
         reused.add_metric([], 1.0 if getattr(self.device, "session_reused", False) else 0.0)
         yield reused
+
+        lost = CounterMetricFamily(
+            f"{base}_netconf_sessions_lost",
+            "Kept sessions (keep_session) found dead before a scrape and replaced by a new login",
+        )
+        lost.add_metric([], float(getattr(self.device, "sessions_lost", 0)))
+        yield lost
 
         collector_duration = GaugeMetricFamily(
             f"{base}_collector_duration_seconds",
@@ -89,3 +98,30 @@ class StatusCollector(Collector):
         for (collector, field), count in sorted(self.device.schema.missing.items()):
             missing.add_metric([collector, field], float(count))
         yield missing
+
+    def optics_freshness(self):
+        age = GaugeMetricFamily(
+            f"{base}_optics_cache_age_seconds",
+            "Age of the cached optical RPC reply",
+            labels=["rpc", "interface", "fpc", "pic"],
+        )
+        stamp = GaugeMetricFamily(
+            f"{base}_optics_last_refresh_timestamp_seconds",
+            "Unix time of the cached optical RPC reply",
+            labels=["rpc", "interface", "fpc", "pic"],
+        )
+        now = time.monotonic()
+        for (rpc, arguments), (started, timestamp, _) in self.device.optics_cache.entries.items():
+            if self.device.optics_cache.expired(started, now):
+                continue
+            args = dict(arguments)
+            labels = [
+                rpc,
+                str(args.get("interface_name", "")),
+                str(args.get("fpc_slot", "")),
+                str(args.get("pic_slot", "")),
+            ]
+            age.add_metric(labels, max(0, now - started))
+            stamp.add_metric(labels, timestamp)
+        yield age
+        yield stamp

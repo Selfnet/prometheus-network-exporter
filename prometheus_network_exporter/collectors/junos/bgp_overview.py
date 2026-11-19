@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import collections
+from typing import DefaultDict, List, Optional, Tuple
 
 from prometheus_client.core import GaugeMetricFamily
 
@@ -77,7 +78,7 @@ class BGPOverviewCollector(Collector):
         )
         # Junos splits one configured group into several entries (one per
         # option set, told apart by group-index); sum them per name and type.
-        counts = collections.defaultdict(lambda: [None, None])
+        counts: DefaultDict[Tuple[str, str], List[Optional[float]]] = collections.defaultdict(lambda: [None, None])
         for group in iter_items(reply, ("bgp-group",)):
             key = (
                 label(read.text(group, "name")),

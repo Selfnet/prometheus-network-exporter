@@ -1,0 +1,53 @@
+<rpc-reply xmlns:junos="http://xml.juniper.net/junos/21.4R3/junos">
+  <ospf-neighbor-information xmlns="http://xml.juniper.net/junos/21.4R3/junos-routing">
+    <ospf-neighbor>
+      <neighbor-address>198.51.100.2</neighbor-address>
+      <interface-name>ae0.0</interface-name>
+      <ospf-neighbor-state>Full</ospf-neighbor-state>
+      <neighbor-id>192.0.2.102</neighbor-id>
+      <neighbor-priority>128</neighbor-priority>
+      <activity-timer>35</activity-timer>
+      <ospf-area>0.0.0.0</ospf-area>
+      <options>0x52</options>
+      <dr-address>0.0.0.0</dr-address>
+      <bdr-address>0.0.0.0</bdr-address>
+      <neighbor-up-time junos:seconds="864000">1w3d 00:00:00</neighbor-up-time>
+      <neighbor-adjacency-time junos:seconds="863990">1w3d 00:00:00</neighbor-adjacency-time>
+      <ospf-neighbor-topology>
+        <ospf-topology-name>default</ospf-topology-name>
+        <ospf-topology-id>0</ospf-topology-id>
+        <ospf-neighbor-topology-state>Bidirectional</ospf-neighbor-topology-state>
+      </ospf-neighbor-topology>
+    </ospf-neighbor>
+    <ospf-neighbor>
+      <neighbor-address>198.51.100.137</neighbor-address>
+      <interface-name>irb.100</interface-name>
+      <ospf-neighbor-state>2Way</ospf-neighbor-state>
+      <neighbor-id>192.0.2.109</neighbor-id>
+      <neighbor-priority>1</neighbor-priority>
+      <activity-timer>38</activity-timer>
+      <ospf-area>0.0.0.0</ospf-area>
+      <options>0x52</options>
+      <dr-address>198.51.100.129</dr-address>
+      <bdr-address>198.51.100.145</bdr-address>
+      <neighbor-up-time junos:seconds="600">10:00</neighbor-up-time>
+    </ospf-neighbor>
+    <ospf-neighbor>
+      <neighbor-address>198.51.100.145</neighbor-address>
+      <interface-name>irb.100</interface-name>
+      <ospf-neighbor-state>Full</ospf-neighbor-state>
+      <neighbor-id>192.0.2.117</neighbor-id>
+      <neighbor-priority>128</neighbor-priority>
+      <activity-timer>31</activity-timer>
+      <ospf-area>0.0.0.0</ospf-area>
+      <options>0x52</options>
+      <dr-address>198.51.100.129</dr-address>
+      <bdr-address>198.51.100.145</bdr-address>
+      <neighbor-up-time junos:seconds="7200">2:00:00</neighbor-up-time>
+      <neighbor-adjacency-time junos:seconds="7190">1:59:50</neighbor-adjacency-time>
+    </ospf-neighbor>
+  </ospf-neighbor-information>
+  <cli>
+    <banner></banner>
+  </cli>
+</rpc-reply>

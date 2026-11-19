@@ -51,9 +51,7 @@ LACP_MUX_STATES = (
     "Distributing",
     "Collecting distributing",
 )
-VTEP_ROW = re.compile(
-    r"^\s*(?P<vtep>\d+\.\d+\.\d+\.\d+|[0-9a-fA-F]*:[0-9a-fA-F:]+)\s+\d+\s+vtep\.\d+"
-)
+VTEP_ROW = re.compile(r"^\s*(?P<vtep>\d+\.\d+\.\d+\.\d+|[0-9a-fA-F]*:[0-9a-fA-F:]+)\s+\d+\s+vtep\.\d+")
 VNI_ROW = re.compile(r"^\s+(?P<vni>\d+)\s+(\d+\.\d+\.\d+\.\d+|[0-9a-fA-F:]+)\s*$")
 LACP_RECEIVE_STATES = ("Current", "Expired", "Defaulted", "Initialize", "LACP disabled", "Port disabled")
 
@@ -206,9 +204,7 @@ class LACPCollector(Collector):
                 current_receive = read.text(protocol, "lacp-receive-state")
                 if not state_set(receive, member, current_receive, LACP_RECEIVE_STATES):
                     read.unexpected_state("lacp-receive-state", current_receive)
-                distributing.add_metric(
-                    member, 1.0 if (current or "").lower() == "collecting distributing" else 0.0
-                )
+                distributing.add_metric(member, 1.0 if (current or "").lower() == "collecting distributing" else 0.0)
         yield from read.unique((mux, receive, distributing))
 
 
@@ -239,10 +235,11 @@ class LLDPCollector(Collector):
             info.add_metric(
                 [interface, label(read.text(neighbor, "lldp-remote-chassis-id", required=False))],
                 {
-                    "parent_interface": label(
-                        text(neighbor, "lldp-local-parent-interface-name")
-                    ),
+                    "parent_interface": label(text(neighbor, "lldp-local-parent-interface-name")),
                     "remote_system": label(read.text(neighbor, "lldp-remote-system-name", required=False)),
+                    "remote_port_id": label(text(neighbor, "lldp-remote-port-id")),
+                    "remote_port_description": label(text(neighbor, "lldp-remote-port-description")),
+                    "remote_port_subtype": label(text(neighbor, "lldp-remote-port-id-subtype")),
                     "remote_port": label(
                         read.first_text(
                             neighbor,
@@ -302,7 +299,7 @@ class VxlanCollector(Collector):
 
     def _remote_vteps(self, reply) -> Optional[collections.Counter]:
         """VNIs per remote VTEP from XML elements or the text table, None if unparsable."""
-        per_vtep = collections.Counter()
+        per_vtep: collections.Counter = collections.Counter()
         addresses = [
             element
             for element in reply.iter()
@@ -319,8 +316,7 @@ class VxlanCollector(Collector):
         if addresses:
             return per_vtep
         if any(
-            isinstance(element.tag, str) and localname(element) == "source-vtep-address"
-            for element in reply.iter()
+            isinstance(element.tag, str) and localname(element) == "source-vtep-address" for element in reply.iter()
         ):
             # A switch with its own VTEP but no remote ones: zero, not unknown.
             return per_vtep
