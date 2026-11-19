@@ -94,7 +94,8 @@ Additional metrics (prefix `pyez_junos_interface_`):
 The old voltage/bias metric names ending in `_dbm` are retained for existing
 dashboards, but their values are volts/milliamps, not dBm. The historical
 `receiving_optic_power_low_alarm_threshold` name still has no `_dbm` suffix;
-the corresponding lane metric preserves that spelling. The legacy
+its lane metric is `lane_receiving_optic_power_low_alarm_threshold_dbm` like
+the other lane power metrics. The legacy
 `sending_laser_fault_alarm` uses 1=OK, 0=fault. Generic `optics_alarm` flags
 use 1=alarm, 0=clear and include additional flags Junos reports.
 

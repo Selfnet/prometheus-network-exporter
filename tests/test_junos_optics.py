@@ -87,7 +87,7 @@ class OpticsTests(unittest.TestCase):
             self.assertEqual(
                 select(
                     data,
-                    "pyez_junos_interface_lane_receiving_optic_power_low_alarm_threshold",
+                    "pyez_junos_interface_lane_receiving_optic_power_low_alarm_threshold_dbm",
                     interface=interface,
                     lane=lane,
                 ),
@@ -116,10 +116,10 @@ class OpticsTests(unittest.TestCase):
         self.assertEqual(select(data, "pyez_junos_interface_optics_reported_lanes"), [2])
         self.assertEqual(select(data, "pyez_junos_interface_receiving_optic_power_dbm"), [])
         self.assertEqual(
-            select(data, "pyez_junos_interface_lane_receiving_optic_power_low_alarm_threshold", lane="7"), [-18]
+            select(data, "pyez_junos_interface_lane_receiving_optic_power_low_alarm_threshold_dbm", lane="7"), [-18]
         )
         self.assertEqual(
-            select(data, "pyez_junos_interface_lane_receiving_optic_power_low_alarm_threshold", lane="2"), [-14]
+            select(data, "pyez_junos_interface_lane_receiving_optic_power_low_alarm_threshold_dbm", lane="2"), [-14]
         )
         self.assertEqual(select(data, "pyez_junos_interface_lane_sending_optic_power_dbm", lane="2"), [0])
         self.assertEqual(select(data, "pyez_junos_interface_lane_receiving_optic_power_dbm", lane="7"), [-math.inf])
@@ -186,7 +186,9 @@ class OpticsTests(unittest.TestCase):
         collector, interfaces = self.collector(values)
         data = samples(collector, interfaces)
         self.assertEqual(select(data, "pyez_junos_interface_receiving_optic_power_low_alarm_threshold"), [-18])
-        self.assertEqual(select(data, "pyez_junos_interface_lane_receiving_optic_power_low_alarm_threshold"), [-18])
+        self.assertEqual(select(data, "pyez_junos_interface_lane_receiving_optic_power_low_alarm_threshold_dbm"), [-18])
+        lane_names = {metric for metric, _ in data if "_lane_" in metric and "optic_power" in metric}
+        self.assertTrue(all(name.endswith("_dbm") for name in lane_names), lane_names)
 
     def test_device_uses_one_rpc_for_all_reported_lanes(self):
         device = Mock(spec=JuniperNetworkDevice)

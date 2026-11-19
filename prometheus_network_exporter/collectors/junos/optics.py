@@ -94,8 +94,13 @@ class OpticsCollector(Collector):
             # lane metrics only follow their milliamps aliases.
             if key.startswith("laser_bias") and metric.config.get("type") == "dbm":
                 continue
+            name = metric.base_name.replace(self.base_name + "_", self.base_name + "_lane_", 1)
+            if not metric.config.get("type"):
+                # The legacy receive low alarm threshold has no unit suffix;
+                # the new lane metric gets the _dbm of its siblings.
+                name += "_dbm"
             family = GaugeMetricFamily(
-                metric.base_name.replace(self.base_name + "_", self.base_name + "_lane_", 1),
+                name,
                 "Reported lane value; module thresholds apply unless overridden by the lane",
                 labels=[label.label for label in self.labels] + ["lane"],
             )
