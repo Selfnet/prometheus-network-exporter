@@ -297,6 +297,8 @@ class JuniperNetworkDevice(basedevice.Device):
         self.aborted: Optional[str] = None
         # Kept sessions found dead before a scrape, since the exporter started.
         self.sessions_lost = 0
+        # PyEZ can mark a kept session disconnected before the next scrape.
+        self._session_kept = False
         # RPC name -> monotonic time until which it is not asked again.
         self._rpc_denied: Dict[str, float] = {}
         super(JuniperNetworkDevice, self).__init__(hostname, device, **kwargs)
@@ -647,6 +649,7 @@ class JuniperNetworkDevice(basedevice.Device):
         close-session either, so ``force`` drops the transport right away.
         An exception here must not keep the scrape lock taken.
         """
+        self._session_kept = False
         try:
             if self.is_connected():
                 if force:
@@ -700,16 +703,19 @@ class JuniperNetworkDevice(basedevice.Device):
     def _open_session(self) -> None:
         """Reuse a kept session that is still alive, otherwise log in."""
         if self.keep_session and self.is_connected() and self._session_alive():
+            self._session_kept = True
             self.session_reused = True
             return
-        if self.keep_session and self._connected_safe():
+        if self.keep_session and self._session_kept:
             # Link down or closed by the device since the last scrape.
             LOGGER.info("%s :: kept session is dead, logging in again", self.hostname)
             self.sessions_lost += 1
             self._drop_transport()
+        self._session_kept = False
         self.session_reused = False
         started = time.monotonic()
         self.connect()
+        self._session_kept = self.keep_session
         self.connect_duration = time.monotonic() - started
         if self.keep_session and self.keepalive_seconds > 0:
             self._enable_keepalive()
