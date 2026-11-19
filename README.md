@@ -176,9 +176,10 @@ This only caches optical diagnostics, chassis inventory and PIC details;
 interface traffic, addresses, status and LLDP are not delayed by this cache.
 
 The alert `JunosOpticsAlarm` covers the interface flags, which include the
-flags of a single reported lane. `JunosLaneOpticsAlarm` covers modules with
-several reported lanes, whose receive and bias alarms Junos only reports per
-lane.
+flags of a single reported lane when its index matches the breakout port.
+`JunosLaneOpticsAlarm` covers every lane flag the interface does not raise
+itself: the receive and bias alarms of modules with several lanes, which
+Junos only reports per lane, and a breakout lane with a different index.
 
 Inventory/PIC schemas and unbroken multi-lane modules still need validation
 on the deployed device models.
