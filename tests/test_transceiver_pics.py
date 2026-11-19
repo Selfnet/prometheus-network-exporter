@@ -59,3 +59,34 @@ def test_failing_pic_does_not_block_the_others(tmp_path):
     # PIC 1 is asked on every scrape, PIC 0 only once until its retry time.
     assert calls.count("transceiver_pic_0_1") == 2
     assert calls.count("transceiver_pic_0_0") == 1
+
+
+def test_missing_interface_reply_preserves_inventory_without_guessing_a_mapping(tmp_path):
+    dev = device(tmp_path)
+    (tmp_path / "interfaces_brief.xml").unlink()
+    found = samples(scrape(dev))
+    assert set(info(found)) == {"0/0/0", "0/1/2"}
+    assert "pyez_junos_interface_transceiver_info" not in found
+    assert not found.get("pyez_junos_collector_failed")
+
+
+def test_inventory_ignores_comments_unlocated_modules_and_unknown_pic_ports(tmp_path):
+    dev = device(tmp_path)
+    (tmp_path / "transceivers.xml").write_text(
+        INVENTORY.replace(
+            "<chassis><name>Chassis</name>",
+            "<chassis><name>Chassis</name><!-- inventory -->"
+            "<chassis-module><name>Xcvr 99</name><serial-number>unlocated</serial-number></chassis-module>",
+        )
+    )
+    (tmp_path / "transceiver_pic_0_1.xml").write_text(
+        PIC_1.replace(
+            "</port-information>",
+            "<port><port-number>99</port-number><sfp-vendor-name>Unknown</sfp-vendor-name></port></port-information>",
+        )
+    )
+    found = samples(scrape(dev))
+    modules = info(found)
+    assert set(modules) == {"0/0/0", "0/1/2"}
+    assert modules["0/1/2"]["manufacturer"] == "Example"
+    assert not found.get("pyez_junos_collector_failed")

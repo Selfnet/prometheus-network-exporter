@@ -71,3 +71,20 @@ def test_reverse_lookups_are_cached_per_device(monkeypatch):
     assert resolved_once == len(set(calls)), "every address is resolved once, even when two collectors need it"
     assert device.cache_info["entries"] == resolved_once
     assert value(first, "pyez_junos_bgp_is_up_status", neighbor="192.0.2.102") == 1
+
+
+def test_clearing_dns_cache_refreshes_names_without_resolving_missing_addresses(monkeypatch):
+    from unittest.mock import Mock
+
+    resolve = Mock(side_effect=["old.example.net", "new.example.net"])
+    monkeypatch.setattr(Device, "_resolve", staticmethod(resolve))
+    device = make_device(SYNTHETIC, types=[])
+    del device.lookup
+    assert device.lookup(None) == device.lookup("None") == ""
+    resolve.assert_not_called()
+    assert device.lookup("192.0.2.1") == "old.example.net"
+    assert device.lookup("192.0.2.1") == "old.example.net"
+    device.clear_cache()
+    assert device.cache_info == {"entries": 0}
+    assert device.lookup("192.0.2.1") == "new.example.net"
+    assert resolve.call_count == 2

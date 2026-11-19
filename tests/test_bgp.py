@@ -1,4 +1,19 @@
-from .conftest import labels_of, value
+from .conftest import SYNTHETIC, labels_of, make_device, samples, scrape, value
+
+
+def test_missing_peer_address_and_unknown_state_are_reported(tmp_path):
+    reply = (SYNTHETIC / "bgp_neighbor.xml").read_text()
+    reply = reply.replace(
+        "</bgp-information>", "<bgp-peer><peer-state>Established</peer-state></bgp-peer></bgp-information>"
+    )
+    reply = reply.replace("<peer-state>Active</peer-state>", "<peer-state>Unexpected</peer-state>")
+    (tmp_path / "bgp_neighbor.xml").write_text(reply)
+    found = samples(scrape(make_device(tmp_path, types=["bgp_details"])))
+    assert value(found, "pyez_junos_bgp_peer_state", peer="192.0.2.105", state="unknown") == 1
+    assert value(found, "pyez_junos_bgp_peer_state", peer="192.0.2.102", state="Established") == 1
+    assert all(labels["peer"] for labels, _ in found["pyez_junos_bgp_peer_state"])
+    for field in ("peer-address", "peer-state:unexpected-value"):
+        assert value(found, "pyez_junos_xml_missing_fields", collector="bgp_neighbor", field=field) == 1
 
 
 def test_peer_state_is_a_state_set(synthetic):

@@ -2,9 +2,11 @@
 
 from lxml import etree
 from prometheus_client.core import GaugeMetricFamily
+import pytest
 
 from prometheus_network_exporter.collectors.junos import xmlutil
 from prometheus_network_exporter.collectors.junos.route import RouteTableCollector
+from prometheus_network_exporter.collectors.junos.rpcs import fixture_name
 
 from .conftest import ROUTING_OPTIONS, SYNTHETIC, make_device, samples, scrape, value
 
@@ -15,6 +17,14 @@ def test_number_rejects_non_finite_text():
     assert xmlutil.number("1.5") == 1.5
     for bad in ("nan", "inf", "-Infinity", "1e400", "", "abc", None):
         assert xmlutil.number(bad) is None
+
+
+def test_unknown_rpc_labels_are_stable_and_cli_commands_are_normalized():
+    assert (
+        fixture_name("cli", {"command": "show test-information detail", "format": "xml"})
+        == "cli_show_test_information_detail"
+    )
+    assert fixture_name("get-custom-information", {}) == "get_custom_information"
 
 
 def test_state_set_keeps_label_values_fixed():
@@ -132,3 +142,99 @@ def test_unknown_states_are_counted_not_labelled(tmp_path):
         )
         == 1
     )
+
+
+@pytest.mark.parametrize(
+    "metric_type, fixture, body, collector, field, absent_metric",
+    [
+        (
+            "pfe",
+            "pfe_traffic",
+            "<pfe-information/>",
+            "pfe_traffic",
+            "pfe-traffic-statistics",
+            "pyez_junos_pfe_statistics_total",
+        ),
+        (
+            "pfe_exceptions",
+            "pfe_exceptions",
+            "<output>unrecognised reply</output>",
+            "pfe_exceptions",
+            "output:exception-rows",
+            "pyez_junos_pfe_exceptions_total",
+        ),
+        ("krt", "krt_queue", "<output>unrecognised reply</output>", "krt", "krt-queue", "pyez_junos_krt_queue_entries"),
+        ("krt", "krt_state", "<output>unrecognised reply</output>", "krt", "krt-state", "pyez_junos_krt_state"),
+        (
+            "rpd_memory",
+            "task_memory",
+            "<task-memory-information/>",
+            "task_memory",
+            "task-memory-overall-report",
+            "pyez_junos_rpd_task_memory",
+        ),
+        (
+            "processes",
+            "processes",
+            "<output>unrecognised reply</output>",
+            "processes",
+            "output:process-table",
+            "pyez_junos_process_cpu_ratio",
+        ),
+        ("system", "ntp_status", "<output>stratum=2</output>", "ntp", "output:sync-state", "pyez_junos_ntp_synced"),
+        (
+            "system",
+            "ntp_status",
+            "<output>sync_ntp stratum=2</output>",
+            "ntp",
+            "output:offset",
+            "pyez_junos_ntp_offset_seconds",
+        ),
+        (
+            "vxlan",
+            "mac_table_summary",
+            "<output>unrecognised reply</output>",
+            "vxlan",
+            "output:mac-summary",
+            "pyez_junos_mac_table",
+        ),
+    ],
+)
+def test_unrecognised_reply_reports_missing_data_instead_of_zero(
+    tmp_path, metric_type, fixture, body, collector, field, absent_metric
+):
+    (tmp_path / f"{fixture}.xml").write_text(body)
+    device = make_device(tmp_path, types=[metric_type])
+    found = samples(scrape(device))
+    assert absent_metric not in found
+    assert value(found, "pyez_junos_xml_missing_fields", collector=collector, field=field) == 1
+    assert not found.get("pyez_junos_collector_failed")
+
+
+def test_reader_fallbacks_record_only_required_missing_fields():
+    watch = xmlutil.SchemaWatch()
+    reader = xmlutil.Reader(watch, "test")
+    root = etree.fromstring("<reply><age>12</age><bad-age>unknown</bad-age></reply>")
+    assert reader.first_seconds(root, ("missing", "age"), required=True) == 12
+    assert reader.first_seconds(root, ("missing", "bad-age"), required=True) is None
+    assert reader.first_seconds(root, ("optional",)) is None
+    assert reader.seconds(root, "bad-age") is None
+    assert reader.number(root, "bad-age") is None
+    assert reader.first_text(root, ("missing", "also-missing"), required=False) is None
+    assert watch.missing == {("test", "missing|bad-age"): 1, ("test", "bad-age"): 2}
+
+
+@pytest.mark.parametrize("counter_enabled", [False, True])
+def test_legacy_ospf_skips_invalid_units_but_preserves_valid_neighbors(counter_enabled):
+    device = make_device(SYNTHETIC, types=[])
+    if not counter_enabled:
+        device.exception_counter = None
+    result = device.manipulate_ospf(
+        {
+            (None, "192.0.2.1"): {"neighbor_id": "192.0.2.1"},
+            ("ae0", "192.0.2.2"): {"neighbor_id": "192.0.2.2"},
+            ("ae0.invalid", "192.0.2.3"): {"neighbor_id": "192.0.2.3"},
+            ("ae0.42", "192.0.2.4"): {"neighbor_id": "192.0.2.4"},
+        }
+    )
+    assert result == {"ae0": {"ospf": [{"unit": 42, "neighbor_id": "name-of-192.0.2.4"}]}}

@@ -159,3 +159,55 @@ def test_optics_without_interface_collector():
     )
     # One optics RPC and the cheap interface list, not show interfaces detail.
     assert sorted(set(device.device.rpc.calls)) == ["interfaces_brief", "optics"]
+
+
+def test_missing_interface_statistics_are_reported_and_unnamed_queues_skipped(tmp_path):
+    (tmp_path / "interface_extensive.xml").write_text("""<interface-information><physical-interface>
+      <name>et-0/0/0</name><description>Core: peer</description>
+      <queue><queue-counters-tail-drop-packets>99</queue-counters-tail-drop-packets></queue>
+      </physical-interface></interface-information>""")
+    device = make_device(tmp_path, types=["interface_errors"])
+    found = samples(scrape(device))
+    assert "pyez_junos_interface_errors_total" not in found
+    assert "pyez_junos_interface_queue_packets_total" not in found
+    assert device.schema.missing == {
+        ("interface_extensive", "input-error-list"): 1,
+        ("interface_extensive", "output-error-list"): 1,
+    }
+
+
+def test_logical_interfaces_without_name_or_counters_are_not_exported(tmp_path):
+    (tmp_path / "logical_interfaces_lo0.xml").write_text("""<interface-information>
+      <logical-interface><traffic-statistics><input-bytes>12</input-bytes></traffic-statistics></logical-interface>
+      <logical-interface><name>lo0.0</name></logical-interface></interface-information>""")
+    device = make_device(tmp_path, types=["logical_interfaces"], options={"logical_interfaces": ["lo0"]})
+    found = samples(scrape(device))
+    assert "pyez_junos_logical_interface_received_bytes_total" not in found
+    assert device.schema.missing == {
+        ("logical_interfaces", "name"): 1,
+        ("logical_interfaces", "logical-interface/traffic-statistics"): 1,
+    }
+
+
+def test_unknown_lacp_states_remain_bounded_and_are_reported(tmp_path):
+    original = (SYNTHETIC / "lacp.xml").read_text()
+    (tmp_path / "lacp.xml").write_text(
+        original.replace("Collecting distributing", "NewMux").replace("Current", "NewReceive")
+    )
+    device = make_device(tmp_path, types=["lacp"])
+    found = samples(scrape(device))
+    assert value(found, "pyez_junos_lacp_member_mux_state", interface="xe-0/0/0", state="unknown") == 1
+    assert value(found, "pyez_junos_lacp_member_receive_state", interface="xe-0/0/0", state="unknown") == 1
+    assert value(found, "pyez_junos_lacp_member_distributing", interface="xe-0/0/0") == 0
+    assert ("lacp", "lacp-mux-state:unexpected-value") in device.schema.missing
+    assert ("lacp", "lacp-receive-state:unexpected-value") in device.schema.missing
+
+
+def test_mac_summary_xml_keeps_vlan_and_counter_names(tmp_path):
+    (tmp_path / "mac_table_summary.xml").write_text("""<ethernet-switching-table-information>
+      <vlan><vlan-name>servers</vlan-name><vlan-id>100</vlan-id><mac-count>7</mac-count>
+        <learned-entries>6</learned-entries></vlan></ethernet-switching-table-information>""")
+    found = samples(scrape(make_device(tmp_path, types=["vxlan"])))
+    assert value(found, "pyez_junos_mac_table", vlan="servers", field="mac_count") == 7
+    assert value(found, "pyez_junos_mac_table", vlan="servers", field="learned_entries") == 6
+    assert len(found["pyez_junos_mac_table"]) == 2

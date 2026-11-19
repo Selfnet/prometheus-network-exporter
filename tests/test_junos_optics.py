@@ -42,6 +42,31 @@ def reply(name, body):
 
 
 class OpticsTests(unittest.TestCase):
+    def test_parser_skips_comments_and_ports_without_names_or_diagnostics(self):
+        result = parse_optics(etree.fromstring("""<interface-information>
+          <physical-interface><optics-diagnostics><module-temperature>90</module-temperature></optics-diagnostics></physical-interface>
+          <physical-interface><name>et-0/0/1</name></physical-interface>
+          <physical-interface><name>et-0/0/2</name><optics-diagnostics><!-- sensor -->
+            <module-temperature celsius="42">42 degrees C</module-temperature>
+            <laser-output-power-low-alarm>on</laser-output-power-low-alarm>
+          </optics-diagnostics></physical-interface></interface-information>"""))
+        self.assertEqual(set(result), {"et-0/0/2"})
+        self.assertEqual(result["et-0/0/2"]["module_temperature"], 42)
+        self.assertEqual(result["et-0/0/2"]["flag_laser_output_power_low_alarm"], "on")
+
+    def test_standalone_collector_skips_an_interface_without_a_name(self):
+        device = Mock(spec=JuniperNetworkDevice)
+        device.rpc_reply.return_value = etree.fromstring("""<interface-information>
+          <physical-interface><description>unnamed</description></physical-interface>
+          <physical-interface><name>et-0/0/2</name><description>uplink</description></physical-interface>
+          </interface-information>""")
+        device.get_optics.return_value = {"et-0/0/2": {"module_temperature": 42}}
+        data = samples(StandaloneOpticsCollector(device))
+        self.assertEqual(
+            select(data, "pyez_junos_interface_temperature_celsius", interface="et-0/0/2", description="uplink"), [42]
+        )
+        self.assertEqual(len(data), 1)
+
     def collector(self, values):
         device = Mock(spec=JuniperNetworkDevice)
         device.get_optics.return_value = values

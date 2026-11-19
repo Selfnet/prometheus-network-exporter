@@ -79,6 +79,28 @@ def test_uptime_and_commit(control_plane):
     assert labels_of(control_plane, "pyez_junos_last_commit_info")["user"] == "adrian"
 
 
+@pytest.mark.parametrize("strip", [False, True])
+def test_uptime_keeps_routing_engines_separate(tmp_path, strip):
+    (tmp_path / "uptime.xml").write_text(
+        '<multi-routing-engine-results xmlns="urn:test" xmlns:junos="urn:junos">'
+        "<multi-routing-engine-item><re-name>re0</re-name><system-uptime-information>"
+        '<current-time><date-time junos:seconds="1791925876"/></current-time>'
+        '<system-booted-time><date-time junos:seconds="1791749455"/></system-booted-time>'
+        "</system-uptime-information></multi-routing-engine-item>"
+        "<multi-routing-engine-item><re-name>re1</re-name><system-uptime-information>"
+        '<current-time><date-time junos:seconds="1791925877"/></current-time>'
+        '<system-booted-time><date-time junos:seconds="1791749400"/></system-booted-time>'
+        "</system-uptime-information></multi-routing-engine-item></multi-routing-engine-results>"
+    )
+    device = make_device(tmp_path, types=["system"], strip=strip)
+    found = samples(scrape(device))
+    assert value(found, "pyez_junos_system_time_seconds", re="re0") == 1791925876
+    assert value(found, "pyez_junos_system_time_seconds", re="re1") == 1791925877
+    assert value(found, "pyez_junos_system_booted_timestamp_seconds", re="re0") == 1791749455
+    assert value(found, "pyez_junos_system_booted_timestamp_seconds", re="re1") == 1791749400
+    assert not device.schema.missing
+
+
 def test_storage_keeps_only_writable_mounts(control_plane):
     mounts = {labels["mount"] for labels, _ in control_plane["pyez_junos_storage_used_ratio"]}
     assert mounts == {"/.mount", "/.mount/var"}
@@ -136,6 +158,8 @@ def test_ntp_unsynchronised(tmp_path):
         ("/usr/sbin/rpd -N", "rpd"),
         ("idle{idle: cpu0}", "idle"),
         ("[kernel]", "kernel"),
+        ("", ""),
+        ("]", ""),
     ],
 )
 def test_process_name(command, expected):
@@ -151,6 +175,32 @@ def test_parse_size():
 
 def test_parse_top_without_header_is_empty():
     assert parse_top("no process table here") == {}
+
+
+def test_parse_top_skips_malformed_rows_and_keeps_valid_processes():
+    assert parse_top(
+        "PID RES WCPU COMMAND\n" "123 10M\n" "invalid 10M 50% rpd\n" "124 10M 50% ]\n" "125 20M 25% /usr/sbin/rpd -N\n"
+    ) == {"rpd": {"cpu": 0.25, "resident": 20 * 1024**2, "threads": 1}}
+
+
+def test_routing_engine_temperature_without_celsius_attribute(tmp_path):
+    (tmp_path / "route_engine.xml").write_text(
+        "<route-engine-information><route-engine><slot>0</slot><temperature>42</temperature>"
+        "<cpu-temperature>55</cpu-temperature></route-engine></route-engine-information>"
+    )
+    found = samples(scrape(make_device(tmp_path, types=["routing_engine"])))
+    assert value(found, "pyez_junos_re_temperature_celsius", slot="0", sensor="re") == 42
+    assert value(found, "pyez_junos_re_temperature_celsius", slot="0", sensor="cpu") == 55
+
+
+def test_unknown_fpc_state_is_reported_as_unknown(tmp_path):
+    (tmp_path / "fpc.xml").write_text(
+        "<fpc-information><fpc><slot>0</slot><state>Unexpected</state></fpc></fpc-information>"
+    )
+    found = samples(scrape(make_device(tmp_path, types=["fpc"])))
+    assert value(found, "pyez_junos_fpc_state", slot="0", state="unknown") == 1
+    assert value(found, "pyez_junos_fpc_state", slot="0", state="Online") == 0
+    assert value(found, "pyez_junos_xml_missing_fields", collector="fpc", field="state:unexpected-value") == 1
 
 
 @pytest.mark.parametrize(

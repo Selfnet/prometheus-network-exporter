@@ -1,4 +1,19 @@
-from .conftest import labels_of, value
+from .conftest import labels_of, make_device, samples, scrape, value
+
+
+def test_watch_ignores_other_prefixes_and_inactive_entries(tmp_path):
+    (tmp_path / "route_destination_inet.0_0.0.0.0_0.xml").write_text(
+        "<route-information><route-table><table-name>inet.0</table-name>"
+        "<rt><rt-destination>192.0.2.0/24</rt-destination><rt-entry><active-tag>*</active-tag>"
+        "</rt-entry></rt><rt><rt-destination>0.0.0.0/0</rt-destination>"
+        "<rt-entry><inactive-reason>Not Best in its group - Router ID</inactive-reason></rt-entry>"
+        "</rt></route-table></route-information>"
+    )
+    device = make_device(tmp_path, types=["route_watch"], options={"watch": ["0.0.0.0/0"], "tables": ["inet.0"]})
+    found = samples(scrape(device))
+    assert value(found, "pyez_junos_route_watch_present", table="inet.0", prefix="0.0.0.0/0") == 0
+    assert "pyez_junos_route_watch_age_seconds" not in found
+    assert "pyez_junos_route_watch_info" not in found
 
 
 def test_summary(synthetic):

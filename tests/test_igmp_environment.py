@@ -2,11 +2,14 @@
 
 from unittest.mock import Mock
 
+import pytest
 import yaml
 
 from prometheus_network_exporter.devices.junosdevice import JuniperNetworkDevice
 from prometheus_network_exporter.collectors.junos.environment import EnvironmentCollector
 from prometheus_network_exporter.collectors.junos.igmp import IGMPCollector
+
+from .conftest import make_device, samples, scrape, value
 
 IGMP_CONFIG = """
 IGMP_NETWORKS:
@@ -35,8 +38,8 @@ def collect(collector):
 
 def device(**values):
     device = Mock(spec=JuniperNetworkDevice)
-    for name, value in values.items():
-        getattr(device, name).return_value = value
+    for name, result in values.items():
+        getattr(device, name).return_value = result
     return device
 
 
@@ -102,3 +105,82 @@ def test_environment_metrics():
     )
     assert data[("pyez_junos_device_software_version_info", (("software_version", "21.4R3-S5.4"),))] == 1
     assert data[("pyez_junos_device_hardware_model_info", (("hardware_model", "ex4600-40f"),))] == 1
+
+
+def test_environment_custom_gauge_config_and_repeated_scrapes(tmp_path):
+    config = tmp_path / "environment.yaml"
+    config.write_text(
+        yaml.safe_dump(
+            {
+                "LABELS": [{"label": "model", "key": "model"}],
+                "METRICS": {"Gauge": [{"metric": "custom", "key": "reading", "description": "Custom sensor"}]},
+            }
+        )
+    )
+    dev = device(get_environment={"model": "ex4600-40f", "reading": "12.5"})
+    collector = EnvironmentCollector(dev, config_path=str(config))
+    assert collect(collector) == {("pyez_junos_device_custom", (("model", "ex4600-40f"),)): 12.5}
+    dev.get_environment.return_value["reading"] = "7"
+    assert collect(collector) == {("pyez_junos_device_custom", (("model", "ex4600-40f"),)): 7}
+
+
+@pytest.mark.parametrize("strip", [False, True])
+def test_environment_reads_real_pyez_tables(tmp_path, strip):
+    (tmp_path / "probe.xml").write_text("""
+      <multi-routing-engine-results xmlns="urn:test">
+        <multi-routing-engine-item><re-name>re0</re-name><software-information>
+          <host-name>switch.example.com</host-name><product-model>ex4600-40f</product-model>
+          <junos-version>21.4R3-S5.4</junos-version>
+        </software-information></multi-routing-engine-item>
+      </multi-routing-engine-results>""")
+    (tmp_path / "route_engine.xml").write_text("""
+      <route-engine-information xmlns="urn:test" xmlns:junos="urn:junos">
+        <route-engine><slot>0</slot><model>RE-EX4600</model><cpu-idle>90</cpu-idle>
+          <memory-dram-size>2048 MB</memory-dram-size><memory-buffer-utilization>25</memory-buffer-utilization>
+          <up-time junos:seconds="86400">1 day</up-time>
+          <last-reboot-reason>Normal shutdown</last-reboot-reason>
+        </route-engine>
+      </route-engine-information>""")
+    (tmp_path / "get_environment_information.xml").write_text("""
+      <environment-information xmlns="urn:test" xmlns:junos="urn:junos">
+        <environment-item><name>CPU</name><class>Temp</class><status>OK</status>
+          <temperature junos:celsius="41">41 degrees C</temperature></environment-item>
+        <environment-item><name>Fan 1</name><class>Fans</class><status>Failed</status></environment-item>
+        <environment-item><name>PSU 0</name><class>Power</class><status>OK</status></environment-item>
+        <environment-item><name>Other</name><class>Other</class><status>OK</status></environment-item>
+      </environment-information>""")
+    dev = make_device(tmp_path, types=["environment"], strip=strip)
+    found = samples(scrape(dev))
+    assert value(found, "pyez_junos_device_uptime_seconds", routing_engine="0") == 86400
+    assert value(found, "pyez_junos_device_cpu_usage_ratio", cpu="0") == 10
+    assert value(found, "pyez_junos_device_temp_celsius", sensorname="CPU") == 41
+    assert value(found, "pyez_junos_device_fan_status", sensorname="Fan 1") == 0
+    assert value(found, "pyez_junos_device_power_status", sensorname="PSU 0") == 1
+    assert value(found, "pyez_junos_device_software_version_info", software_version="21.4R3-S5.4") == 1
+    assert not found.get("pyez_junos_collector_failed")
+
+
+def test_igmp_pyez_normalizes_single_groups_and_ignores_local_memberships(tmp_path):
+    (tmp_path / "get_igmp_group_information.xml").write_text("""
+      <igmp-group-information>
+        <mgm-interface-groups><interface-name>irb.100</interface-name>
+          <mgm-group><multicast-group-address>239.192.0.1</multicast-group-address></mgm-group>
+        </mgm-interface-groups>
+        <mgm-interface-groups><interface-name>irb.200</interface-name>
+          <mgm-group><multicast-group-address>239.195.0.1</multicast-group-address></mgm-group>
+          <mgm-group><multicast-group-address>239.195.0.2</multicast-group-address></mgm-group>
+        </mgm-interface-groups>
+        <mgm-interface-groups><interface-name>local</interface-name>
+          <mgm-group><multicast-group-address>239.192.0.2</multicast-group-address></mgm-group>
+        </mgm-interface-groups>
+      </igmp-group-information>""")
+    dev = make_device(tmp_path, types=[])
+    assert dev.get_igmp() == {
+        "irb.100": {"mgm_addresses": ["239.192.0.1"]},
+        "irb.200": {"mgm_addresses": ["239.195.0.1", "239.195.0.2"]},
+    }
+    config = tmp_path / "igmp.yaml"
+    config.write_text(IGMP_CONFIG)
+    data = collect(IGMPCollector(dev, config_path=str(config)))
+    assert data[("pyez_junos_igmp_broadcasts", (("broadcaster", "first"),))] == 1
+    assert data[("pyez_junos_igmp_broadcasts", (("broadcaster", "second"),))] == 2

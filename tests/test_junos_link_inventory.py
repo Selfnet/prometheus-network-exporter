@@ -154,6 +154,24 @@ class AddressTests(unittest.TestCase):
         device.rpc_reply.return_value = None
         self.assertEqual(collect(InterfaceAddressCollector(device)), [])
 
+    def test_missing_names_invalid_addresses_and_non_ip_families_are_skipped(self):
+        device = Mock()
+        device.rpc_reply.return_value = xml("""<interface-information>
+          <physical-interface><logical-interface><name>ae0.0</name></logical-interface></physical-interface>
+          <physical-interface><name>ae0</name><logical-interface><name>ae0.0</name>
+            <address-family><address-family-name>mpls</address-family-name>
+              <interface-address><ifa-local>192.0.2.99</ifa-local></interface-address></address-family>
+            <address-family><address-family-name>inet</address-family-name>
+              <interface-address/>
+              <interface-address><ifa-local>invalid</ifa-local></interface-address>
+              <interface-address><ifa-local>192.0.2.1/31</ifa-local></interface-address>
+            </address-family>
+          </logical-interface></physical-interface></interface-information>""")
+        values = collect(InterfaceAddressCollector(device))
+        self.assertEqual(len(values), 1)
+        self.assertEqual(values[0].labels["address"], "192.0.2.1")
+        self.assertEqual(values[0].labels["network"], "192.0.2.0/31")
+
 
 class LinkConfigurationTests(unittest.TestCase):
     def test_lldp_preserves_port_id_and_description_separately(self):

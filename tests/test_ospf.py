@@ -1,6 +1,67 @@
 import pytest
 
-from .conftest import SYNTHETIC, labels_of, make_device, value
+from prometheus_network_exporter.collectors.junos.ospf_database import OSPFDatabaseCollector
+from prometheus_network_exporter.collectors.junos.ospf_interface import OSPFInterfaceCollector
+from prometheus_network_exporter.collectors.junos.ospf_neighbor import OSPFNeighborCollector
+from prometheus_network_exporter.collectors.junos.ospf_overview import OSPFOverviewCollector
+from prometheus_network_exporter.collectors.junos.ospf_route import OSPFRouteCollector
+from prometheus_network_exporter.collectors.junos.ospf_statistics import OSPFStatisticsCollector
+
+from .conftest import SYNTHETIC, labels_of, make_device, samples, scrape, value
+
+
+@pytest.mark.parametrize(
+    "collector_type",
+    [
+        OSPFDatabaseCollector,
+        OSPFInterfaceCollector,
+        OSPFNeighborCollector,
+        OSPFOverviewCollector,
+        OSPFRouteCollector,
+        OSPFStatisticsCollector,
+    ],
+)
+def test_unsupported_protocol_is_rejected_before_an_rpc(collector_type):
+    device = make_device(SYNTHETIC, types=[])
+    with pytest.raises(ValueError, match="Unsupported OSPF protocol: ospf4"):
+        collector_type(device, protocol="ospf4")
+    assert device.device.rpc.calls == []
+
+
+def test_database_ignores_xml_comments(tmp_path):
+    reply = (
+        (SYNTHETIC / "ospf_database.xml")
+        .read_text()
+        .replace("<ospf-database>", "<!-- database entry --><ospf-database>", 1)
+    )
+    (tmp_path / "ospf_database.xml").write_text(reply)
+    found = samples(scrape(make_device(tmp_path, types=["ospf_details"])))
+    assert value(found, "pyez_junos_ospf_database_lsas", area="0.0.0.0", lsa_type="Router") == 3
+    assert not found.get("pyez_junos_collector_failed")
+
+
+def test_unknown_interface_state_is_reported(tmp_path):
+    reply = (
+        (SYNTHETIC / "ospf_interface.xml")
+        .read_text()
+        .replace(
+            "<ospf-interface-state>PtToPt</ospf-interface-state>",
+            "<ospf-interface-state>Unexpected</ospf-interface-state>",
+            1,
+        )
+    )
+    (tmp_path / "ospf_interface.xml").write_text(reply)
+    found = samples(scrape(make_device(tmp_path, types=["ospf_details"])))
+    assert value(found, "pyez_junos_ospf_interface_state", interface="ae0.0", state="unknown") == 1
+    assert (
+        value(
+            found,
+            "pyez_junos_xml_missing_fields",
+            collector="ospf_interface",
+            field="ospf-interface-state:unexpected-value",
+        )
+        == 1
+    )
 
 
 def test_neighbor_state_set_and_timers(synthetic):

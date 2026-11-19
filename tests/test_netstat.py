@@ -83,3 +83,11 @@ def test_pid_of_inode(monkeypatch):
     monkeypatch.setattr(netstat.os, "readlink", lambda path: links[path])
     assert netstat._get_pid_of_inode("1002") == "43"
     assert netstat._get_pid_of_inode("9999") is None
+
+
+def test_inode_lookup_continues_after_a_process_disappears(monkeypatch):
+    from unittest.mock import Mock
+
+    monkeypatch.setattr(netstat.glob, "glob", lambda pattern: ["/proc/42/fd/3", "/proc/43/fd/4"])
+    monkeypatch.setattr(netstat.os, "readlink", Mock(side_effect=[FileNotFoundError(), "socket:[1002]"]))
+    assert netstat._get_pid_of_inode("1002") == "43"

@@ -135,6 +135,24 @@ class DeviceHandlerTest(HandlerTest):
         assert self.get(f"/device?target={TARGET}&module=pw").code == 200
         assert FakeDevice.instances[0].kwargs["password"] == "p"
 
+    def test_missing_password_does_not_create_a_session_or_leak_a_worker(self):
+        self._app.CONFIG["pw"] = {
+            **self._app.CONFIG["default"],
+            "auth": {"method": "password", "username": "u"},
+        }
+        assert self.get(f"/device?target={TARGET}&module=pw").code == 500
+        assert CONNECTION_POOL == {}
+        assert FakeDevice.instances == []
+        assert self._app.used_workers._value.get() == 0
+
+    def test_failed_scrape_releases_the_worker_and_allows_the_next_request(self):
+        with mock.patch.object(FakeDevice, "collect", side_effect=RuntimeError("scrape failed")):
+            assert self.get(f"/device?target={TARGET}&module=default").code == 500
+        assert self._app.used_workers._value.get() == 0
+        assert self.get(f"/device?target={TARGET}&module=default").code == 200
+        assert self._app.used_workers._value.get() == 0
+        assert len(FakeDevice.instances) == 1
+
     def test_shutdown_guard_blocks_scrapes(self):
         GLOBAL_GUARD.acquire()
         try:
@@ -189,12 +207,16 @@ class MetricsTest(HandlerTest):
         with (
             mock.patch("prometheus_network_exporter.netstat.netstat", return_value=iter([])),
             mock.patch("prometheus_network_exporter.netstat.ssh", side_effect=[iter(connections), iter([])]),
-            mock.patch("prometheus_network_exporter.netstat.http", side_effect=[iter([]), iter([])]),
+            mock.patch(
+                "prometheus_network_exporter.netstat.http",
+                side_effect=[iter([{"state": "LISTEN"}]), iter([{"state": "LISTEN"}])],
+            ),
         ):
             response = self.get("/metrics")
         assert response.code == 200
         state = self._app.CONNECTIONS.labels("ESTABLISHED", "ssh")._value.get()
         assert state == 2
+        assert self._app.CONNECTIONS.labels("LISTEN", "http")._value.get() == 2
 
     def test_memstats_only_in_debug(self):
         assert self.get("/memstats").code == 404
@@ -302,6 +324,27 @@ def test_signal_schedules_the_shutdown(monkeypatch):
     monkeypatch.setattr(app_module.tornado.ioloop.IOLoop, "current", mock.Mock(return_value=loop))
     app_module.sig_handler(15, None)
     loop.add_callback_from_signal.assert_called_once_with(app_module.shutdown)
+
+
+def test_unlock_tolerates_an_entry_removed_by_another_request(monkeypatch):
+    first, second = FakeDevice(TARGET), FakeDevice(TARGET)
+    pool = {f"{TARGET}|fast": first, f"{TARGET}|slow": second}
+    first.disconnect = mock.Mock(side_effect=lambda: pool.pop(f"{TARGET}|slow"))
+    monkeypatch.setattr(unlock, "CONNECTION_POOL", pool)
+    assert unlock.unlock_device(TARGET)[0] == 200
+    first.disconnect.assert_called_once_with()
+    assert pool == {}
+    assert not first.lock.locked()
+
+
+def test_module_entrypoint_reports_the_version(monkeypatch, capsys):
+    import runpy
+
+    monkeypatch.setattr("sys.argv", ["prometheus-network-exporter", "--version"])
+    with pytest.raises(SystemExit) as result:
+        runpy.run_module("prometheus_network_exporter.app", run_name="__main__")
+    assert result.value.code == 0
+    assert capsys.readouterr().out.strip() == f"prometheus-network-exporter: {app_module.VERSION}"
 
 
 def test_clear_counter_dir(tmp_path):

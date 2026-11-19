@@ -98,6 +98,14 @@ class ProxyTest(tornado.testing.AsyncHTTPTestCase):
         assert response.code == 502
         assert b"worker process did not answer" in response.body
 
+    def test_worker_timeout_gives_502(self):
+        request = tornado.httpclient.HTTPRequest("http://127.0.0.1/device")
+        timeout = tornado.httpclient.HTTPResponse(request, 599, error=tornado.httpclient.HTTPError(599, "timeout"))
+        with mock.patch.object(self._app, "client", mock.Mock(fetch=mock.AsyncMock(return_value=timeout))):
+            response = self._device("core-1.lan.example.com")
+        assert response.code == 502
+        assert b"worker process did not answer" in response.body
+
     def test_metrics_served_by_the_front_door(self):
         response = self.fetch("/metrics")
         assert response.code == 200
@@ -110,6 +118,58 @@ class PingHandler(tornado.web.RequestHandler):
 
 def ping_application():
     return tornado.web.Application([(r"^/ping$", PingHandler)])
+
+
+def test_worker_reports_its_port_and_installs_shutdown_handlers(monkeypatch):
+    from prometheus_network_exporter import app
+
+    socket, server, loop, pipe = (mock.Mock() for _ in range(4))
+    socket.getsockname.return_value = ("127.0.0.1", 19333)
+    bind = mock.Mock(return_value=[socket])
+    monkeypatch.setattr(processes.tornado.netutil, "bind_sockets", bind)
+    build = mock.Mock(return_value=ping_application())
+    http_server = mock.Mock(return_value=server)
+    monkeypatch.setattr(processes.tornado.httpserver, "HTTPServer", http_server)
+    monkeypatch.setattr(processes.tornado.ioloop.IOLoop, "current", mock.Mock(return_value=loop))
+    signal = mock.Mock()
+    monkeypatch.setattr(processes.signal, "signal", signal)
+    monkeypatch.setattr(app, "SERVER", None)
+
+    processes.run_worker(0, build, pipe)
+
+    bind.assert_called_once_with(0, "127.0.0.1")
+    build.assert_called_once_with()
+    http_server.assert_called_once_with(build.return_value)
+    server.add_sockets.assert_called_once_with([socket])
+    pipe.send.assert_called_once_with(19333)
+    pipe.close.assert_called_once_with()
+    assert app.SERVER is server
+    signal.assert_has_calls(
+        [
+            mock.call(processes.signal.SIGTERM, app.sig_handler),
+            mock.call(processes.signal.SIGINT, processes.signal.SIG_IGN),
+        ]
+    )
+    loop.start.assert_called_once_with()
+
+
+def test_worker_start_fails_when_no_port_is_reported(monkeypatch):
+    context, parent, child = (mock.Mock() for _ in range(3))
+    context.Pipe.return_value = (parent, child)
+    parent.poll.return_value = False
+    monkeypatch.setattr(processes.multiprocessing, "get_context", mock.Mock(return_value=context))
+    with pytest.raises(RuntimeError, match="worker 0 did not report its port"):
+        start_workers(1, ping_application)
+    parent.poll.assert_called_once_with(processes.WORKER_START_TIMEOUT_SECONDS)
+    parent.recv.assert_not_called()
+
+
+def test_counter_cleanup_continues_after_a_file_disappears(tmp_path, monkeypatch):
+    stale = tmp_path / "stale.db"
+    stale.write_text("counter")
+    monkeypatch.setattr(processes.glob, "glob", lambda pattern: [str(tmp_path / "gone.db"), str(stale)])
+    processes.clear_counter_dir(str(tmp_path))
+    assert not stale.exists()
 
 
 @pytest.mark.skipif(sys.platform == "win32", reason="workers are forked")
