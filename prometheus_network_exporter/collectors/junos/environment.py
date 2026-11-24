@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import yaml
+from prometheus_client.core import InfoMetricFamily
 from importlib.resources import read_text
 
 from ...config.configuration import Metric, MetricConfiguration
@@ -47,3 +48,17 @@ class EnvironmentCollector(Collector):
                 )
                 yield prometheus.metric
             prometheus.flush()
+        yield self.environment_states(environment)
+
+    def environment_states(self, environment: dict) -> InfoMetricFamily:
+        metric = InfoMetricFamily(
+            f"{self.base_name}_environment",
+            "Reported component state; unknown means no status was supplied",
+            labels=["component_class", "sensorname"],
+        )
+        for component_class in ("Power", "Fans", "Temp"):
+            for name, values in (environment.get(component_class) or {}).items():
+                status = values.get("status")
+                status = str(status).strip() if status is not None else ""
+                metric.add_metric([component_class, name], {"status": status or "unknown"})
+        return metric
