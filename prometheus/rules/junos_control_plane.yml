@@ -143,6 +143,47 @@ groups:
         annotations:
           summary: "{{ $labels.table }} on {{ $labels.instance }} is {{ $value | humanizePercentage }} full"
 
+  # The history behind JunosComponentDegraded: a component that reported OK
+  # within the hour. Hourly, so the alert looks back 30 days over 720 samples
+  # per component instead of the raw scrapes.
+  - name: junos-environment-history
+    interval: 1h
+    rules:
+      - record: junos:environment_component_ok:max1h
+        expr: |
+          max without (status) (
+            max_over_time(pyez_junos_device_environment_info{status="OK"}[1h])
+          )
+
+  - name: junos-environment
+    interval: 1m
+    rules:
+      - alert: JunosComponentDegraded
+        # Absent and Present are normal for some slots: empty slots, and on
+        # the EX4100-F-12P the PoE power inputs next to the adapter. They
+        # only count when the same component reported OK within the last
+        # 30 days (the retention), e.g. a pulled power cord or a removed
+        # power supply. Failed, Check and the like are JunosComponentNotOk.
+        expr: |
+          max without (status) (
+            pyez_junos_device_environment_info{status=~"Absent|Present"}
+          )
+          and on (instance, job, component_class, sensorname)
+            max_over_time(junos:environment_component_ok:max1h[30d])
+          unless on (instance, job, component_class, sensorname)
+            pyez_junos_device_environment_info{status="OK"}
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "{{ $labels.sensorname }} on {{ $labels.instance }} is no longer OK"
+          description: >-
+            Current state: {{ with printf
+            "pyez_junos_device_environment_info{job=%q,instance=%q,component_class=%q,sensorname=%q,status=~\"Absent|Present\"}"
+            $labels.job $labels.instance $labels.component_class $labels.sensorname
+            | query }}{{ . | first | label "status" }}{{ else }}unknown{{ end }}.
+            It reported OK within the last 30 days; check its power feed and seat.
+
   - name: junos-links
     rules:
       - alert: JunosLinkCarrierTransitions

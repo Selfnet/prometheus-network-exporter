@@ -345,5 +345,12 @@ same environment reply, without an extra RPC or Prometheus scrape job.
 The alert `JunosComponentNotOk` fires when a component reports anything other
 than `OK`, `Absent` or `Present` for 10 minutes, so `Testing` during boot stays
 quiet. `Present` is how the EX4100-F reports its power inputs in normal operation.
+
+`Absent` and `Present` alone cannot tell an empty slot or such a power input
+from a power supply that lost its feed: on an EX4600 a power supply without
+input power is `Present` as well. `JunosComponentDegraded` therefore fires only
+for a component that reported `OK` within the last 30 days and now reports
+`Absent` or `Present`, e.g. after a power cord was pulled. The recording rule
+`junos:environment_component_ok:max1h` keeps that history hourly.
 A change between two fault states, e.g. `Failed` to `Check`, keeps the alert
 running; the current state is in its description.

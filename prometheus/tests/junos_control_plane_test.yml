@@ -230,3 +230,62 @@ tests:
             exp_annotations:
               summary: "PSU 0 on d is not OK"
               description: "Current state: Failed."
+
+  # A power supply that was OK and then loses its feed (Present) fires; a
+  # placeholder that was never OK, as on the EX4100-F-12P, does not; a
+  # failed one is JunosComponentNotOk; a cord plugged back in resolves.
+  - interval: 5m
+    input_series:
+      # f: OK for 3h, then Present
+      - series: 'pyez_junos_device_environment_info{job="j",instance="f",component_class="Power",sensorname="PSU 0",status="OK"}'
+        values: '1x36 stale'
+      - series: 'pyez_junos_device_environment_info{job="j",instance="f",component_class="Power",sensorname="PSU 0",status="Present"}'
+        values: '_x37 1x24'
+      # g: Present from the start
+      - series: 'pyez_junos_device_environment_info{job="j",instance="g",component_class="Power",sensorname="PSU 1",status="Present"}'
+        values: '1x60'
+      # h: OK for 3h, then Failed
+      - series: 'pyez_junos_device_environment_info{job="j",instance="h",component_class="Power",sensorname="PSU 0",status="OK"}'
+        values: '1x36 stale'
+      - series: 'pyez_junos_device_environment_info{job="j",instance="h",component_class="Power",sensorname="PSU 0",status="Failed"}'
+        values: '_x37 1x24'
+      # i: OK for 3h, Present for 30m, OK again
+      - series: 'pyez_junos_device_environment_info{job="j",instance="i",component_class="Power",sensorname="PSU 0",status="OK"}'
+        values: '1x36 stale _x5 1x18'
+      - series: 'pyez_junos_device_environment_info{job="j",instance="i",component_class="Power",sensorname="PSU 0",status="Present"}'
+        values: '_x37 1x5 stale'
+    alert_rule_test:
+      - eval_time: 3h20m
+        alertname: JunosComponentDegraded
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              job: j
+              instance: f
+              component_class: Power
+              sensorname: PSU 0
+            exp_annotations:
+              summary: "PSU 0 on f is no longer OK"
+              description: "Current state: Present. It reported OK within the last 30 days; check its power feed and seat."
+          - exp_labels:
+              severity: warning
+              job: j
+              instance: i
+              component_class: Power
+              sensorname: PSU 0
+            exp_annotations:
+              summary: "PSU 0 on i is no longer OK"
+              description: "Current state: Present. It reported OK within the last 30 days; check its power feed and seat."
+      - eval_time: 4h
+        alertname: JunosComponentDegraded
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              job: j
+              instance: f
+              component_class: Power
+              sensorname: PSU 0
+            exp_annotations:
+              summary: "PSU 0 on f is no longer OK"
+              description: "Current state: Present. It reported OK within the last 30 days; check its power feed and seat."
+
