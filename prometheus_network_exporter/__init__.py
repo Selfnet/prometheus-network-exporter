@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Dict, Optional
 if TYPE_CHECKING:  # the import pulls in prometheus_client; app.py sets its env first
     from prometheus_network_exporter.devices.basedevice import Device
 
-__version__ = "1.4.3"
+__version__ = "1.4.4"
 
 GLOBAL_GUARD: Lock = Lock()
 # None while a device could not be created; the handler drops such entries.
