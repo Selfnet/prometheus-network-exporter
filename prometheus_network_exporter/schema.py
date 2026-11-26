@@ -85,6 +85,9 @@ class Configuration(object):
                         # Empty string: every interface the RPC returns.
                         Optional("extensive_description"): str,
                         Optional("logical_interfaces"): [str],
+                        # Regex on the description: interface, optics, transceivers and
+                        # interface_addresses export only matching interfaces; unset for all.
+                        Optional("interface_description"): str,
                         Optional("storage_mounts"): str,
                     },
                 }

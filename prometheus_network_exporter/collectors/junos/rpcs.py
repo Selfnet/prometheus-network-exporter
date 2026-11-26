@@ -68,6 +68,7 @@ RPCS: Dict[str, Tuple[str, dict]] = {
     "transceivers": ("get_chassis_inventory", {}),
     "interface_addresses": ("get_interface_information", {"terse": True}),
     "interfaces_brief": ("get_interface_information", {}),
+    "interface_descriptions": ("get_interface_information", {"descriptions": True}),
     "lacp": ("get_lacp_interface_information", {}),
     "lldp": ("get_lldp_neighbors_information", {}),
     "vxlan_remote_vteps": cli("show ethernet-switching vxlan-tunnel-end-point remote"),

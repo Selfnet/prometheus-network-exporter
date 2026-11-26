@@ -11,6 +11,7 @@ from ...utitlities import create_list_from_dict, merge_dicts_by_key
 from ..base import Collector
 from .. import junos
 from . import base
+from .interface_filter import DescriptionFilter
 from .rpcs import RPCS
 from .xmlutil import iter_items, text
 
@@ -25,8 +26,10 @@ class OpticsCollector(Collector):
         device: junosdevice.JuniperNetworkDevice,
         interface_regex: str | None = None,
         config_path: str | None = None,
+        description_filter: DescriptionFilter | None = None,
     ) -> None:
         self.interface_regex = interface_regex
+        self.description_filter = description_filter or DescriptionFilter()
         config = self.default
         if config_path is not None:
             with open(config_path, "r") as file:
@@ -37,7 +40,7 @@ class OpticsCollector(Collector):
     def collect(self, interfaces: dict | None = None, access: bool = False):
         assert isinstance(self.device, junosdevice.JuniperNetworkDevice)
         optics = self.device.get_optics(interface_regex=self.interface_regex) if access else self.device.get_optics()
-        interfaces_optics_dict = merge_dicts_by_key(interfaces or {}, optics)
+        interfaces_optics_dict = merge_dicts_by_key(self.description_filter.interfaces(interfaces), optics)
         interfaces_optics_list = create_list_from_dict(interfaces_optics_dict, "interface_name")
         for prometheus in self.prometheus_metrics.values():
             assert isinstance(prometheus, JunosMetricConfiguration)

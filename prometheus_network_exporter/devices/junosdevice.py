@@ -29,6 +29,7 @@ from prometheus_network_exporter.collectors.junos.bgp_neighbor import (
 from prometheus_network_exporter.collectors.junos.bgp_overview import (
     BGPOverviewCollector,
 )
+from prometheus_network_exporter.collectors.junos.interface_filter import DescriptionFilter
 from prometheus_network_exporter.collectors.junos.environment import (
     EnvironmentCollector,
 )
@@ -191,6 +192,9 @@ SIMPLE_COLLECTORS = {
     "vxlan": (VxlanCollector,),
 }
 
+# Simple collectors that take the interface_description filter.
+DESCRIPTION_FILTERED = ("transceivers", "interface_addresses")
+
 
 def collector_label(collector) -> str:
     """Stable name of a collector for the duration and failure metrics."""
@@ -321,6 +325,15 @@ class JuniperNetworkDevice(basedevice.Device):
         return float(self.options.get("young_route_seconds", DEFAULT_YOUNG_ROUTE_SECONDS))
 
     @property
+    def description_filter(self) -> DescriptionFilter:
+        """Option interface_description: export only interfaces whose description matches.
+
+        Applies to interface (with its ospf and optics parts), the standalone
+        optics, transceivers and interface_addresses. Unset or empty: all.
+        """
+        return DescriptionFilter(self.options.get("interface_description"))
+
+    @property
     def rpc_timeout(self) -> int:
         return int(self.options.get("rpc_timeout", DEFAULT_RPC_TIMEOUT))
 
@@ -361,8 +374,11 @@ class JuniperNetworkDevice(basedevice.Device):
     def register_collectors(self, types: list):
         for type_name, classes in SIMPLE_COLLECTORS.items():
             if type_name in types:
+                kwargs: Dict[str, Any] = (
+                    {"description_filter": self.description_filter} if type_name in DESCRIPTION_FILTERED else {}
+                )
                 for collector_class in classes:
-                    self._register(collector_class(self))
+                    self._register(collector_class(self, **kwargs))
         if "processes" in types:
             self._register(
                 ProcessCollector(
@@ -406,13 +422,16 @@ class JuniperNetworkDevice(basedevice.Device):
         # interface queries every interface, interface_specifics only the
         # uplinks; with both the superset wins, both at once would export
         # the same series twice.
+        description_filter = self.description_filter
         if "interface" in types:
-            self._register(InterfaceCollector(self, ospf=ospf, optics=optics))
+            self._register(InterfaceCollector(self, ospf=ospf, optics=optics, description_filter=description_filter))
         elif "interface_specifics" in types:
-            self._register(InterfaceCollector(self, access=True, ospf=ospf, optics=optics))
+            self._register(
+                InterfaceCollector(self, access=True, ospf=ospf, optics=optics, description_filter=description_filter)
+            )
         if optics and "interface" not in types and "interface_specifics" not in types:
             # optics on its own, e.g. in a slow module next to a fast interface job
-            self._register(StandaloneOpticsCollector(self))
+            self._register(StandaloneOpticsCollector(self, description_filter=description_filter))
 
     def _register_protocol_types(self, types: list):
         if "environment" in types:
