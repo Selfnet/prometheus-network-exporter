@@ -144,13 +144,15 @@ tests:
             exp_annotations:
               summary: "xe-0/1/2:0 lane 3 on a raises laser_rx_power_low_alarm"
 
-  # A failed power supply fires after 10m; an empty slot and a fan that only
-  # tests during boot do not.
+  # A failed power supply fires after 10m; an empty slot, a present power
+  # input and a fan that only tests during boot do not.
   - interval: 1m
     input_series:
       - series: 'pyez_junos_device_environment_info{instance="a",component_class="Power",sensorname="PSU 1",status="Failed"}'
         values: '1x15'
       - series: 'pyez_junos_device_environment_info{instance="a",component_class="Power",sensorname="PSU 2",status="Absent"}'
+        values: '1x15'
+      - series: 'pyez_junos_device_environment_info{instance="e",component_class="Power",sensorname="FPC 0 Power Supply 1",status="Present"}'
         values: '1x15'
       - series: 'pyez_junos_device_environment_info{instance="b",component_class="Fans",sensorname="Fan 0",status="Testing"}'
         values: '1x4 _x11'
