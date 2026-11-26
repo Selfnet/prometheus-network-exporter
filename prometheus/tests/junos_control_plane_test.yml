@@ -206,3 +206,25 @@ tests:
             exp_annotations:
               summary: "PSU 3 on c is not OK"
               description: "Current state: Failed."
+
+  # The description reads the state of the alerting series, not that of the
+  # same sensor scraped by another job.
+  - interval: 1m
+    input_series:
+      - series: 'pyez_junos_device_environment_info{job="a",instance="d",component_class="Power",sensorname="PSU 0",status="OK"}'
+        values: '1x15'
+      - series: 'pyez_junos_device_environment_info{job="b",instance="d",component_class="Power",sensorname="PSU 0",status="Failed"}'
+        values: '1x15'
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: JunosComponentNotOk
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              job: b
+              instance: d
+              component_class: Power
+              sensorname: PSU 0
+            exp_annotations:
+              summary: "PSU 0 on d is not OK"
+              description: "Current state: Failed."
