@@ -1,4 +1,11 @@
 ---
+# Classes of show chassis environment exported as
+# pyez_junos_device_environment_info{component_class,sensorname,status}.
+COMPONENT_STATES:
+  - Power
+  - Fans
+  - Temp
+
 METRICS:
   Gauge:
     - metric: uptime
