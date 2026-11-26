@@ -343,6 +343,7 @@ The existing 0/1 status metrics remain unchanged. The additional metric uses the
 same environment reply, without an extra RPC or Prometheus scrape job.
 
 The alert `JunosComponentNotOk` fires when a component reports anything other
-than `OK` or `Absent` for 10 minutes, so `Testing` during boot stays quiet.
+than `OK`, `Absent` or `Present` for 10 minutes, so `Testing` during boot stays
+quiet. `Present` is how the EX4100-F reports its power inputs in normal operation.
 A change between two fault states, e.g. `Failed` to `Check`, keeps the alert
 running; the current state is in its description.
