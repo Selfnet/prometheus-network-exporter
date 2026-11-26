@@ -11,6 +11,7 @@ from ...utitlities import create_list_from_dict
 from .. import junos
 from ..base import Collector
 from . import base
+from .interface_filter import DescriptionFilter
 from .optics import OpticsCollector
 from .ospf import OSPFCollector
 from .ospf3 import OSPF3Collector
@@ -29,8 +30,10 @@ class InterfaceCollector(Collector):
         ospf: bool = False,
         optics: bool = False,
         config_path: str | None = None,
+        description_filter: DescriptionFilter | None = None,
     ) -> None:
         self.access = access
+        self.description_filter = description_filter or DescriptionFilter()
         self.collectors: List[OpticsCollector | OSPFCollector | OSPF3Collector] = []
         config = self.default
         if config_path is not None:
@@ -52,6 +55,9 @@ class InterfaceCollector(Collector):
             if self.access
             else self.device.get_interfaces()
         )
+        # The OSPF and optics parts merge onto these keys, so filtering here
+        # restricts them as well.
+        interfaces_dict = self.description_filter.interfaces(interfaces_dict)
         interfaces_list = create_list_from_dict(interfaces_dict, "interface_name")
         for collector in self.collectors:
             for metric in collector.collect(interfaces_dict, access=self.access):

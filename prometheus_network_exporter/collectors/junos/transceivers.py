@@ -1,5 +1,7 @@
 """Transceiver inventory, keyed by the physical FPC/PIC/port location."""
 
+from __future__ import annotations
+
 import re
 from typing import Dict
 
@@ -7,6 +9,7 @@ from prometheus_client.core import InfoMetricFamily
 
 from ..base import Collector
 from . import base
+from .interface_filter import DescriptionFilter, interface_descriptions
 from .rpcs import RPCS
 from .xmlutil import LOGGER, iter_items, text
 
@@ -39,8 +42,19 @@ def inventory(reply):
 class TransceiverCollector(Collector):
     name = "transceivers"
 
-    def __init__(self, device):
+    def __init__(self, device, description_filter: DescriptionFilter | None = None):
         super().__init__(f"{base}_transceiver", device, config={})
+        self.description_filter = description_filter or DescriptionFilter()
+
+    def allowed_ports(self):
+        """Interface names whose description passes the filter, None without one."""
+        if not self.description_filter:
+            return None
+        return {
+            name
+            for name, description in interface_descriptions(self.device).items()
+            if self.description_filter.allows(description)
+        }
 
     def collect(self):
         command, args = RPCS["transceivers"]
@@ -59,6 +73,8 @@ class TransceiverCollector(Collector):
                 "transceivers: %s :: conflicting inventory for module %s, skipped", self.device.hostname, module
             )
             del modules[module]
+        allowed = self.allowed_ports()
+        modules = self.restrict(modules, allowed)
         self.enrich_pic_inventory(modules)
         info = InfoMetricFamily(
             self.base_name, "Reported transceiver inventory; blank fields are unknown", labels=["module"]
@@ -78,10 +94,21 @@ class TransceiverCollector(Collector):
         for interface in iter_items(reply, ("physical-interface",)):
             name = text(interface, "name") or ""
             match = INTERFACE.fullmatch(name)
-            if match and match[1] in modules and name not in seen:
+            if match and match[1] in modules and name not in seen and (allowed is None or name in allowed):
                 ports.add_metric([name, match[1]], {})
                 seen.add(name)
         yield ports
+
+    @staticmethod
+    def restrict(modules, allowed):
+        """Only the modules plugged into a port the filter keeps.
+
+        Done before the PIC details, which spares their RPCs for the others.
+        """
+        if allowed is None:
+            return modules
+        locations = {match[1] for match in map(INTERFACE.fullmatch, allowed) if match}
+        return {module: values for module, values in modules.items() if module in locations}
 
     def enrich_pic_inventory(self, modules):
         for location in sorted({module.rsplit("/", 1)[0] for module in modules}):

@@ -52,6 +52,25 @@ the uplinks matching `[gxe][et]-*/1/*`; with both in one module `interface`
 wins. `ospf` and `optics` next to one of them add the OSPF neighbours and
 the optics to the interface collector, `optics` alone uses its own collector.
 
+On access switches the members' ports sit next to the uplinks, and their
+descriptions name rooms and people. `interface_description` in the `junos`
+block of a module keeps only the interfaces whose description matches the
+regex; it applies to `interface` (with its OSPF and optics parts), `optics`,
+`transceivers` and `interface_addresses`:
+
+```yaml
+access:
+  metrics: [ospf, igmp, optics, interface, environment, transceivers, interface_addresses]
+  junos:
+    interface_description: "^(Core|WIFI-AP): "
+```
+
+`interface` filters on the descriptions it reads anyway. `transceivers` and
+`interface_addresses` ask `show interfaces descriptions` once per scrape;
+addresses on lo0 and the management interfaces stay. If that RPC fails, they
+export no port at all rather than every port. Unset or empty: every interface,
+as before.
+
 ## Drop a session
 
     http://localhost:9332/unlock/device.example.com
@@ -272,6 +291,7 @@ An optional `junos` block in the module tunes these collectors:
     extensive_interfaces: "[ex][et]-*"       # interface pattern for show interfaces extensive
     extensive_description: "^(Core|Server)"  # regex on the description, "" for all
     logical_interfaces: [lo0, irb]
+    interface_description: "^(Core|WIFI-AP): "  # regex on the description, unset for all interfaces
     storage_mounts: "^(/|(/\\.mount)?(/var|/tmp|/config)?)$"
 ```
 

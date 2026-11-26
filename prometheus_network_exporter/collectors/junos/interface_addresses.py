@@ -6,6 +6,7 @@ from prometheus_client.core import InfoMetricFamily
 
 from ..base import Collector
 from . import base
+from .interface_filter import DescriptionFilter, interface_descriptions
 from .rpcs import RPCS
 from .xmlutil import findall, iter_items, text
 
@@ -74,8 +75,9 @@ def unit_addresses(unit):
 class InterfaceAddressCollector(Collector):
     name = "interface_addresses"
 
-    def __init__(self, device):
+    def __init__(self, device, description_filter=None):
         super().__init__(f"{base}_interface_address", device, config={})
+        self.description_filter = description_filter or DescriptionFilter()
 
     def collect(self):
         command, args = RPCS["interface_addresses"]
@@ -87,10 +89,12 @@ class InterfaceAddressCollector(Collector):
             "Interface address; blank prefix or routing instance means unknown",
             labels=["interface", "parent_interface", "routing_instance"],
         )
+        # Only with the filter: the terse reply carries no descriptions.
+        descriptions = interface_descriptions(self.device) if self.description_filter else {}
         seen = set()
         for physical in iter_items(reply, ("physical-interface",)):
             parent = text(physical, "name")
-            if not parent:
+            if not parent or not self.description_filter.parent_allowed(parent, descriptions):
                 continue
             for unit in findall(physical, "logical-interface"):
                 name = text(unit, "name")
