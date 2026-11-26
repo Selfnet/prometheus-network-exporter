@@ -332,7 +332,8 @@ Feel free to add Pull Requests to extend the implementation.
 ### Component states
 
 `pyez_junos_device_environment_info{component_class,sensorname,status}` preserves
-Junos environment states for `Power`, `Fans` and `Temp`. Each reported component
+Junos environment states for the classes listed under `COMPONENT_STATES` in
+`collectors/junos/environment.yaml` (`Power`, `Fans` and `Temp`). Each reported component
 has value 1; the `status` label carries the device's state, such as `OK`, `Absent`
 or `Failed`. An empty or missing status is `unknown`; an unreported component
 produces no sample. `Absent` describes an unpopulated component, not whether the
@@ -340,3 +341,6 @@ installation meets its redundancy requirements.
 
 The existing 0/1 status metrics remain unchanged. The additional metric uses the
 same environment reply, without an extra RPC or Prometheus scrape job.
+
+The alert `JunosComponentNotOk` fires when a component reports anything other
+than `OK` or `Absent` for 10 minutes, so `Testing` during boot stays quiet.
