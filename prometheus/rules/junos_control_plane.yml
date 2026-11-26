@@ -97,12 +97,20 @@ groups:
         # Power supplies, fans and temperature sensors from show chassis
         # environment. Absent is an empty slot; Testing during boot clears
         # within minutes. Everything else (Failed, Check, unknown) fires.
-        expr: pyez_junos_device_environment_info{status!~"OK|Absent"}
+        # status is dropped from the identity so that a component switching
+        # between two fault states keeps its pending time.
+        expr: |
+          max without (status) (
+            pyez_junos_device_environment_info{status!~"OK|Absent"}
+          )
         for: 10m
         labels:
           severity: warning
         annotations:
-          summary: "{{ $labels.sensorname }} on {{ $labels.instance }} reports {{ $labels.status }}"
+          summary: "{{ $labels.sensorname }} on {{ $labels.instance }} is not OK"
+          description: >-
+            Current state: {{ with printf "pyez_junos_device_environment_info{instance=%q,sensorname=%q}"
+            $labels.instance $labels.sensorname | query }}{{ . | first | label "status" }}{{ else }}unknown{{ end }}.
 
       - alert: JunosStorageFull
         # / is the Junos image partition and sits at about 90% by design;

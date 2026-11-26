@@ -344,3 +344,5 @@ same environment reply, without an extra RPC or Prometheus scrape job.
 
 The alert `JunosComponentNotOk` fires when a component reports anything other
 than `OK` or `Absent` for 10 minutes, so `Testing` during boot stays quiet.
+A change between two fault states, e.g. `Failed` to `Check`, keeps the alert
+running; the current state is in its description.
