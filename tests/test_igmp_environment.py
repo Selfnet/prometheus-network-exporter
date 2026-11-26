@@ -1,11 +1,13 @@
 """The PyEZ table based IGMP and environment collectors."""
 
+from importlib.resources import read_text
 from unittest.mock import Mock
 
 import pytest
 import yaml
 
 from prometheus_network_exporter.devices.junosdevice import JuniperNetworkDevice
+from prometheus_network_exporter.collectors import junos
 from prometheus_network_exporter.collectors.junos.environment import EnvironmentCollector
 from prometheus_network_exporter.collectors.junos.igmp import IGMPCollector
 
@@ -157,7 +159,75 @@ def test_environment_reads_real_pyez_tables(tmp_path, strip):
     assert value(found, "pyez_junos_device_fan_status", sensorname="Fan 1") == 0
     assert value(found, "pyez_junos_device_power_status", sensorname="PSU 0") == 1
     assert value(found, "pyez_junos_device_software_version_info", software_version="21.4R3-S5.4") == 1
+    states = {
+        (labels["component_class"], labels["sensorname"]): labels["status"]
+        for labels, _ in found["pyez_junos_device_environment_info"]
+    }
+    assert states == {("Temp", "CPU"): "OK", ("Fans", "Fan 1"): "Failed", ("Power", "PSU 0"): "OK"}
     assert not found.get("pyez_junos_collector_failed")
+
+
+def environment(**classes):
+    """A full environment reply whose Power, Fans and Temp are replaced by ``classes``."""
+    return {**ENVIRONMENT, "Power": {}, "Fans": {}, "Temp": {}, **classes}
+
+
+def states(data):
+    return {
+        (dict(labels)["component_class"], dict(labels)["sensorname"]): dict(labels)["status"]
+        for (name, labels), sample in data.items()
+        if name == "pyez_junos_device_environment_info" and sample == 1
+    }
+
+
+def test_environment_states_keep_the_reported_status_next_to_the_legacy_metrics():
+    reply = environment(
+        Power={"PSU 0": {"status": "OK"}, "PSU 1": {"status": "Absent"}, "PSU 2": {"status": "Failed"}},
+        Fans={"Fan 0": {"status": "OK"}},
+        Temp={"Board": {"status": "Testing", "temperature": 35}},
+    )
+    dev = device(get_environment=reply)
+    data = collect(EnvironmentCollector(dev))
+    assert states(data) == {
+        ("Power", "PSU 0"): "OK",
+        ("Power", "PSU 1"): "Absent",
+        ("Power", "PSU 2"): "Failed",
+        ("Fans", "Fan 0"): "OK",
+        ("Temp", "Board"): "Testing",
+    }
+    # Absent and Failed both stay 0 in the old status metric.
+    assert data[("pyez_junos_device_power_status", (("sensorname", "PSU 1"),))] == 0
+    assert data[("pyez_junos_device_power_status", (("sensorname", "PSU 2"),))] == 0
+    dev.get_environment.assert_called_once_with()
+
+
+def test_environment_states_without_status_are_unknown():
+    reply = environment(Power={"PSU 0": {}, "PSU 1": {"status": None}, "PSU 2": {"status": "  "}})
+    data = collect(EnvironmentCollector(device(get_environment=reply)))
+    assert states(data) == {("Power", "PSU 0"): "unknown", ("Power", "PSU 1"): "unknown", ("Power", "PSU 2"): "unknown"}
+
+
+def test_environment_state_change_replaces_the_previous_series():
+    reply = environment(Power={"PSU 0": {"status": "Absent"}})
+    collector = EnvironmentCollector(device(get_environment=reply))
+    assert states(collect(collector)) == {("Power", "PSU 0"): "Absent"}
+    reply["Power"]["PSU 0"]["status"] = "OK"
+    assert states(collect(collector)) == {("Power", "PSU 0"): "OK"}
+
+
+def test_environment_states_follow_the_configured_classes(tmp_path):
+    reply = environment(Power={"PSU 0": {"status": "OK"}}, Fans={"Fan 0": {"status": "Failed"}})
+    config = yaml.safe_load(read_text(junos, "environment.yaml"))
+    config["COMPONENT_STATES"] = ["Fans"]
+    path = tmp_path / "environment.yaml"
+    path.write_text(yaml.safe_dump(config))
+    data = collect(EnvironmentCollector(device(get_environment=reply), config_path=str(path)))
+    assert states(data) == {("Fans", "Fan 0"): "Failed"}
+
+    del config["COMPONENT_STATES"]
+    path.write_text(yaml.safe_dump(config))
+    data = collect(EnvironmentCollector(device(get_environment=reply), config_path=str(path)))
+    assert not any(name == "pyez_junos_device_environment_info" for name, _ in data)
 
 
 def test_igmp_pyez_normalizes_single_groups_and_ignores_local_memberships(tmp_path):

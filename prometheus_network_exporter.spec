@@ -1,7 +1,5 @@
 # -*- mode: python ; coding: utf-8 -*-
 
-block_cipher = None
-
 added_files = [
     ('prometheus_network_exporter/collectors/junos/*.yaml', 'prometheus_network_exporter/collectors/junos'),
     ('prometheus_network_exporter/views/junos/*.yml', 'prometheus_network_exporter/views/junos')
@@ -14,16 +12,11 @@ a = Analysis(['prometheus_network_exporter/app.py'],
              hookspath=[],
              runtime_hooks=[],
              excludes=[],
-             win_no_prefer_redirects=False,
-             win_private_assemblies=False,
-             cipher=block_cipher,
              noarchive=False)
-pyz = PYZ(a.pure, a.zipped_data,
-          cipher=block_cipher)
+pyz = PYZ(a.pure)
 exe = EXE(pyz,
           a.scripts,
           a.binaries,
-          a.zipfiles,
           a.datas,
           [],
           name='prometheus_network_exporter',

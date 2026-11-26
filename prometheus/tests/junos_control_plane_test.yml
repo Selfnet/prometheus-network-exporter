@@ -143,3 +143,88 @@ tests:
               alarm: laser_rx_power_low_alarm
             exp_annotations:
               summary: "xe-0/1/2:0 lane 3 on a raises laser_rx_power_low_alarm"
+
+  # A failed power supply fires after 10m; an empty slot and a fan that only
+  # tests during boot do not.
+  - interval: 1m
+    input_series:
+      - series: 'pyez_junos_device_environment_info{instance="a",component_class="Power",sensorname="PSU 1",status="Failed"}'
+        values: '1x15'
+      - series: 'pyez_junos_device_environment_info{instance="a",component_class="Power",sensorname="PSU 2",status="Absent"}'
+        values: '1x15'
+      - series: 'pyez_junos_device_environment_info{instance="b",component_class="Fans",sensorname="Fan 0",status="Testing"}'
+        values: '1x4 _x11'
+      - series: 'pyez_junos_device_environment_info{instance="b",component_class="Fans",sensorname="Fan 0",status="OK"}'
+        values: '_x5 1x10'
+    alert_rule_test:
+      - eval_time: 9m
+        alertname: JunosComponentNotOk
+        exp_alerts: []
+      - eval_time: 10m
+        alertname: JunosComponentNotOk
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              instance: a
+              component_class: Power
+              sensorname: PSU 1
+            exp_annotations:
+              summary: "PSU 1 on a is not OK"
+              description: "Current state: Failed."
+
+  # A power supply that switches between two fault states every six minutes
+  # is faulty the whole time; the pending time must not start over.
+  - interval: 1m
+    input_series:
+      - series: 'pyez_junos_device_environment_info{instance="c",component_class="Power",sensorname="PSU 3",status="Failed"}'
+        values: '1x5 stale _x5 1x8'
+      - series: 'pyez_junos_device_environment_info{instance="c",component_class="Power",sensorname="PSU 3",status="Check"}'
+        values: '_x6 1x5 stale'
+    alert_rule_test:
+      - eval_time: 9m
+        alertname: JunosComponentNotOk
+        exp_alerts: []
+      - eval_time: 10m
+        alertname: JunosComponentNotOk
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              instance: c
+              component_class: Power
+              sensorname: PSU 3
+            exp_annotations:
+              summary: "PSU 3 on c is not OK"
+              description: "Current state: Check."
+      - eval_time: 20m
+        alertname: JunosComponentNotOk
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              instance: c
+              component_class: Power
+              sensorname: PSU 3
+            exp_annotations:
+              summary: "PSU 3 on c is not OK"
+              description: "Current state: Failed."
+
+  # The description reads the state of the alerting series, not that of the
+  # same sensor scraped by another job.
+  - interval: 1m
+    input_series:
+      - series: 'pyez_junos_device_environment_info{job="a",instance="d",component_class="Power",sensorname="PSU 0",status="OK"}'
+        values: '1x15'
+      - series: 'pyez_junos_device_environment_info{job="b",instance="d",component_class="Power",sensorname="PSU 0",status="Failed"}'
+        values: '1x15'
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: JunosComponentNotOk
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              job: b
+              instance: d
+              component_class: Power
+              sensorname: PSU 0
+            exp_annotations:
+              summary: "PSU 0 on d is not OK"
+              description: "Current state: Failed."

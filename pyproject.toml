@@ -1,18 +1,18 @@
 [project]
 name = "prometheus-network-exporter"
-version = "1.4.3"
+version = "1.4.4"
 description = "A Prometheus Network Exporter which connects via netconf ssh to the devices"
 authors = [{ name = "Cellebyte", email = "marcel.fest@live.de" }]
 license = "MIT"
 readme = "README.md"
 requires-python = ">=3.12,<4.0"
 dependencies = [
-    # pinned due to telnetlib being removed
-    "junos-eznc==2.7.5",
+    # 2.7.5 held ncclient at 0.7.0; telnetlib is bundled since 2.7.5.
+    "junos-eznc>=2.8.3",
     "ncclient",
     "lxml",
     "PyYAML",
-    "tornado",
+    "tornado>=6.6.1",
     "prometheus_client",
     "fqdn",
     "voluptuous",
@@ -22,12 +22,14 @@ dependencies = [
 [tool.poetry.group.dev.dependencies]
 # Pinned so that CI and a local run report the same findings.
 pytest = "9.2.0"
-coverage = "7.17.1"
+coverage = "7.17.5"
 flake8 = "7.5.0"
 black = "26.10.1"
 mypy = "2.4.1"
-types-PyYAML = "6.0.12.20261103"
-pyinstaller = "*"
+types-PyYAML = "6.0.12.20261122"
+# Without the marker poetry falls back to 4.5.1, the last release without an
+# upper Python bound, because requires-python reaches up to 4.0.
+pyinstaller = { version = ">=6.22.3", python = "<3.16" }
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
